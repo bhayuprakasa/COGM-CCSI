@@ -1,0 +1,69 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "username": "admin",
+      "password": "admin123",
+      "nama": "Administrator",
+      "role": "admin",
+      "custom_pages": "[]",
+      "created_dt": "19/5/2026 16.52.21",
+      "updated_dt": "19/5/2026 16.52.21"
+    },
+    {
+      "id": "u2",
+      "username": "editor",
+      "password": "edit123",
+      "nama": "Editor User",
+      "role": "editor",
+      "custom_pages": "[]",
+      "created_dt": "19/5/2026 16.52.21",
+      "updated_dt": "19/5/2026 16.52.21"
+    },
+    {
+      "id": "u3",
+      "username": "viewer",
+      "password": "view123",
+      "nama": "Viewer User",
+      "role": "viewer",
+      "custom_pages": "[]",
+      "created_dt": "19/5/2026 16.52.21",
+      "updated_dt": "19/5/2026 16.52.21"
+    },
+    {
+      "id": "u4",
+      "username": "approver",
+      "password": "appr123",
+      "nama": "Approver User",
+      "role": "approver",
+      "custom_pages": "[]",
+      "created_dt": "19/5/2026 16.52.21",
+      "updated_dt": "19/5/2026 16.52.21"
+    }
+  ],
+  "items": [],
+  "prices": [],
+  "price_lines": [],
+  "exrates": [],
+  "exrate_lines": [],
+  "dlfoh": [],
+  "mesin": [],
+  "kapasitas": [],
+  "masterbom": [],
+  "masterbom_groups": [],
+  "masterbom_lines": [],
+  "masterbom_dlfoh": [],
+  "bom": [],
+  "bom_groups": [],
+  "bom_lines": [],
+  "bom_dlfoh": [],
+  "audit": [],
+  "sequences": {
+    "item": 0,
+    "price": 0,
+    "kap": 0,
+    "masterbom": 0,
+    "bom": 0
+  },
+  "_autoId": 0
+}
