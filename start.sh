@@ -35,8 +35,8 @@ fi
 IP=$(hostname -I | awk '{print $1}')
 echo ""
 echo "Server berjalan di:"
-echo "  Local  : http://localhost:3000"
-echo "  Network: http://$IP:3000"
+echo "  Local  : http://localhost:3001"
+echo "  Network: http://$IP:3001"
 echo ""
 echo "Tekan Ctrl+C untuk berhenti."
 echo "============================================"
