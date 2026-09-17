@@ -6,7 +6,7 @@ const fs      = require('fs');
 const os      = require('os');
 
 const app  = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));

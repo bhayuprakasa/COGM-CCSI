@@ -55,7 +55,7 @@ cogm-server/
 ### Langkah 5 — Akses dari Komputer Lain
 Di komputer user lain (yang terhubung ke WiFi/LAN yang sama):
 1. Buka browser (Chrome/Edge/Firefox)
-2. Ketik: `http://192.168.1.xxx:3000`
+2. Ketik: `http://192.168.1.xxx:3001`
    (ganti dengan IP yang tampil di START.bat)
 3. Login dengan akun yang tersedia
 
@@ -174,18 +174,18 @@ Otomatis hapus backup lebih dari 30 hari.
 
 ## TROUBLESHOOTING
 
-### "Port 3000 sudah dipakai"
+### "Port 3001 sudah dipakai"
 ```bash
-# Windows: cari proses yang pakai port 3000
-netstat -ano | findstr :3000
+# Windows: cari proses yang pakai port 3001
+netstat -ano | findstr :3001
 # Kill proses dengan PID yang ditemukan
 taskkill /PID <PID> /F
 
 # Linux:
-sudo lsof -i :3000
+sudo lsof -i :3001
 sudo kill -9 <PID>
 ```
-Atau ganti port: edit server.js baris `const PORT = 3000;`
+Atau ganti port: edit server.js baris `const PORT = 3001;`
 
 ### Tidak bisa akses dari komputer lain
 - Pastikan kedua komputer terhubung ke WiFi/LAN yang sama
@@ -217,7 +217,7 @@ console.log('Password admin direset ke: admin123');
 ## KEAMANAN (untuk lingkungan UMKM)
 
 1. **Ganti semua password default** segera setelah install
-2. **Firewall**: pastikan port 3000 hanya bisa diakses dari jaringan internal (LAN)
+2. **Firewall**: pastikan port 3001 hanya bisa diakses dari jaringan internal (LAN)
 3. **Backup rutin**: aktifkan backup otomatis harian
 4. **UPS**: pasang UPS di komputer server agar tidak mati tiba-tiba
 5. **Jangan expose ke internet** tanpa konfigurasi keamanan tambahan (HTTPS, reverse proxy)
