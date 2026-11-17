@@ -41,15 +41,4435 @@
       "updated_dt": "19/5/2026 16.52.21"
     }
   ],
-  "items": [],
+  "items": [
+    {
+      "id": "ITM1a1e8eb2243881d2",
+      "code": "RMF 10131",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224355fe6",
+      "code": "RMF 10160",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22433cc7b",
+      "code": "RMF 10161",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2243bb2e3",
+      "code": "RMF 10162",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224431c44",
+      "code": "RMF 10170",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22444eacf",
+      "code": "No RMCode",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2244101b8",
+      "code": "RMF 10102",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2244ce82e",
+      "code": "RMF 10123",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224479f27",
+      "code": "RMF 10121",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2244d6303",
+      "code": "RMF 10122",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2244a52ba",
+      "code": "RMF 10124",
+      "name": "Fiber Natural",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2244d456a",
+      "code": "RMF 10100",
+      "name": "Fiber Natural",
+      "uom": "Km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22443c1dd",
+      "code": "RMF 10151",
+      "name": "Fiber Natural",
+      "uom": "Km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224461d7b",
+      "code": "RMF 10300",
+      "name": "Fiber Colored",
+      "uom": "Km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22454a3e0",
+      "code": "RMO 10200",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245eddc7",
+      "code": "RMO 10202",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22457dbac",
+      "code": "RMO 10203",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224534dbb",
+      "code": "RMO 10204",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245fc943",
+      "code": "RMO 10205",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245f0224",
+      "code": "RMO 10206",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22459b26c",
+      "code": "RMO 10207",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245c5074",
+      "code": "RMO 10208",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245caeb5",
+      "code": "RMO 10209",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22458afe5",
+      "code": "RMO 10210",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22456853",
+      "code": "RMO 10211",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245d7d3c",
+      "code": "RMO 10212",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224519aea",
+      "code": "RMO 10301",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245687d2",
+      "code": "RMO 10302",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22453b69e",
+      "code": "RMO 10303",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245d63a",
+      "code": "RMO 10304",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245d30b0",
+      "code": "RMO 10305",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224559752",
+      "code": "RMO 10306",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245cafc3",
+      "code": "RMO 10307",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2245950cc",
+      "code": "RMO 10308",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224626eba",
+      "code": "RMO 10309",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22469dc22",
+      "code": "RMO 10310",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2246e6720",
+      "code": "RMO 10311",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22466f92a",
+      "code": "RMO 10312",
+      "name": "Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22469e6a3",
+      "code": "RMO 10401",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22468f5e7",
+      "code": "RMO 10402",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224644d18",
+      "code": "RMO 10403",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2246e7724",
+      "code": "RMO 10404",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22462f98",
+      "code": "RMO 10405",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2246daa16",
+      "code": "RMO 10406",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2246b99f2",
+      "code": "RMO 10407",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2246456d1",
+      "code": "RMO 10408",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2246bda4e",
+      "code": "RMO 10409",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224685fe8",
+      "code": "RMO 10410",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2246c1514",
+      "code": "RMO 10411",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22465c62a",
+      "code": "RMO 10412",
+      "name": "LED Color Ink",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224619a5b",
+      "code": "RMO 20300",
+      "name": "Filling Compound",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224652d6f",
+      "code": "RMO 20200",
+      "name": "PC",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22462758",
+      "code": "RMO 20100",
+      "name": "PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2247cbcde",
+      "code": "RMO 20400",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224735d7d",
+      "code": "RMO 20402",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2247aaae",
+      "code": "RMO 20403",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2247ec2f4",
+      "code": "RMO 20415",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224725e68",
+      "code": "RMO 20404",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224735ac3",
+      "code": "RMO 20405",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2247a33ee",
+      "code": "RMO 20406",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2247251ed",
+      "code": "RMO 20407",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224782707",
+      "code": "RMO 20408",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224712bbe",
+      "code": "RMO 20409",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224762569",
+      "code": "RMO 20410",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224720a63",
+      "code": "RMO 20411",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2247396e2",
+      "code": "RMO 20412",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2247e9fb8",
+      "code": "RMO 20413",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224737418",
+      "code": "RMO 20414",
+      "name": "Masterbatch PBT",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22471bb81",
+      "code": "RMO 20601",
+      "name": "Fiber Bundle/Marker Yarn",
+      "uom": "cone",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224715d44",
+      "code": "RMO 20602",
+      "name": "Fiber Bundle/Marker Yarn",
+      "uom": "cone",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224733a51",
+      "code": "RMO 20603",
+      "name": "Fiber Bundle/Marker Yarn",
+      "uom": "cone",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224717718",
+      "code": "RMO 20604",
+      "name": "Fiber Bundle/Marker Yarn",
+      "uom": "cone",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22488c4b1",
+      "code": "RMO 2071925",
+      "name": "Stainless Steel Tape 316L",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2248b3dc7",
+      "code": "RMO 2072230",
+      "name": "Stainless Steel Tape 316L",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2248b25bc",
+      "code": "RMO 20500",
+      "name": "Filling Gel with Hydrogen Scavenger",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22481e190",
+      "code": "RMO 33050",
+      "name": "CM",
+      "uom": "Aeron/Indore/Hongchang/ Schuesheng",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224831c61",
+      "code": "RMO 33120",
+      "name": "CM",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224843dbb",
+      "code": "RMO 33150",
+      "name": "CM",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224928939",
+      "code": "RMO 33160",
+      "name": "CM",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2249226e2",
+      "code": "RMO 33170",
+      "name": "CM",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2249895b9",
+      "code": "RMO 33180",
+      "name": "CM",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224919fd7",
+      "code": "RMO 33200",
+      "name": "CM",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22491a789",
+      "code": "RMO 33230",
+      "name": "CM",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2249badbd",
+      "code": "RMO 33260",
+      "name": "CM",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22497e142",
+      "code": "RMO 33300",
+      "name": "CM",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22496e335",
+      "code": "RMO 31122",
+      "name": "Water Blocking Tape",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a2a4",
+      "code": "RMO 31125",
+      "name": "Water Blocking Tape",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a67d06",
+      "code": "RMO 31130",
+      "name": "Water Blocking Tape",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a6d90f",
+      "code": "RMO 31135",
+      "name": "Water Blocking Tape",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ac20bd",
+      "code": "RMO 31140",
+      "name": "Water Blocking Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a1e6c8",
+      "code": "RMO 4233513",
+      "name": "Mica Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a76c82",
+      "code": "RMO 4232014",
+      "name": "Mica Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a3b920",
+      "code": "RMO 30210",
+      "name": "Binding Yarn Polyester",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a9aa3d",
+      "code": "RMO 30115",
+      "name": "Swell Yarn",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a5e983",
+      "code": "RMO 30125",
+      "name": "Swell Yarn",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a57052",
+      "code": "RMO 50090",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a99cfd",
+      "code": "RMO 50180",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224aee073",
+      "code": "RMO 43100",
+      "name": "Messenger Wire",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ac3beb",
+      "code": "RMO 50170",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ac0b9e",
+      "code": "RMO 50171",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a93e9f",
+      "code": "RMO 50172",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224a84dc2",
+      "code": "RMO 50260",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224bab156",
+      "code": "RMO 50262",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ba826f",
+      "code": "RMO 50261",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224b6d8f5",
+      "code": "RMO 50263",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224bce1d8",
+      "code": "RMO 50151",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224b2ae55",
+      "code": "RMO 50150",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224baf15a",
+      "code": "RMO 50201",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224bb0150",
+      "code": "RMO 50202",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224b3d769",
+      "code": "RMO 50300",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224b5f491",
+      "code": "RMO 50301",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224b4a6a4",
+      "code": "RMO 50125",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224bdd2b8",
+      "code": "RMO 50100",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224b764d7",
+      "code": "RMO 50120",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224b4e95d",
+      "code": "RMO 50121",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224b94b09",
+      "code": "RMO 50518",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224bdef86",
+      "code": "RMO 50091",
+      "name": "GSW",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224b54c62",
+      "code": "RMO 50130",
+      "name": "GSW",
+      "uom": "km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224c7abd2",
+      "code": "RMO 42226",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224c2e304",
+      "code": "RMO 42228",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ce4f1a",
+      "code": "RMO 42232",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224cccb8",
+      "code": "RMO 42235",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224c7b32f",
+      "code": "RMO 42237",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224c91427",
+      "code": "RMO 42238",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ccbec0",
+      "code": "RMO 42239",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224c9db10",
+      "code": "RMO 42242",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224c429b0",
+      "code": "RMO 42245",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224cb4d8c",
+      "code": "RMO 42254",
+      "name": "Steel Tape 54 mm",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224c8478f",
+      "code": "RMO 42295",
+      "name": "Steel Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224c9d8ce",
+      "code": "RMO 40300",
+      "name": "Aramid Yarn",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224c17a23",
+      "code": "RMO 40310",
+      "name": "Aramid Yarn",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224db08c3",
+      "code": "RMO 40330",
+      "name": "Aramid Yarn for Long Span",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224d30b72",
+      "code": "RMO 40340",
+      "name": "Aramid Yarn",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224d97fa8",
+      "code": "RMO 40320",
+      "name": "Aramid Yarn",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224d84aac",
+      "code": "RMO 41100",
+      "name": "PA 12 L20HLBL IMCD Indonesia",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224d5cca",
+      "code": "RMO 40411",
+      "name": "Ripcord Aramid Red",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224d87cf0",
+      "code": "RMO 40403",
+      "name": "Ripcord Polyester  Flat",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224dcc71e",
+      "code": "RMO 40101",
+      "name": "Glass Yarn coat (gotex)",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224dd9372",
+      "code": "RMO 41200",
+      "name": "HDPE Black",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224db1d78",
+      "code": "RMO 41201",
+      "name": "HDPE Black",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224d39e99",
+      "code": "RMO 41400",
+      "name": "Anti Tracking PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224d790ca",
+      "code": "RMO 41221",
+      "name": "HDPE Natural",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224da81a7",
+      "code": "RMO 41211",
+      "name": "HDPE Natural",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224dc79a",
+      "code": "RMO 41210",
+      "name": "HDPE Natural",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224d473ad",
+      "code": "RMO 41222",
+      "name": "HDPE Natural",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224df182f",
+      "code": "RMO 41231",
+      "name": "MDPE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224d75461",
+      "code": "RMO 41300",
+      "name": "HFFR Black",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e8311c",
+      "code": "RMO 41310",
+      "name": "HFFR Natural",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e306e2",
+      "code": "RMO 41301",
+      "name": "HFFR Black for FTTH",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e93d5b",
+      "code": "RMO 41311",
+      "name": "HFFR Natural for FTTH",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224eb2b71",
+      "code": "RMO 44101",
+      "name": "Marking Tape White",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ec625b",
+      "code": "RMO 44110",
+      "name": "Marking Tape Black",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ea6e98",
+      "code": "RMO 44111",
+      "name": "Marking Tape Black",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e69c",
+      "code": "RMO 44121",
+      "name": "Marking Tape Yellow",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e1d92d",
+      "code": "RMO 44206",
+      "name": "Printing Ink WH HITACHI",
+      "uom": "ml",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ed6c54",
+      "code": "RMO 44202",
+      "name": "Printing Ink WH POLYCHEM",
+      "uom": "ml",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e84e2b",
+      "code": "RMO 44205",
+      "name": "Marking Ink Jet  POLYCHEM BK",
+      "uom": "ml",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e4bf2c",
+      "code": "RMO 44204",
+      "name": "Marking Ink Jet HITACHI YE",
+      "uom": "ml",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e4cf0c",
+      "code": "RMO 44302",
+      "name": "Cartridge White Magnajet White",
+      "uom": "ml",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e7b587",
+      "code": "RMO 44301",
+      "name": "Cartridge White Magnajet Black",
+      "uom": "ml",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224efc8e3",
+      "code": "RMO 42126",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e5eec3",
+      "code": "RMO 42128",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e550f4",
+      "code": "RMO 42130",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e35028",
+      "code": "RMO 42132",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e4bc70",
+      "code": "RMO 42135",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224eeba1d",
+      "code": "RMO 42137",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e9ae94",
+      "code": "RMO 42138",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224eaa1c9",
+      "code": "RMO 42140",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ee3164",
+      "code": "RMO 42146",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224e1d0c7",
+      "code": "RMO 42158",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f62418",
+      "code": "RMO 42160",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f7229f",
+      "code": "RMO 42199",
+      "name": "Aluminium Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f77ae8",
+      "code": "RMO 45008",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f77cd0",
+      "code": "RMO 45009",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224fd2943",
+      "code": "RMO 45010",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f5047e",
+      "code": "RMO 45100",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f607c7",
+      "code": "RMO 45011",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f31c66",
+      "code": "RMO 45120",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ff63f4",
+      "code": "RMO 45121",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224fcd9af",
+      "code": "RMO 45013",
+      "name": "Wooden Drum",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f9890f",
+      "code": "RMO 45014",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f47e19",
+      "code": "RMO 45015A",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f67113",
+      "code": "RMO 45015C",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224fcee71",
+      "code": "RMO 45015B",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f659ba",
+      "code": "RMO 45016A",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224f73292",
+      "code": "RMO 45016C",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224fe00a5",
+      "code": "RMO 45162",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224ff1bff",
+      "code": "RMO 45016B",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb224fed51e",
+      "code": "RMO 45017",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22506adcd",
+      "code": "RMO 45180",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2250f3f7",
+      "code": "RMO 45018B",
+      "name": "Wooden Drum",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2250c4f0f",
+      "code": "RMO 45040",
+      "name": "Spool Multiplex",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22507b556",
+      "code": "RMO 45550",
+      "name": "Spool Multiplex",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22509b6b9",
+      "code": "RMO 46120",
+      "name": "Steel Drum 12",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22505ad60",
+      "code": "RMO 46130",
+      "name": "Steel Drum 13",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22504880b",
+      "code": "RMO 46140",
+      "name": "Steel Drum 14+Dudukan",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2250eb38c",
+      "code": "RMO 46160",
+      "name": "Steel Drum 16",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22509251c",
+      "code": "RMO 46171",
+      "name": "Steel Drum 17",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225083b53",
+      "code": "RMO 482075",
+      "name": "Endcap GEC 101",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2250e683c",
+      "code": "RMO 481240",
+      "name": "Endcap GEC 001",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225139ab",
+      "code": "RMO 480602",
+      "name": "Endcap GEC 001",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2251e3687",
+      "code": "RMO 415A1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225157e23",
+      "code": "RMO 415A4",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2251ac529",
+      "code": "RMO 415A2",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2251b0926",
+      "code": "RMO 415B1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2251a7e7",
+      "code": "RMO 415B2",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2251e719c",
+      "code": "RMO 415C2",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2251ccb9c",
+      "code": "RMO 415D1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22513ef97",
+      "code": "RMO 415E1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225164dd5",
+      "code": "RMO 415F1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2251f4459",
+      "code": "RMO 415G1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2251a4ecc",
+      "code": "RMO 415H3",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2251c8f35",
+      "code": "RMO 415I1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22519b43c",
+      "code": "RMO 415J1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225161b71",
+      "code": "RMO 415K1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22525ec89",
+      "code": "RMO 415M1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2252619",
+      "code": "RMO 415H2",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2252cf0db",
+      "code": "RMO 415G2",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2252157f8",
+      "code": "RMO 415L1",
+      "name": "Masterbatch PE",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22521caa7",
+      "code": "RMO 416G1",
+      "name": "Masterbatch HFFR",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2252c86",
+      "code": "RMO 416H1",
+      "name": "Masterbatch HFFR",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22525e934",
+      "code": "RMO 416B1",
+      "name": "Masterbatch HFFR",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225256008",
+      "code": "RMO 416C1",
+      "name": "Masterbatch HFFR",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2252ceb01",
+      "code": "RMO 41800",
+      "name": "Masterbatch UV Resistant",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22522e26e",
+      "code": "RMO 41700",
+      "name": "Anti Termite & Rodent Additive",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22528bef8",
+      "code": "RMO 2081960",
+      "name": "Copper Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22527a35f",
+      "code": "RMO 2081980",
+      "name": "Copper Tape",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2252111c8",
+      "code": "RMO 55100",
+      "name": "Bitumen",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2252eab3d",
+      "code": "RMO 55101",
+      "name": "Bitumen",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225396887",
+      "code": "RMO 54100",
+      "name": "Polypropylene Yarns Yellow",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2253e914b",
+      "code": "RMO 54110",
+      "name": "Polypropylene Yarns Black",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2253e1e56",
+      "code": "RMO 30300",
+      "name": "Swellable Binding Yarn",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22537412b",
+      "code": "RMO 41110",
+      "name": "PA 12",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2258d8052",
+      "code": "RMF 10104",
+      "name": "Fiber Natural G.652.D ZTT",
+      "uom": "Km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2258f1c42",
+      "code": "RMF 10105",
+      "name": "Fiber Natural G.652.D Non Corning T2",
+      "uom": "Km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225893288",
+      "code": "RMF 10301",
+      "name": "Fiber Natural  Non Corning G652D",
+      "uom": "Km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22581704a",
+      "code": "RMF 10120",
+      "name": "Fiber Natural G.654.B Vascade EX 2000",
+      "uom": "Km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22592550",
+      "code": "RMF 10133",
+      "name": "Fiber Natural Vascade LEAF EP*",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2259c737",
+      "code": "RMF 10130",
+      "name": "Fiber Natural G.655.C",
+      "uom": "Km",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225978fb7",
+      "code": "RMO 10124",
+      "name": "Fiber Natural G.654.B Sumitomo Z-PLUS Standard",
+      "uom": "pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225b55b77",
+      "code": "RMO 10413",
+      "name": "LED Ink Herkula Blue",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225bcc1f6",
+      "code": "RMO 10414",
+      "name": "LED Ink Herkula Orange",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225bbb5f4",
+      "code": "RMO 10415",
+      "name": "LED Ink Herkula Green",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225bef1d8",
+      "code": "RMO 10416",
+      "name": "LED Ink Herkula Brown",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225b460d5",
+      "code": "RMO 10417",
+      "name": "LED Ink Herkula Grey",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225b32067",
+      "code": "RMO 10418",
+      "name": "LED Ink Herkula White",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225b67ee9",
+      "code": "RMO 10419",
+      "name": "LED Ink Herkula Red",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225bd4753",
+      "code": "RMO 10420",
+      "name": "LED Ink Herkula Black",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225b8c399",
+      "code": "RMO 10421",
+      "name": "LED Ink Herkula Yellow",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225bcc9d3",
+      "code": "RMO 10422",
+      "name": "LED Ink Herkula Violet",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225bfd09",
+      "code": "RMO 10423",
+      "name": "LED Ink Herkula Pink",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225bc8153",
+      "code": "RMO 10424",
+      "name": "LED Ink Herkula Turquoise",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d76d0",
+      "code": "RMO 2072330",
+      "name": "Stainless Steel Tape 316L 23x0.30mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225dd8e23",
+      "code": "RMO 2092815",
+      "name": "Stainless Steel Tape 304 28x0.15mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d5d036",
+      "code": "RMO 2093515",
+      "name": "Stainless Steel Tape 304 35x0.15mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d76e58",
+      "code": "RMO 2095215",
+      "name": "Stainless Steel Tape 304 52x0.15mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d42ec",
+      "code": "RMO 2082160",
+      "name": "Copper Tape 21x0.60 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d5eaf9",
+      "code": "RMO 2082180",
+      "name": "Copper Tape 21x0.80 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d74246",
+      "code": "RMO 2082250",
+      "name": "Copper Tape 22x0.50 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d800e8",
+      "code": "RMO 2083230",
+      "name": "Copper Tape 32x0.30 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225deb27d",
+      "code": "RMO 2083260",
+      "name": "Copper Tape 32x0.60 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d9b3cd",
+      "code": "RMO 30145",
+      "name": "Swell Yarn 4000-4500 denier",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d4849b",
+      "code": "RMO 30215",
+      "name": "Binding Yarn 1500 denier",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d58185",
+      "code": "RMO 30220",
+      "name": "Binding Yarn 2000 denier",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d16a9f",
+      "code": "RMO 31126",
+      "name": "Water Blocking Tape 25mm Pad",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225d137c",
+      "code": "RMO 31136",
+      "name": "Water Blocking Tape 35mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225ddb83a",
+      "code": "RMO 31155",
+      "name": "Water Blocking Tape 55mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225da03",
+      "code": "RMO 31900",
+      "name": "Flooding Compound",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225e37429",
+      "code": "RMO 40401",
+      "name": "Ripcord Polyester 1500 denier Red",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225e648a9",
+      "code": "RMO 40404",
+      "name": "Ripcord Polyester Twist 3000 White",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225e5d254",
+      "code": "RMO 40405",
+      "name": "Ripcord Polyester Twist 3000 red",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225ec9039",
+      "code": "RMO 40406",
+      "name": "Ripcord Polyester 3000 denier sample",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225ea5d4c",
+      "code": "RMO 40407",
+      "name": "Ripcord Polyester 1500 denier White",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225eea3c8",
+      "code": "RMO 40408",
+      "name": "Ripcord Polyester Twist 2000 Yellow",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb225e50029",
+      "code": "RMO 40413",
+      "name": "Ripcord Aramid 3000 denier",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261ce488",
+      "code": "RMO 41240",
+      "name": "rHDPE Black Eterlene 642B",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261a9dea",
+      "code": "RMO 41250",
+      "name": "rHDPE Natural Eterlene 062B",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261d4ed7",
+      "code": "RMO 41251",
+      "name": "rHDPE Natural Eterlene 052B",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261d5616",
+      "code": "RMO 41303",
+      "name": "Black HFFR ECCOH 5924C",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261563cb",
+      "code": "RMO 41312",
+      "name": "Natural HFFR ECCOH 5924C",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226153977",
+      "code": "RMO 415A3",
+      "name": "Masterbatch PE Blue 91641",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261f75fd",
+      "code": "RMO 415B3",
+      "name": "Masterbatch PE Orange 2233",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261a67d3",
+      "code": "RMO 415B4",
+      "name": "Masterbatch PE Orange 3542",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226174e8b",
+      "code": "RMO 415B5",
+      "name": "Masterbatch PE Orange Haimaster",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226183753",
+      "code": "RMO 415C1",
+      "name": "Masterbatch PE Green GSE1580",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261b4029",
+      "code": "RMO 415E2",
+      "name": "Masterbatch PE Grey GSE-322C",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226157302",
+      "code": "RMO 415E3",
+      "name": "Masterbatch PE Light Grey FC 9307",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261936b3",
+      "code": "RMO 415G4",
+      "name": "Masterbatch PE Red 4118",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2261d7345",
+      "code": "RMO 415H1",
+      "name": "Masterbatch PE Black INT-100",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2262a870e",
+      "code": "RMO 415I2",
+      "name": "Masterbatch PE Yellow MXD052",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22627b251",
+      "code": "RMO 416A1",
+      "name": "Masterbatch HFFR Blue INT-93761F",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226245194",
+      "code": "RMO 416I1",
+      "name": "Masterbatch HFFR Yellow ND 11733LT [FC 1232]",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22625b9da",
+      "code": "RMO 415C3",
+      "name": "Masterbatch PE Green INT-85531F",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2262ad0c",
+      "code": "RMO 415E4",
+      "name": "Masterbatch PE Light Grey BSM 221398",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2262e805b",
+      "code": "RMO 41820",
+      "name": "Foaming Agent Kasalen FC0126",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22629c3ca",
+      "code": "RMO 41900",
+      "name": "Masterbatch Silicon",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2262e8219",
+      "code": "RMO 42122",
+      "name": "Aluminium Tape 22 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2262d50d6",
+      "code": "RMO 42129",
+      "name": "Aluminium Tape 28 mm [0.05/0.10/0.05]",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2262dbd60",
+      "code": "RMO 42131",
+      "name": "Aluminium Tape 31.5 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22626824f",
+      "code": "RMO 42142",
+      "name": "Aluminium Tape 42 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226259143",
+      "code": "RMO 42147",
+      "name": "Aluminium Tape 47 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2262a4ec6",
+      "code": "RMO 42148",
+      "name": "Aluminium Tape 48 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226281ea9",
+      "code": "RMO 42152",
+      "name": "Aluminium Tape 52 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2262dfec3",
+      "code": "RMO 42154",
+      "name": "Aluminium Tape 54 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22628f1fa",
+      "code": "RMO 42155",
+      "name": "Aluminium Tape 55 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22636f53a",
+      "code": "RMO 42218",
+      "name": "Steel Tape 18 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226395be4",
+      "code": "RMO 42222",
+      "name": "Steel Tape 22 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22635cff9",
+      "code": "RMO 42223",
+      "name": "Steel Tape 23 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22637837d",
+      "code": "RMO 42236",
+      "name": "Steel Tape 36 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2263e724b",
+      "code": "RMO 42240",
+      "name": "Steel Tape 40 mm [0.05 / 0.15 / 0.05]",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2263bfdac",
+      "code": "RMO 42248",
+      "name": "Steel Tape 48 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2263ecf12",
+      "code": "RMO 42255",
+      "name": "Steel Tape 55 mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2263b0fe0",
+      "code": "RMO 4233015",
+      "name": "Mica Tape 30x0.15mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2263b4eef",
+      "code": "RMO 4235014",
+      "name": "Mica Tape 50X0.14mm",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2263a8a47",
+      "code": "RMO 43110",
+      "name": "Messenger Wire 7X0.4",
+      "uom": "KM",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2263ef362",
+      "code": "RMO 45090",
+      "name": "Wooden Drum D04",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2264b5c65",
+      "code": "RMO 45110",
+      "name": "Wooden Drum D11",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22647a984",
+      "code": "RMO 45122",
+      "name": "Wooden Drum D12 UJ Certification",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226482002",
+      "code": "RMO 45130",
+      "name": "Wooden Drum D13",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2264b82a3",
+      "code": "RMO 45140",
+      "name": "Wooden Drum D14",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb22649c211",
+      "code": "RMO 45150",
+      "name": "Wooden Drum D15",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2264b97cf",
+      "code": "RMO 45153",
+      "name": "Wooden Drum D15 UJ Certification",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226449921",
+      "code": "RMO 45160",
+      "name": "Wooden Drum D16",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2264fd5bf",
+      "code": "RMO 45161",
+      "name": "Wooden Drum D16SC",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb2264fe062",
+      "code": "RMO 45170",
+      "name": "Wooden Drum D17",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226482585",
+      "code": "RMO 483011",
+      "name": "Endcap 30/11 mm",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226443fb9",
+      "code": "RMO 484015",
+      "name": "Endcap 40/15 mm",
+      "uom": "Pcs",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226514690",
+      "code": "RMO 50200",
+      "name": "Galvanized Steel Wire Ø 2.05mm TS 1960N/mm2",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226547575",
+      "code": "RMO 50220",
+      "name": "Galvanized Steel Wire Ø 2.2mm TS 1770 N/mm2",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb226513cff",
+      "code": "RMO 50350",
+      "name": "Galvanized Steel Wire Ø 3.5mm TS 1370 N/mm2",
+      "uom": "Kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "ITM1a1e8eb4ca16c65d",
+      "code": "RMO 41280",
+      "name": "Pelletized HDPE ex Crusher Black",
+      "uom": "kg",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.37",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.37"
+    }
+  ],
   "prices": [],
   "price_lines": [],
-  "exrates": [],
+  "exrates": [
+    {
+      "id": "EX1a1e8eb4ca1a93e0",
+      "currency_id": "USD",
+      "created_dt": "17/11/2026 09.51.37",
+      "updated_dt": "17/11/2026 09.51.37",
+      "lines": [
+        {
+          "tanggal": "10/11/2026",
+          "rate": 0.0,
+          "rate_conversion": 18140.0
+        }
+      ]
+    },
+    {
+      "id": "EX1a1e8eb4ca11f3d6",
+      "currency_id": "EUR",
+      "created_dt": "17/11/2026 09.51.37",
+      "updated_dt": "17/11/2026 09.51.37",
+      "lines": [
+        {
+          "tanggal": "10/11/2026",
+          "rate": 0.0,
+          "rate_conversion": 20385.73
+        }
+      ]
+    },
+    {
+      "id": "EX1a1e8eb4ca1a5777",
+      "currency_id": "CNY",
+      "created_dt": "17/11/2026 09.51.37",
+      "updated_dt": "17/11/2026 09.51.37",
+      "lines": [
+        {
+          "tanggal": "10/11/2026",
+          "rate": 0.0,
+          "rate_conversion": 2785.03
+        }
+      ]
+    },
+    {
+      "id": "EX1a1e8eb4ca12cb74",
+      "currency_id": "IDR",
+      "created_dt": "17/11/2026 09.51.37",
+      "updated_dt": "17/11/2026 09.51.37",
+      "lines": [
+        {
+          "tanggal": "10/11/2026",
+          "rate": 1.0,
+          "rate_conversion": 1.0
+        }
+      ]
+    }
+  ],
   "exrate_lines": [],
-  "dlfoh": [],
+  "dlfoh": [
+    {
+      "id": "DF1a1e8eb2227a53fb",
+      "catid": "Col DL",
+      "desc": "Coloring Direct Labour",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2227386df",
+      "catid": "Col FFOH",
+      "desc": "Coloring Fixed FOH",
+      "type": "Machine",
+      "rate": 20853.143688935004,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222773498",
+      "catid": "Col VFOH",
+      "desc": "Coloring Variable FOH",
+      "type": "Machine",
+      "rate": 132376.6284574308,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2227b14d6",
+      "catid": "Buf DL",
+      "desc": "Buffering Direct Labour",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22282d8ca",
+      "catid": "Buf FFOH",
+      "desc": "Buffering Fixed FOH",
+      "type": "Machine",
+      "rate": 35232.100703074975,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228a780",
+      "catid": "Buf VFOH",
+      "desc": "Buffering Variable FOH",
+      "type": "Machine",
+      "rate": 221417.1646756958,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228a14f2",
+      "catid": "Str DL",
+      "desc": "Stranding Direct Labour",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228d81d5",
+      "catid": "Str FFOH",
+      "desc": "Stranding Fixed FOH",
+      "type": "Machine",
+      "rate": 45943.64249011986,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22286b68",
+      "catid": "Str VFOH",
+      "desc": "Stranding Variable FOH",
+      "type": "Machine",
+      "rate": 226093.80879108605,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222813049",
+      "catid": "Jac DL",
+      "desc": "Jacketing 1&3 Direct Labour",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228dbbac",
+      "catid": "Jac FFOH",
+      "desc": "Jacketing 1&3 Fixed FOH",
+      "type": "Machine",
+      "rate": 79922.32860163474,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228724ed",
+      "catid": "Jac VFOH",
+      "desc": "Jacketing 1&3 Variable FOH",
+      "type": "Machine",
+      "rate": 507881.8856701211,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222816cb1",
+      "catid": "Jac2 DL",
+      "desc": "Jacketing 2,4,8 Direct Labour",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228edc60",
+      "catid": "Jac2 FFOH",
+      "desc": "Jacketing 2,4,8  Fixed FOH",
+      "type": "Machine",
+      "rate": 30222.392519176672,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228f22b8",
+      "catid": "Jac2 VFOH",
+      "desc": "Jacketing 2,4,8 Variable FOH",
+      "type": "Machine",
+      "rate": 206195.88604925666,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22284b631",
+      "catid": "Rig DL",
+      "desc": "Rigid Stranding Machine Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22285ddd9",
+      "catid": "Rig FFOH",
+      "desc": "Rigid Stranding Machine Fixed FOH",
+      "type": "Machine",
+      "rate": 81967.73257064178,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222810317",
+      "catid": "Rig VFOH",
+      "desc": "Rigid Stranding Machine Variable FOH",
+      "type": "Machine",
+      "rate": 203371.1539622988,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222847160",
+      "catid": "Jac6 DL",
+      "desc": "Jacketing 6 Direct Labour",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222858d10",
+      "catid": "Jac6 FFOH",
+      "desc": "Jacketing 6  Fixed FOH",
+      "type": "Machine",
+      "rate": 25450.047822925684,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22281f71f",
+      "catid": "Jac6 VFOH",
+      "desc": "Jacketing 6 Variable FOH",
+      "type": "Machine",
+      "rate": 265969.1038694718,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22284c83b",
+      "catid": "Jac7 DL",
+      "desc": "Jacketing 7 Direct Labour",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228f24d3",
+      "catid": "Jac7 FFOH",
+      "desc": "Jacketing 7  Fixed FOH",
+      "type": "Machine",
+      "rate": 34958.41171829523,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222884490",
+      "catid": "Jac7 VFOH",
+      "desc": "Jacketing 7 Variable FOH",
+      "type": "Machine",
+      "rate": 321245.86796981917,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228a0ad7",
+      "catid": "SsTb DL",
+      "desc": "Sustube Machine Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22285bcea",
+      "catid": "SsTb FFOH",
+      "desc": "Sustube Machine Fixed FOH",
+      "type": "Machine",
+      "rate": 254691.20579411092,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228d6f99",
+      "catid": "SsTb VFOH",
+      "desc": "Sustube Machine Variable FOH",
+      "type": "Machine",
+      "rate": 437545.0728983871,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228e72db",
+      "catid": "Arm DL",
+      "desc": "Armouring Direct Labour",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22282a377",
+      "catid": "Arm FFOH",
+      "desc": "Armouring Fixed FOH",
+      "type": "Machine",
+      "rate": 88356.43595685669,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228e131e",
+      "catid": "Arm VFOH",
+      "desc": "Armouring Variable FOH",
+      "type": "Machine",
+      "rate": 249933.28086655898,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22289617a",
+      "catid": "Tub DL",
+      "desc": "Tubular Stranding Machine Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228f6dbd",
+      "catid": "Tub FFOH",
+      "desc": "Tubular Stranding Machine Fixed FOH",
+      "type": "Machine",
+      "rate": 139274.90103324066,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22289400e",
+      "catid": "Tub VFOH",
+      "desc": "Tubular Stranding Machine Variable FOH",
+      "type": "Machine",
+      "rate": 300091.31171590387,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228172f0",
+      "catid": "Jac5 DL",
+      "desc": "Jacketing 5 Machine Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222885e15",
+      "catid": "Jac5 FFOH",
+      "desc": "Jacketing 5 Machine Fixed FOH",
+      "type": "Machine",
+      "rate": 88002.76340523147,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228f7b50",
+      "catid": "Jac5 VFOH",
+      "desc": "Jacketing 5 Machine Variable FOH",
+      "type": "Machine",
+      "rate": 235132.6168764312,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228205be",
+      "catid": "CW DL",
+      "desc": "Copper Welder Machine Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22286495d",
+      "catid": "CW FFOH",
+      "desc": "Copper Welder Machine Fixed FOH",
+      "type": "Machine",
+      "rate": 254691.20579411092,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22284d238",
+      "catid": "CW VFOH",
+      "desc": "Copper Welder Machine Variable FOH",
+      "type": "Machine",
+      "rate": 437545.0728983871,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22288e4ea",
+      "catid": "CR DL",
+      "desc": "Cable Rewinder Machine Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222891407",
+      "catid": "CR FFOH",
+      "desc": "Cable Rewinder Machine Fixed FOH",
+      "type": "Machine",
+      "rate": 114368.68984581817,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22283a3db",
+      "catid": "CR VFOH",
+      "desc": "Cable Rewinder Machine Variable FOH",
+      "type": "Machine",
+      "rate": 295845.65255799814,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228aec89",
+      "catid": "Pipe A DL",
+      "desc": "Pipe A Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22285bbf7",
+      "catid": "Pipe A FFOH",
+      "desc": "Pipe A Fixed FOH",
+      "type": "Machine",
+      "rate": 102736.09026667145,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22287df1a",
+      "catid": "Pipe A VFOH",
+      "desc": "Pipe A Variabel FOH",
+      "type": "Machine",
+      "rate": 237989.88093686698,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228962ee",
+      "catid": "Pipe B DL",
+      "desc": "Pipe B Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222880dc9",
+      "catid": "Pipe B FFOH",
+      "desc": "Pipe B Fixed FOH",
+      "type": "Machine",
+      "rate": 334504.46783459256,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222812b1",
+      "catid": "Pipe B VFOH",
+      "desc": "Pipe B Variabel FOH",
+      "type": "Machine",
+      "rate": 398941.2773547703,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228f2fe",
+      "catid": "Pipe C DL",
+      "desc": "Pipe C Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222847e3a",
+      "catid": "Pipe C FFOH",
+      "desc": "Pipe C Fixed FOH",
+      "type": "Machine",
+      "rate": 75571.2098649321,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228ec487",
+      "catid": "Pipe C VFOH",
+      "desc": "Pipe C Variabel FOH",
+      "type": "Machine",
+      "rate": 244170.60611271005,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228be650",
+      "catid": "Pipe D DL",
+      "desc": "Pipe D Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2228d6c7e",
+      "catid": "Pipe D FFOH",
+      "desc": "Pipe D Fixed FOH",
+      "type": "Machine",
+      "rate": 0.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb22295e39d",
+      "catid": "Pipe D VFOH",
+      "desc": "Pipe D Variabel FOH",
+      "type": "Machine",
+      "rate": 0.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2229ec557",
+      "catid": "Pipe E DL",
+      "desc": "Pipe E Direct Labor",
+      "type": "Machine",
+      "rate": 58980.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb2229f0542",
+      "catid": "Pipe E FFOH",
+      "desc": "Pipe E Fixed FOH",
+      "type": "Machine",
+      "rate": 76891.91473255746,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222990ed8",
+      "catid": "Pipe E VFOH",
+      "desc": "Pipe E Variabel FOH",
+      "type": "Machine",
+      "rate": 195586.88555879385,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    },
+    {
+      "id": "DF1a1e8eb222991ec6",
+      "catid": "#REF!",
+      "desc": "#REF!",
+      "type": "#REF!",
+      "rate": 0.0,
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.26",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.26"
+    }
+  ],
   "mesin": [],
   "kapasitas": [],
-  "masterbom": [],
+  "masterbom": [
+    {
+      "id": "MBOMDOC-MBOM-0001",
+      "bomid": "MBOM-0001",
+      "product": "DUCT Cable  12F/2T MMF",
+      "customer": "",
+      "project": "",
+      "fiber_cnt": "RMF 10160",
+      "buffer_qty": "2",
+      "fiber_qty": "6",
+      "created_by": "import",
+      "created_dt": "17/11/2026 09.51.37",
+      "modified_by": "import",
+      "modified_dt": "17/11/2026 09.51.37",
+      "groups": [
+        {
+          "machine_line": "FIBER",
+          "machine_id": "",
+          "kap_id": "",
+          "speed": 0,
+          "kapPct": 100,
+          "dlLot": 1,
+          "fohLot": 1,
+          "lines": [
+            {
+              "item_code": "RMF 10160",
+              "item_name": "Fiber Natural MMG50 OM2*",
+              "uom": "km",
+              "qty": 1.0,
+              "scrap": 0.05,
+              "factor": 48.0,
+              "total_qty": 50.400000000000006
+            }
+          ],
+          "dlfohLines": []
+        },
+        {
+          "machine_line": "COLOURING",
+          "machine_id": "",
+          "kap_id": "",
+          "speed": 10000.0,
+          "kapPct": 75.0,
+          "dlLot": 2.0,
+          "fohLot": 4.0,
+          "lines": [
+            {
+              "item_code": "RMO 10200",
+              "item_name": "Color Ink Phichem BU Phichem",
+              "uom": "kg",
+              "qty": 0.0066,
+              "scrap": 0.0,
+              "factor": 2.0,
+              "total_qty": 0.0132
+            },
+            {
+              "item_code": "RMO 10202",
+              "item_name": "Color Ink Phichem OG Phichem",
+              "uom": "kg",
+              "qty": 0.0066,
+              "scrap": 0.0,
+              "factor": 2.0,
+              "total_qty": 0.0132
+            },
+            {
+              "item_code": "RMO 10203",
+              "item_name": "Color Ink Phichem GN Phichem",
+              "uom": "kg",
+              "qty": 0.0066,
+              "scrap": 0.0,
+              "factor": 2.0,
+              "total_qty": 0.0132
+            },
+            {
+              "item_code": "RMO 10204",
+              "item_name": "Color Ink Phichem BN Phichem",
+              "uom": "kg",
+              "qty": 0.0066,
+              "scrap": 0.0,
+              "factor": 2.0,
+              "total_qty": 0.0132
+            },
+            {
+              "item_code": "RMO 10205",
+              "item_name": "Color Ink Phichem GY Phichem",
+              "uom": "kg",
+              "qty": 0.0066,
+              "scrap": 0.0,
+              "factor": 2.0,
+              "total_qty": 0.0132
+            },
+            {
+              "item_code": "RMO 10206",
+              "item_name": "Color Ink Phichem WH  Phichem",
+              "uom": "kg",
+              "qty": 0.0066,
+              "scrap": 0.0,
+              "factor": 2.0,
+              "total_qty": 0.0132
+            }
+          ],
+          "dlfohLines": [
+            {
+              "cat": "Col DL",
+              "type": "Direct Labor",
+              "idx": 0.0022222222222222222,
+              "index_manual": 0,
+              "factor": 12.0,
+              "setup": 0.0,
+              "total_hour": 0.026666666666666665,
+              "total_cost": 3145.6
+            },
+            {
+              "cat": "Col FFOH",
+              "type": "Fixed FOH",
+              "idx": 0.0022222222222222222,
+              "index_manual": 0,
+              "factor": 12.0,
+              "setup": 0.0,
+              "total_hour": 0.026666666666666665,
+              "total_cost": 2224.335326819734
+            },
+            {
+              "cat": "Col VFOH",
+              "type": "Variable FOH",
+              "idx": 0.0022222222222222222,
+              "index_manual": 0,
+              "factor": 12.0,
+              "setup": 0.0,
+              "total_hour": 0.026666666666666665,
+              "total_cost": 14120.173702125952
+            }
+          ]
+        },
+        {
+          "machine_line": "BUFFERING [Tube 1.9]",
+          "machine_id": "",
+          "kap_id": "",
+          "speed": 600.0,
+          "kapPct": 51.0,
+          "dlLot": 1.0,
+          "fohLot": 1.0,
+          "lines": [
+            {
+              "item_code": "RMO 20300",
+              "item_name": "Filling Compound ITCOGEL T210/400N/K880/LT401 ITCO INDUSTRIES/unigel/Indore/Honghui",
+              "uom": "kg",
+              "qty": 0.87,
+              "scrap": 0.0,
+              "factor": 2.0,
+              "total_qty": 1.74
+            },
+            {
+              "item_code": "RMO 20200",
+              "item_name": "PC Makrolon 3206 Covestro Polymers Indonesia",
+              "uom": "kg",
+              "qty": 0.6883033154474388,
+              "scrap": 0.03,
+              "factor": 2.0,
+              "total_qty": 1.417904829821724
+            },
+            {
+              "item_code": "RMO 20100",
+              "item_name": "PBT DH III Shanghai Dehong",
+              "uom": "kg",
+              "qty": 1.208221191653281,
+              "scrap": 0.05,
+              "factor": 2.0,
+              "total_qty": 2.5372645024718903
+            },
+            {
+              "item_code": "RMO 20400",
+              "item_name": "Masterbatch PBT BU  Kasakata Kimia /Green SpectrumE",
+              "uom": "kg",
+              "qty": 0.02416442383306562,
+              "scrap": 0.1,
+              "factor": 1.0,
+              "total_qty": 0.026580866216372186
+            },
+            {
+              "item_code": "RMO 20402",
+              "item_name": "Masterbatch PBT OG  Kasakata Kimia /Green SpectrumE kg USD",
+              "uom": "kg",
+              "qty": 0.02416442383306562,
+              "scrap": 0.1,
+              "factor": 1.0,
+              "total_qty": 0.026580866216372186
+            }
+          ],
+          "dlfohLines": [
+            {
+              "cat": "Buf DL",
+              "type": "Direct Labor",
+              "idx": 0.054466230936819175,
+              "index_manual": 0,
+              "factor": 1.0,
+              "setup": 0.0,
+              "total_hour": 0.054466230936819175,
+              "total_cost": 3212.418300653595
+            },
+            {
+              "cat": "Buf FFOH",
+              "type": "Fixed FOH",
+              "idx": 0.054466230936819175,
+              "index_manual": 0,
+              "factor": 1.0,
+              "setup": 0.0,
+              "total_hour": 0.054466230936819175,
+              "total_cost": 1918.9597332829508
+            },
+            {
+              "cat": "Buf VFOH",
+              "type": "Variable FOH",
+              "idx": 0.054466230936819175,
+              "index_manual": 0,
+              "factor": 1.0,
+              "setup": 0.0,
+              "total_hour": 0.054466230936819175,
+              "total_cost": 12059.758424602169
+            }
+          ]
+        },
+        {
+          "machine_line": "STRANDING [6el]",
+          "machine_id": "",
+          "kap_id": "",
+          "speed": 90.0,
+          "kapPct": 62.0,
+          "dlLot": 1.0,
+          "fohLot": 1.0,
+          "lines": [
+            {
+              "item_code": "RMO 50151",
+              "item_name": "Galvanized Steel Wire Ø 1.5mm TS1180 N/mm2",
+              "uom": "km",
+              "qty": 1.0,
+              "scrap": 0.01,
+              "factor": 1.0,
+              "total_qty": 1.01
+            },
+            {
+              "item_code": "RMO 41200",
+              "item_name": "HDPE Black",
+              "uom": "kg",
+              "qty": 1.3002266595044756,
+              "scrap": 0.02,
+              "factor": 4.0,
+              "total_qty": 5.3049247707782605
+            },
+            {
+              "item_code": "RMO 41280",
+              "item_name": "Pelletized HDPE ex Crusher Black",
+              "uom": "kg",
+              "qty": 2.729227928601475,
+              "scrap": 0.02,
+              "factor": 4.0,
+              "total_qty": 11.13524994869402
+            },
+            {
+              "item_code": "RMO 30115",
+              "item_name": "Swell Yarn 1500D Nantong Siber",
+              "uom": "kg",
+              "qty": 0.2,
+              "scrap": 0.01,
+              "factor": 1.0,
+              "total_qty": 0.202
+            },
+            {
+              "item_code": "RMO 30220",
+              "item_name": "Binding Yarn 2000 denier",
+              "uom": "kg",
+              "qty": 0.2733333333333333,
+              "scrap": 0.02,
+              "factor": 3.0,
+              "total_qty": 0.8363999999999999
+            },
+            {
+              "item_code": "RMO 31125",
+              "item_name": "Water Blocking Tape  25mm",
+              "uom": "kg",
+              "qty": 1.7,
+              "scrap": 0.02,
+              "factor": 1.0,
+              "total_qty": 1.734
+            }
+          ],
+          "dlfohLines": [
+            {
+              "cat": "Str DL",
+              "type": "Direct Labor",
+              "idx": 0.2986857825567503,
+              "index_manual": 0,
+              "factor": 1.0,
+              "setup": 0.0,
+              "total_hour": 0.2986857825567503,
+              "total_cost": 17616.487455197133
+            },
+            {
+              "cat": "Str FFOH",
+              "type": "Fixed FOH",
+              "idx": 0.2986857825567503,
+              "index_manual": 0,
+              "factor": 1.0,
+              "setup": 0.0,
+              "total_hour": 0.2986857825567503,
+              "total_cost": 13722.712810669016
+            },
+            {
+              "cat": "Str VFOH",
+              "type": "Variable FOH",
+              "idx": 0.2986857825567503,
+              "index_manual": 0,
+              "factor": 1.0,
+              "setup": 0.0,
+              "total_hour": 0.2986857825567503,
+              "total_cost": 67531.00621000181
+            }
+          ]
+        },
+        {
+          "machine_line": "JACKETING",
+          "machine_id": "",
+          "kap_id": "",
+          "speed": 35.0,
+          "kapPct": 54.0,
+          "dlLot": 2.0,
+          "fohLot": 1.0,
+          "lines": [
+            {
+              "item_code": "RMO 40300",
+              "item_name": "Aramid Yarn 1610 dtex",
+              "uom": "kg",
+              "qty": 0.171,
+              "scrap": 0.02,
+              "factor": 6.0,
+              "total_qty": 1.0465200000000001
+            },
+            {
+              "item_code": "RMO 40403",
+              "item_name": "Ripcord Polyester 3000 denier",
+              "uom": "kg",
+              "qty": 0.3507,
+              "scrap": 0.01,
+              "factor": 2.0,
+              "total_qty": 0.708414
+            },
+            {
+              "item_code": "RMO 41200",
+              "item_name": "HDPE Black",
+              "uom": "kg",
+              "qty": 39.90790280596343,
+              "scrap": 0.02,
+              "factor": 1.0,
+              "total_qty": 40.7060608620827
+            },
+            {
+              "item_code": "RMO 44101",
+              "item_name": "Marking Tape White MAG-8mm Mag Plastic",
+              "uom": "kg",
+              "qty": 0.23,
+              "scrap": 0.02,
+              "factor": 1.0,
+              "total_qty": 0.2346
+            },
+            {
+              "item_code": "RMO 45090",
+              "item_name": "Wooden Drum D09",
+              "uom": "pcs",
+              "qty": 0.5,
+              "scrap": 0.0,
+              "factor": 1.0,
+              "total_qty": 0.5
+            },
+            {
+              "item_code": "RMO 481240",
+              "item_name": "Endcap GEC 001  Ø 12/4 mm Shanghai Belltronic",
+              "uom": "pcs",
+              "qty": 1.0,
+              "scrap": 0.0,
+              "factor": 2.0,
+              "total_qty": 2.0
+            }
+          ],
+          "dlfohLines": [
+            {
+              "cat": "Jac DL",
+              "type": "Direct Labor",
+              "idx": 0.8818342151675485,
+              "index_manual": 0,
+              "factor": 2.0,
+              "setup": 0.0,
+              "total_hour": 1.763668430335097,
+              "total_cost": 104021.16402116402
+            },
+            {
+              "cat": "Jac FFOH",
+              "type": "Fixed FOH",
+              "idx": 0.8818342151675485,
+              "index_manual": 0,
+              "factor": 1.0,
+              "setup": 0.0,
+              "total_hour": 0.8818342151675485,
+              "total_cost": 70478.24391678548
+            },
+            {
+              "cat": "Jac VFOH",
+              "type": "Variable FOH",
+              "idx": 0.8818342151675485,
+              "index_manual": 0,
+              "factor": 1.0,
+              "setup": 0.0,
+              "total_hour": 0.8818342151675485,
+              "total_cost": 447867.6240477258
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "masterbom_groups": [],
   "masterbom_lines": [],
   "masterbom_dlfoh": [],
