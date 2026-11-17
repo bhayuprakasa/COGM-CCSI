@@ -1,0 +1,38 @@
+name: Auto Merge PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    # Hanya merge PR dari branch claude/* (branch yang dibuat otomatis)
+    if: startsWith(github.head_ref, 'claude/')
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Auto merge PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.pull_request.number;
+
+            console.log(`Merging PR #${pull_number} from branch: ${context.payload.pull_request.head.ref}`);
+
+            await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number,
+              merge_method: 'squash',
+              commit_title: context.payload.pull_request.title,
+              commit_message: context.payload.pull_request.body || ''
+            });
+
+            console.log(`PR #${pull_number} merged successfully`);
