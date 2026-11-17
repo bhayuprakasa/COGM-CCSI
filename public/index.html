@@ -139,6 +139,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 }
 .nav-item:hover{background:var(--s3);color:var(--t1);}
 .nav-item.active{background:var(--cyan2);color:var(--cyan);border-color:rgba(34,211,238,.2);}
+.guide-flow-item:hover{background:var(--cyan2)!important;}
 .nav-item .ni{font-size:.75rem;width:16px;text-align:center;flex-shrink:0;}
 
 /* MAIN */
@@ -426,6 +427,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="nav-item" onclick="goPage('bom')"><span class="ni">📋</span> Bill of Material</div>
   <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> History BOM</div>
   <div class="nav-item" id="nav_cogs" onclick="goPage('cogs')"><span class="ni">📊</span> COGS Summary</div>
+  <div class="nav-section">Panduan</div>
+  <div class="nav-item" onclick="goPage('guide')"><span class="ni">📖</span> Panduan Sistem</div>
   <div class="nav-section">Admin</div>
   <div class="nav-item" id="nav_roles" onclick="goPage('roles')"><span class="ni">🔑</span> Access Role</div>
   <div style="flex:1"></div>
@@ -1296,6 +1299,245 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 
 
+<!-- ══════════════ PANDUAN SISTEM PAGE ══════════════ -->
+<div class="page" id="page_guide">
+  <div style="max-width:900px;margin:0 auto;padding:.5rem 0 2rem">
+
+    <!-- COGM Formula Card -->
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head">
+        <div class="card-title"><span class="card-title-icon">📐</span> Rumus COGM (Cost of Goods Manufactured)</div>
+      </div>
+      <div class="card-body">
+        <div style="background:var(--s3);border:1px solid var(--cyan2);border-radius:var(--r1);padding:1rem 1.25rem;font-family:monospace;font-size:.88rem;line-height:1.9;color:var(--cyan)">
+          COGM = Direct Material + Direct Labor + Manufacturing Overhead + Depreciation<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + WIP Awal − WIP Akhir
+        </div>
+        <div style="margin-top:1rem;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+            <thead>
+              <tr style="background:var(--s3)">
+                <th style="padding:.5rem .75rem;text-align:left;border:1px solid var(--b2);color:var(--t2);font-weight:600">Komponen</th>
+                <th style="padding:.5rem .75rem;text-align:left;border:1px solid var(--b2);color:var(--t2);font-weight:600">Definisi</th>
+                <th style="padding:.5rem .75rem;text-align:left;border:1px solid var(--b2);color:var(--t2);font-weight:600">Satuan</th>
+                <th style="padding:.5rem .75rem;text-align:center;border:1px solid var(--b2);color:var(--t2);font-weight:600">Menu Sumber</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Direct Material</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Total biaya material BOM (qty × harga × kurs)</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">Item Price + Exchange Rate + Master BOM</span></td></tr>
+              <tr style="background:var(--s2)"><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Direct Labor</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Upah tenaga kerja langsung (rate/jam × jam/km)</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">DL-FOH + Kapasitas Mesin</span></td></tr>
+              <tr><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Manufacturing Overhead</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Listrik, consumables, utilitas per km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">DL-FOH (tipe FOH)</span></td></tr>
+              <tr style="background:var(--s2)"><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Depreciation</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Penyusutan mesin produksi per km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">Master Mesin + Kapasitas Mesin</span></td></tr>
+              <tr><td style="padding:.45rem .75rem;border:1px solid var(--b2)">WIP Awal / Akhir</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Work-in-Progress awal dan akhir periode</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">Bill of Material (header)</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:.75rem;display:flex;gap:1.5rem;flex-wrap:wrap">
+          <div style="background:var(--s3);border:1px solid var(--b2);border-radius:var(--r1);padding:.6rem 1rem;font-size:.8rem">
+            <span style="color:var(--t3)">COGS = </span><span style="color:var(--t1)">COGM + Finished Goods Awal − Finished Goods Akhir</span>
+          </div>
+          <div style="background:var(--s3);border:1px solid var(--b2);border-radius:var(--r1);padding:.6rem 1rem;font-size:.8rem">
+            <span style="color:var(--t3)">Cost/km = </span><span style="color:var(--t1)">COGM ÷ Total km diproduksi</span>
+          </div>
+          <div style="background:var(--s3);border:1px solid var(--b2);border-radius:var(--r1);padding:.6rem 1rem;font-size:.8rem">
+            <span style="color:var(--t3)">Material% = </span><span style="color:var(--t1)">Direct Material ÷ COGM × 100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alur Data / Keterkaitan Menu -->
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head">
+        <div class="card-title"><span class="card-title-icon">🔗</span> Keterkaitan Antar Menu</div>
+      </div>
+      <div class="card-body">
+        <!-- Flow diagram menggunakan flex boxes -->
+        <div style="font-size:.78rem;color:var(--t3);margin-bottom:.75rem">Urutan pengisian data: dari kiri ke kanan. Data di kiri adalah prasyarat untuk menu di kanannya.</div>
+        <div style="display:flex;align-items:flex-start;gap:.5rem;overflow-x:auto;padding-bottom:.5rem">
+
+          <!-- Kolom 1: Foundation -->
+          <div style="flex-shrink:0;width:148px">
+            <div style="text-align:center;font-size:.65rem;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">① Foundation</div>
+            <div style="border:1px solid var(--b2);border-radius:var(--r1);overflow:hidden">
+              <div onclick="goPage('item')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer;border-bottom:1px solid var(--b2)" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700">📦 Master Item</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Kode & nama material</div>
+              </div>
+              <div onclick="goPage('exrate')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer;border-bottom:1px solid var(--b2)" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700">💱 Exchange Rate</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Kurs USD → IDR historis</div>
+              </div>
+              <div onclick="goPage('mesin')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700">🔧 Master Mesin</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Data aset mesin produksi</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arrow 1→2 -->
+          <div style="flex-shrink:0;align-self:center;color:var(--cyan);font-size:1.2rem;padding-top:.5rem">→</div>
+
+          <!-- Kolom 2: Harga & Rate -->
+          <div style="flex-shrink:0;width:148px">
+            <div style="text-align:center;font-size:.65rem;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">② Harga & Rate</div>
+            <div style="border:1px solid var(--b2);border-radius:var(--r1);overflow:hidden">
+              <div onclick="goPage('price')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer;border-bottom:1px solid var(--b2)" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700">💲 Item Price</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Harga beli per material</div>
+              </div>
+              <div onclick="goPage('dlfoh')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer;border-bottom:1px solid var(--b2)" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700">🏭 DL-FOH</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Rate labor & overhead/jam</div>
+              </div>
+              <div onclick="goPage('kapasitas')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700">⚡ Kapasitas Mesin</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Produktivitas & jam/km</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arrow 2→3 -->
+          <div style="flex-shrink:0;align-self:center;color:var(--cyan);font-size:1.2rem;padding-top:.5rem">→</div>
+
+          <!-- Kolom 3: Template BOM -->
+          <div style="flex-shrink:0;width:148px">
+            <div style="text-align:center;font-size:.65rem;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">③ Template</div>
+            <div style="border:1px solid var(--cyan2);border-radius:var(--r1);overflow:hidden">
+              <div onclick="goPage('masterbom')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700;color:var(--cyan)">📐 Master BOM</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Template komponen per produk</div>
+                <div style="font-size:.62rem;color:var(--t3);margin-top:3px;line-height:1.4">Material lines + DL-FOH lines per machine line</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arrow 3→4 -->
+          <div style="flex-shrink:0;align-self:center;color:var(--cyan);font-size:1.2rem;padding-top:.5rem">→</div>
+
+          <!-- Kolom 4: Transaksi -->
+          <div style="flex-shrink:0;width:148px">
+            <div style="text-align:center;font-size:.65rem;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">④ Transaksi</div>
+            <div style="border:1px solid var(--b2);border-radius:var(--r1);overflow:hidden">
+              <div onclick="goPage('bom')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer;border-bottom:1px solid var(--b2)" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700">📋 Bill of Material</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">BOM aktual per order produksi</div>
+              </div>
+              <div onclick="goPage('history')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700">📜 History BOM</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Riwayat & audit trail BOM</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arrow 4→5 -->
+          <div style="flex-shrink:0;align-self:center;color:var(--cyan);font-size:1.2rem;padding-top:.5rem">→</div>
+
+          <!-- Kolom 5: Output -->
+          <div style="flex-shrink:0;width:148px">
+            <div style="text-align:center;font-size:.65rem;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">⑤ Output</div>
+            <div style="border:1px solid var(--b2);border-radius:var(--r1);overflow:hidden">
+              <div onclick="goPage('cogs')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700;color:var(--amber,#f59e0b)">📊 COGS Summary</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Laporan biaya produksi akhir</div>
+                <div style="font-size:.62rem;color:var(--t3);margin-top:3px;line-height:1.4">COGM → COGS per periode</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail rumus per menu -->
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head">
+        <div class="card-title"><span class="card-title-icon">🧮</span> Rumus Detail per Menu</div>
+      </div>
+      <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+
+        <div style="border:1px solid var(--b2);border-radius:var(--r1);padding:.75rem">
+          <div style="font-size:.75rem;font-weight:700;margin-bottom:.5rem;color:var(--cyan)">💲 Item Price → Direct Material Cost</div>
+          <div style="font-size:.75rem;font-family:monospace;color:var(--t2);line-height:1.8;background:var(--s3);padding:.5rem;border-radius:4px">
+            qty_efektif = qty_per_km × (1 + waste%)<br>
+            biaya_IDR = qty_efektif × harga × kurs<br>
+            Direct Material = Σ biaya_IDR semua item
+          </div>
+        </div>
+
+        <div style="border:1px solid var(--b2);border-radius:var(--r1);padding:.75rem">
+          <div style="font-size:.75rem;font-weight:700;margin-bottom:.5rem;color:var(--cyan)">🏭 DL-FOH + ⚡ Kapasitas → Labor & Overhead</div>
+          <div style="font-size:.75rem;font-family:monospace;color:var(--t2);line-height:1.8;background:var(--s3);padding:.5rem;border-radius:4px">
+            jam_per_km = kapasitas_mesin (jam)<br>
+            Direct Labor = rate_DL (IDR/jam) × jam_per_km<br>
+            Overhead = rate_FOH (IDR/jam) × jam_per_km
+          </div>
+        </div>
+
+        <div style="border:1px solid var(--b2);border-radius:var(--r1);padding:.75rem">
+          <div style="font-size:.75rem;font-weight:700;margin-bottom:.5rem;color:var(--cyan)">🔧 Master Mesin + ⚡ Kapasitas → Depreciation</div>
+          <div style="font-size:.75rem;font-family:monospace;color:var(--t2);line-height:1.8;background:var(--s3);padding:.5rem;border-radius:4px">
+            depresiasi/jam = nilai_aset ÷ umur_ekonomis<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ÷ jam_kerja_per_tahun<br>
+            Depreciation = depresiasi/jam × jam_per_km
+          </div>
+        </div>
+
+        <div style="border:1px solid var(--b2);border-radius:var(--r1);padding:.75rem">
+          <div style="font-size:.75rem;font-weight:700;margin-bottom:.5rem;color:var(--cyan)">💱 Exchange Rate → Konversi Mata Uang</div>
+          <div style="font-size:.75rem;font-family:monospace;color:var(--t2);line-height:1.8;background:var(--s3);padding:.5rem;border-radius:4px">
+            biaya_IDR = biaya_USD × kurs_historis<br>
+            kurs diambil dari tanggal transaksi<br>
+            (bukan kurs hari ini / real-time)
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Benchmark industri -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><span class="card-title-icon">📊</span> Benchmark Komposisi COGM — Kabel Fiber Optic</div>
+      </div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem">
+          <div style="border:1px solid var(--b2);border-radius:var(--r1);padding:.75rem;text-align:center">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--cyan)">60–75%</div>
+            <div style="font-size:.72rem;color:var(--t2);margin-top:.25rem">Direct Material</div>
+            <div style="font-size:.65rem;color:var(--t3);margin-top:.15rem">Optical fiber, jacket, dll</div>
+          </div>
+          <div style="border:1px solid var(--b2);border-radius:var(--r1);padding:.75rem;text-align:center">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--cyan)">8–15%</div>
+            <div style="font-size:.72rem;color:var(--t2);margin-top:.25rem">Direct Labor</div>
+            <div style="font-size:.65rem;color:var(--t3);margin-top:.15rem">Upah tenaga produksi</div>
+          </div>
+          <div style="border:1px solid var(--b2);border-radius:var(--r1);padding:.75rem;text-align:center">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--cyan)">10–20%</div>
+            <div style="font-size:.72rem;color:var(--t2);margin-top:.25rem">Overhead (FOH)</div>
+            <div style="font-size:.65rem;color:var(--t3);margin-top:.15rem">Listrik, utilitas</div>
+          </div>
+          <div style="border:1px solid var(--b2);border-radius:var(--r1);padding:.75rem;text-align:center">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--cyan)">3–8%</div>
+            <div style="font-size:.72rem;color:var(--t2);margin-top:.25rem">Depreciation</div>
+            <div style="font-size:.65rem;color:var(--t3);margin-top:.15rem">Penyusutan mesin</div>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--b1);padding-top:.75rem">
+          <div style="font-size:.75rem;font-weight:600;color:var(--t2);margin-bottom:.4rem">⚠️ Red Flags yang Perlu Diinvestigasi:</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;font-size:.75rem;color:var(--t3)">
+            <div>• Material cost &gt; 80% → cek harga beli, kurs, atau waste factor</div>
+            <div>• Labor cost &gt; 20% → cek efisiensi jam kerja atau lembur berlebihan</div>
+            <div>• WIP Akhir &gt;&gt; WIP Awal → ada PO yang tidak selesai tepat waktu</div>
+            <div>• Cost/km naik &gt; 10% MoM → perlu analisis per komponen</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ══════════════ COGS SUMMARY PAGE ══════════════ -->
 <div class="page" id="page_cogs">
   <div class="actions-bar">
@@ -1701,6 +1943,7 @@ const pageTitles={
   history:'📜 <span>History BOM</span>',
   cogs:'📊 <span>COGS Summary</span>',
   roles:'🔑 <span>Access Role</span>',
+  guide:'📖 <span>Panduan Sistem</span>',
 };
 function goPage(id){
   // Access check
@@ -4786,13 +5029,13 @@ function showUploadResult(msg, added, updated, skipped){
 // AUTH & ROLES
 // ═══════════════════════════════════════════
 const ROLES_CONFIG = {
-  admin:             {label:'Administrator',          pages:['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs','roles'], canApprove:true,  canEdit:true},
-  editor:            {label:'Editor',                 pages:['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs'],         canApprove:false, canEdit:true},
-  finance_director:  {label:'Finance Director',       pages:['bom','history'],                                                                        canApprove:true,  canEdit:false},
-  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history'],                                                                        canApprove:true,  canEdit:false},
-  vp_director:       {label:'VP Director',            pages:['bom','history'],                                                                        canApprove:true,  canEdit:false},
-  approver:          {label:'Approver (Legacy)',       pages:['bom','history'],                                                                        canApprove:true,  canEdit:false},
-  viewer:            {label:'Viewer',                  pages:['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs'],         canApprove:false, canEdit:false},
+  admin:             {label:'Administrator',          pages:['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
+  editor:            {label:'Editor',                 pages:['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
+  finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
+  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
+  vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
+  approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
+  viewer:            {label:'Viewer',                  pages:['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
 };
 
 const ALL_PAGES = ['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs','roles'];
