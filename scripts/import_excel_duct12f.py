@@ -196,6 +196,27 @@ if product_name in existing_mbom:
     print(f"   ⚠️  Master BOM '{product_name}' sudah ada, skip.")
     new_masterbom = []
 else:
+    # --- 3c. Parse machine line groups
+    # Kolom mapping (0-indexed dari A):
+    # B=1:mat_name, C=2:mat_code, D=3:uom, F=5:scrap, G=6:qty, H=7:factor, I=8:total_qty
+    # K=10:price_name, L=11:currency, M=12:price, N=13:landed, O=14:hedging, P=15:total_amt
+    # Q=16:dl_type_or_speed, R=17:dlfoh_cat_or_dl_lot, S=18:foh_lot
+    # T=19:kap_pct_or_idx, U=20:idx, V=21:factor_dlfoh, W=22:setup, X=23:total_hour, Y=24:total_cost
+
+    # Group header rows dan range material:
+    # Baris 13       : FIBER (sebelum group COLOURING)
+    # Baris 18       : COLOURING    (Q=speed=10000, R=DL_lot=2, S=FOH_lot=4, T=kap_pct=0.75)
+    # Baris 19-30    : materials COLOURING (19-24 ada kode, 25-30 tanpa kode)
+    # Baris 35       : BUFFERING
+    # Baris 36-47    : materials BUFFERING
+    # Baris 50       : STRANDING
+    # Baris 51-58    : materials STRANDING
+    # Baris 63       : JACKETING
+    # Baris 64-69    : materials JACKETING
+
+    # DL/FOH per group ada di kolom Q-Y, hanya 3 baris (DL, FFOH, VFOH)
+    # yang diisi sejajar dengan 3 baris pertama material di setiap group
+
     def parse_group(group_name, header_row, mat_rows):
         """
         Parse satu machine line group dari Excel.
@@ -232,6 +253,7 @@ else:
 
             # Tambah material jika ada nama dan kode
             if mat_name and mat_code and not mat_name.startswith("CM -"):
+                # Bersihkan spasi di awal nama
                 mat_name = mat_name.strip()
                 lines.append({
                     "item_code":  mat_code,
@@ -256,7 +278,7 @@ else:
                     })
                     existing_items.add(mat_code)
 
-            # DL/FOH lines - kolom Q(16)=type, R(17)=cat, U(20)=idx, V(21)=factor, W(22)=setup, X(23)=total_hour
+            # DL/FOH lines - kolom Q(16)=type_desc, R(17)=cat, U(20)=idx, V(21)=factor, W(22)=setup, X(23)=total_hour
             dl_type = safe(r[16] if len(r)>16 else None)
             dl_cat  = safe(r[17] if len(r)>17 else None)
             if dl_cat and dlfoh_idx < 3 and dl_type in ("Direct Labor","Fixed FOH","Variable FOH"):
@@ -299,7 +321,7 @@ else:
         "dlLot":        1,
         "fohLot":       1,
         "lines": [{
-            "item_code":  safe(all_rows[13][2]),
+            "item_code":  safe(all_rows[13][2]),   # C = RMF 10160
             "item_name":  safe(all_rows[13][1]).strip(),
             "uom":        safe(all_rows[13][3]),
             "qty":        num(all_rows[13][6]),
@@ -312,10 +334,10 @@ else:
 
     groups = [
         fiber_group,
-        parse_group("COLOURING",           18, list(range(19, 31))),
-        parse_group("BUFFERING [Tube 1.9]", 35, list(range(36, 48))),
-        parse_group("STRANDING [6el]",     50, list(range(51, 59))),
-        parse_group("JACKETING",           63, list(range(64, 70))),
+        parse_group("COLOURING",          18, list(range(19, 31))),
+        parse_group("BUFFERING [Tube 1.9]",35, list(range(36, 48))),
+        parse_group("STRANDING [6el]",    50, list(range(51, 59))),
+        parse_group("JACKETING",          63, list(range(64, 70))),
     ]
 
     bomid  = "MBOM-0001"
@@ -325,7 +347,7 @@ else:
         "product":     product_name,
         "customer":    "",
         "project":     "",
-        "fiber_cnt":   safe(all_rows[13][2]),
+        "fiber_cnt":   safe(all_rows[13][2]),  # RMF 10160
         "buffer_qty":  buffer_qty,
         "fiber_qty":   fiber_qty,
         "created_by":  "import",
@@ -336,8 +358,8 @@ else:
     }]
     print(f"   ✅ Master BOM '{product_name}' berhasil diparse")
     for g in groups:
-        mat_cnt   = len(g["lines"])
-        dlfoh_cnt = len(g["dlfohLines"])
+        mat_cnt  = len(g["lines"])
+        dlfoh_cnt= len(g["dlfohLines"])
         print(f"      Group '{g['machine_line']}': {mat_cnt} materials, {dlfoh_cnt} DL/FOH")
 
 # ── 4. Merge ke cogm.json ─────────────────────────────────────────────────────
@@ -346,6 +368,7 @@ cogm.setdefault("dlfoh",     []).extend(new_dlfoh)
 cogm.setdefault("exrates",   []).extend(new_exrates)
 cogm.setdefault("masterbom", []).extend(new_masterbom)
 
+# Tulis kembali ke cogm.json
 with open(COGM_JSON, "w", encoding="utf-8") as f:
     json.dump(cogm, f, ensure_ascii=False, indent=2, default=str)
 
