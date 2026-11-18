@@ -12,6 +12,12 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Log semua DELETE request ke console untuk debug
+app.use((req, _res, next) => {
+  if (req.method === 'DELETE') console.log(`[DELETE] ${req.path} — token: ${(req.headers['x-token']||'').slice(0,8)}...`);
+  next();
+});
+
 // ── Health — MUST be before static & wildcard ──
 app.get('/api/health', async (req, res) => {
   try {
@@ -21,7 +27,7 @@ app.get('/api/health', async (req, res) => {
       try { const [r] = await query(`SELECT COUNT(*) as c FROM ${t}`); counts[t] = r.c; }
       catch(e) { counts[t] = '?'; }
     }
-    res.json({ status:'ok', time:new Date().toLocaleString('id-ID'), version:'2.0.0', db:counts });
+    res.json({ status:'ok', time:new Date().toLocaleString('id-ID'), version:'2.0.1', build: '2026-11-18', db:counts });
   } catch(e) {
     res.json({ status:'error', error:e.message });
   }
