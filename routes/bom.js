@@ -74,6 +74,8 @@ router.put('/masterbom/:id', requireEdit, async (req,res) => {
 
 router.delete('/masterbom/:id', requireEdit, async (req,res) => {
   try {
+    const [exists] = await query(`SELECT id FROM masterbom WHERE id=?`,[req.params.id]);
+    if(!exists) return res.status(404).json({error:'Master BOM tidak ditemukan: '+req.params.id});
     await deleteMBomGroups(req.params.id);
     await query(`DELETE FROM masterbom WHERE id=?`,[req.params.id]);
     res.json({ok:true});

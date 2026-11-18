@@ -60,8 +60,11 @@ router.put('/users/:id', requireEdit, async (req,res) => {
 });
 
 router.delete('/users/:id', requireEdit, async (req,res) => {
-  try { await query(`DELETE FROM users WHERE id=?`,[req.params.id]); res.json({ok:true}); }
-  catch(e) { res.status(500).json({error:e.message}); }
+  try {
+    const r = await query(`DELETE FROM users WHERE id=?`,[req.params.id]);
+    if(r.affectedRows===0) return res.status(404).json({error:'User tidak ditemukan: '+req.params.id});
+    res.json({ok:true});
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 // ── ITEMS ──
@@ -94,8 +97,11 @@ router.put('/items/:id', requireEdit, async (req,res) => {
 });
 
 router.delete('/items/:id', requireEdit, async (req,res) => {
-  try { await query(`DELETE FROM items WHERE id=?`,[req.params.id]); res.json({ok:true}); }
-  catch(e) { res.status(500).json({error:e.message}); }
+  try {
+    const r = await query(`DELETE FROM items WHERE id=?`,[req.params.id]);
+    if(r.affectedRows===0) return res.status(404).json({error:'Item tidak ditemukan: '+req.params.id});
+    res.json({ok:true});
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 // ── PRICES ──
@@ -130,8 +136,11 @@ router.put('/prices/:id', requireEdit, async (req,res) => {
 });
 
 router.delete('/prices/:id', requireEdit, async (req,res) => {
-  try { await query(`DELETE FROM prices WHERE id=?`,[req.params.id]); res.json({ok:true}); }
-  catch(e) { res.status(500).json({error:e.message}); }
+  try {
+    const r = await query(`DELETE FROM prices WHERE id=?`,[req.params.id]);
+    if(r.affectedRows===0) return res.status(404).json({error:'Price tidak ditemukan: '+req.params.id});
+    res.json({ok:true});
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 async function insertPriceLines(priceId, lines) {
@@ -179,8 +188,11 @@ router.put('/exrates/:id', requireEdit, async (req,res) => {
 });
 
 router.delete('/exrates/:id', requireEdit, async (req,res) => {
-  try { await query(`DELETE FROM exrates WHERE id=?`,[req.params.id]); res.json({ok:true}); }
-  catch(e) { res.status(500).json({error:e.message}); }
+  try {
+    const r = await query(`DELETE FROM exrates WHERE id=?`,[req.params.id]);
+    if(r.affectedRows===0) return res.status(404).json({error:'Exrate tidak ditemukan: '+req.params.id});
+    res.json({ok:true});
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 async function insertExrateLines(exrateId, lines) {
@@ -219,8 +231,11 @@ router.put('/dlfoh/:id', requireEdit, async (req,res) => {
 });
 
 router.delete('/dlfoh/:id', requireEdit, async (req,res) => {
-  try { await query(`DELETE FROM dlfoh WHERE id=?`,[req.params.id]); res.json({ok:true}); }
-  catch(e) { res.status(500).json({error:e.message}); }
+  try {
+    const r = await query(`DELETE FROM dlfoh WHERE id=?`,[req.params.id]);
+    if(r.affectedRows===0) return res.status(404).json({error:'DLFOH tidak ditemukan: '+req.params.id});
+    res.json({ok:true});
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 // ── MESIN ──
@@ -253,8 +268,11 @@ router.put('/mesin/:id', requireEdit, async (req,res) => {
 });
 
 router.delete('/mesin/:id', requireEdit, async (req,res) => {
-  try { await query(`DELETE FROM mesin WHERE id=?`,[req.params.id]); res.json({ok:true}); }
-  catch(e) { res.status(500).json({error:e.message}); }
+  try {
+    const r = await query(`DELETE FROM mesin WHERE id=?`,[req.params.id]);
+    if(r.affectedRows===0) return res.status(404).json({error:'Mesin tidak ditemukan: '+req.params.id});
+    res.json({ok:true});
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 // ── KAPASITAS ──
@@ -286,8 +304,11 @@ router.put('/kapasitas/:id', requireEdit, async (req,res) => {
 });
 
 router.delete('/kapasitas/:id', requireEdit, async (req,res) => {
-  try { await query(`DELETE FROM kapasitas WHERE id=?`,[req.params.id]); res.json({ok:true}); }
-  catch(e) { res.status(500).json({error:e.message}); }
+  try {
+    const r = await query(`DELETE FROM kapasitas WHERE id=?`,[req.params.id]);
+    if(r.affectedRows===0) return res.status(404).json({error:'Kapasitas tidak ditemukan: '+req.params.id});
+    res.json({ok:true});
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 // ── SEQUENCES ──
