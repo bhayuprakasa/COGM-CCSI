@@ -526,7 +526,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="stat-pill"><span class="sp-label">Total Item Price</span><span class="sp-val" id="price_count">0</span></div>
     </div>
     <button class="btn btn-primary" onclick="openItemPriceForm()">+ Set Harga Item</button>
-    <button class="btn btn-ghost" onclick="openUploadModal('price')">⬆ Upload CSV</button>
+    <button class="btn btn-ghost" onclick="openUploadModal('itemprice')">⬆ Upload CSV</button>
   </div>
 
   <!-- Form Set/Edit Harga Item -->
@@ -4612,6 +4612,18 @@ const UPLOAD_CONFIG={
       ['MBOM-0010','','','','','','','Stranding','','','','','','','MATERIAL','RM-003','Jelly Tube','MTR','1','2','24','','','','',''],
       ['MBOM-0010','','','','','','','Stranding','','','','','','','DLFOH','','','','','','','DL-002','Labour','','0','1'],
     ]
+  },
+  // Item Price: satu harga per item_code
+  itemprice:{
+    title:'Upload Item Price',
+    columns:['ItemCode','Currency','Price','Hedging','Landed','EffectiveDate'],
+    info:'Kolom: <b>ItemCode</b>, <b>Currency</b> (USD/IDR/CNY/EUR), <b>Price</b>, <b>Hedging</b> (% misal 3 = 3%), <b>Landed</b> (% misal 7 = 7%), <b>EffectiveDate</b> (YYYY-MM-DD)',
+    sample:[
+      ['ItemCode','Currency','Price','Hedging','Landed','EffectiveDate'],
+      ['RMF 10160','USD','120','3','3','2026-11-18'],
+      ['RMO 10200','USD','22','3','9','2026-11-18'],
+      ['RMO 20200','IDR','39500','0','0','2026-11-18'],
+    ]
   }
 };
 
@@ -4826,6 +4838,37 @@ function confirmUpload(){
       else{const seqMatch=pid.match(/PRC-(\d+)/);if(seqMatch&&parseInt(seqMatch[1])>priceSeq)priceSeq=parseInt(seqMatch[1]);DB.prices.push({id:pid,created:nowStr(),updated:nowStr(),lines});added++;}
     });
     renderPrices(); updateCounts();
+  }
+  else if(uploadType==='itemprice'){
+    // Upload Item Price — satu harga per item_code, pakai API.itemPrice
+    if(!uploadParsedData.length){toast('Tidak ada data untuk diimport.','error');return;}
+    if(!useAPI){toast('Tidak ada koneksi API.','error');return;}
+    const promises=[];
+    uploadParsedData.forEach(r=>{
+      const item_code=(r['ItemCode']||'').trim();
+      if(!item_code){skipped++;return;}
+      const data={
+        item_code,
+        currency:(r['Currency']||'USD').trim(),
+        price:parseFloat(r['Price'])||0,
+        hedging:parseFloat(r['Hedging'])||0,
+        landed:parseFloat(r['Landed'])||0,
+        effective_date:(r['EffectiveDate']||'').trim(),
+      };
+      const existing=typeof DB_itemPrices!=='undefined'&&DB_itemPrices.find(p=>p.item_code===item_code);
+      if(existing){
+        promises.push(API.itemPrice.update(item_code,data).then(()=>{updated++;}).catch(()=>{skipped++;}));
+      } else {
+        promises.push(API.itemPrice.save(data).then(()=>{added++;}).catch(()=>{skipped++;}));
+      }
+    });
+    closeUploadModal();
+    Promise.allSettled(promises).then(()=>{
+      loadItemPrices().then(()=>{
+        showUploadResult('Import selesai: '+added+' ditambah, '+updated+' diupdate'+(skipped?', '+skipped+' dilewati':''),added,updated,skipped);
+      });
+    });
+    return;
   }
   else if(uploadType==='dlfoh'){
     const rows_dlfoh=[];
