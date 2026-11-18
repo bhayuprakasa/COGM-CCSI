@@ -2393,22 +2393,23 @@ function openExrateForm(id){try{
   (function(){const _e=ge('exrate_currency_id');if(_e)_e.disabled=false;})();
   if(id){
     var _pop=function(rec){
-      if(!rec){toast('Data tidak ditemukan.','error');setDisp(arguments.callee,'');return;}
-    setText('exrate_form_title','Edit Exchange Rate');
-    (function(){const _e=ge('exrate_edit_id');if(_e)_e.value=id;})()
-    (function(){const _e=ge('exrate_currency_id');if(_e)_e.value=rec.currency_id;})()
-    (function(){const _e=ge('exrate_currency_id');if(_e)_e.disabled=true;})();
-    // Populate lines then render — must be called after async fetch completes
-    exrateLines=JSON.parse(JSON.stringify(rec.lines||[]));
-    renderExrateLines();
+      if(!rec){toast('Data tidak ditemukan.','error');setDisp('exrate_form_card','none');return;}
+      setText('exrate_form_title','Edit Exchange Rate');
+      (function(){const _e=ge('exrate_edit_id');if(_e)_e.value=id;})()
+      (function(){const _e=ge('exrate_currency_id');if(_e)_e.value=rec.currency_id;})()
+      (function(){const _e=ge('exrate_currency_id');if(_e)_e.disabled=true;})();
+      // Populate lines from in-memory data immediately (same pattern as item price)
+      exrateLines=JSON.parse(JSON.stringify(rec.lines||[]));
+      renderExrateLines();
     };
+    // Use in-memory DB first so form populates instantly, like item price UI
+    _pop(DB.exrates.find(function(x){return x.id===id;}));
+    // Refresh in background silently
     if(typeof API!=='undefined'){
       fetch(window.location.origin+'/api/exrates',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
         .then(function(r){return r.json();})
-        .then(function(list){DB.exrates=list;_pop(list.find(function(x){return x.id===id;}))})
-        .catch(function(){_pop(DB.exrates.find(function(x){return x.id===id;}))});
-    } else {
-      _pop(DB.exrates.find(function(x){return x.id===id;}));
+        .then(function(list){DB.exrates=list;})
+        .catch(function(){});
     }
   } else {
     setText('exrate_form_title','Tambah Exchange Rate');
@@ -2514,23 +2515,24 @@ function openDlfohForm(id){try{
   document.getElementById('dlfoh_created').value=nowStr();
   if(id){
     var _pop=function(rec){
-      if(!rec){toast('Data tidak ditemukan.','error');setDisp(arguments.callee,'');return;}
-    setText('dlfoh_form_title','Edit DL-FOH');
-    (function(){const _e=ge('dlfoh_edit_id');if(_e)_e.value=id;})()
-    (function(){const _e=ge('dlfoh_catid');if(_e)_e.value=rec.catid;})()
-    (function(){const _e=ge('dlfoh_catid');if(_e)_e.disabled=true;})();
-    (function(){const _e=ge('dlfoh_desc');if(_e)_e.value=rec.desc;})()
-    (function(){const _e=ge('dlfoh_type');if(_e)_e.value=rec.type;})()
-    (function(){const _e=ge('dlfoh_rate');if(_e)_e.value=rec.rate;})()
-    (function(){const _e=ge('dlfoh_created');if(_e)_e.value=rec.created_dt||rec.created||'';})()
+      if(!rec){toast('Data tidak ditemukan.','error');setDisp('dlfoh_form_card','none');return;}
+      setText('dlfoh_form_title','Edit DL-FOH');
+      (function(){const _e=ge('dlfoh_edit_id');if(_e)_e.value=id;})()
+      (function(){const _e=ge('dlfoh_catid');if(_e)_e.value=rec.catid;})()
+      (function(){const _e=ge('dlfoh_catid');if(_e)_e.disabled=true;})();
+      (function(){const _e=ge('dlfoh_desc');if(_e)_e.value=rec.desc;})()
+      (function(){const _e=ge('dlfoh_type');if(_e)_e.value=rec.type;})()
+      (function(){const _e=ge('dlfoh_rate');if(_e)_e.value=rec.rate;})()
+      (function(){const _e=ge('dlfoh_created');if(_e)_e.value=rec.created_dt||rec.created||'';})()
     };
+    // Use in-memory DB first so form populates instantly, like item price UI
+    _pop(DB.dlfoh.find(function(x){return x.id===id;}));
+    // Refresh in background silently
     if(typeof API!=='undefined'){
       fetch(window.location.origin+'/api/dlfoh',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
         .then(function(r){return r.json();})
-        .then(function(list){DB.dlfoh=list;_pop(list.find(function(x){return x.id===id;}))})
-        .catch(function(){_pop(DB.dlfoh.find(function(x){return x.id===id;}))});
-    } else {
-      _pop(DB.dlfoh.find(function(x){return x.id===id;}));
+        .then(function(list){DB.dlfoh=list;})
+        .catch(function(){});
     }
   }
   document.getElementById('dlfoh_form_card').scrollIntoView({behavior:'smooth'});
@@ -2612,38 +2614,39 @@ function openKapForm(id){try{
   if(msel) msel.innerHTML='<option value="">— Pilih Machine Line dulu —</option>';
   if(id){
     var _pop=function(rec){
-      if(!rec){toast('Data tidak ditemukan.','error');setDisp(arguments.callee,'');return;}
-    setText('kap_form_title','Edit Kapasitas Mesin');
-    (function(){const _e=ge('kap_edit_id');if(_e)_e.value=id;})()
-    (function(){const _e=ge('kap_id_disp');if(_e)_e.value=rec.kapid;})()
-    (function(){const _e=ge('kap_created');if(_e)_e.value=rec.created_dt||rec.created||'';})()
-    (function(){const _e=ge('kap_item_code');if(_e)_e.value=rec.item_code;})()
-    (function(){const _e=ge('kap_item_name');if(_e)_e.value=rec.item_name;})()
-    (function(){const _e=ge('kap_tube');if(_e)_e.value=rec.tube;})()
-    (function(){const _e=ge('kap_fiber');if(_e)_e.value=rec.fiber;})()
-    (function(){const _e=ge('kap_proses');if(_e)_e.value=rec.proses;})()
-    // Restore machine line filter from mesin record, then populate machine dropdown
-    const mesinRec=DB.mesin.find(m=>m.machine_id===rec.machine_id);
-    const ml=mesinRec?mesinRec.machine_line:'';
-    setVal('kap_filter_ml', ml);
-    if(msel){
-      const filtered=ml?DB.mesin.filter(m=>m.machine_line===ml):DB.mesin;
-      msel.innerHTML='<option value="">— Pilih Machine ID —</option>'+
-        filtered.map(m=>`<option value="${m.machine_id}" ${m.machine_id===rec.machine_id?'selected':''}>${m.machine_id} — ${m.machine_name}</option>`).join('');
-    }
-    document.getElementById('kap_machine_name').value=rec.machine_name||'';
-    document.getElementById('kap_kecepatan').value=rec.kecepatan||'';
-    document.getElementById('kap_dl').value=rec.dl||'';
-    document.getElementById('kap_efisiensi').value=rec.efisiensi||'';
-    document.getElementById('kap_notes').value=rec.notes||'';
+      if(!rec){toast('Data tidak ditemukan.','error');setDisp('kap_form_card','none');return;}
+      setText('kap_form_title','Edit Kapasitas Mesin');
+      (function(){const _e=ge('kap_edit_id');if(_e)_e.value=id;})()
+      (function(){const _e=ge('kap_id_disp');if(_e)_e.value=rec.kapid;})()
+      (function(){const _e=ge('kap_created');if(_e)_e.value=rec.created_dt||rec.created||'';})()
+      (function(){const _e=ge('kap_item_code');if(_e)_e.value=rec.item_code;})()
+      (function(){const _e=ge('kap_item_name');if(_e)_e.value=rec.item_name;})()
+      (function(){const _e=ge('kap_tube');if(_e)_e.value=rec.tube;})()
+      (function(){const _e=ge('kap_fiber');if(_e)_e.value=rec.fiber;})()
+      (function(){const _e=ge('kap_proses');if(_e)_e.value=rec.proses;})()
+      // Restore machine line filter from mesin record, then populate machine dropdown
+      const mesinRec=DB.mesin.find(m=>m.machine_id===rec.machine_id);
+      const ml=mesinRec?mesinRec.machine_line:'';
+      setVal('kap_filter_ml', ml);
+      if(msel){
+        const filtered=ml?DB.mesin.filter(m=>m.machine_line===ml):DB.mesin;
+        msel.innerHTML='<option value="">— Pilih Machine ID —</option>'+
+          filtered.map(m=>`<option value="${m.machine_id}" ${m.machine_id===rec.machine_id?'selected':''}>${m.machine_id} — ${m.machine_name}</option>`).join('');
+      }
+      document.getElementById('kap_machine_name').value=rec.machine_name||'';
+      document.getElementById('kap_kecepatan').value=rec.kecepatan||'';
+      document.getElementById('kap_dl').value=rec.dl||'';
+      document.getElementById('kap_efisiensi').value=rec.efisiensi||'';
+      document.getElementById('kap_notes').value=rec.notes||'';
     };
+    // Use in-memory DB first so form populates instantly, like item price UI
+    _pop(DB.kap.find(function(x){return x.id===id;}));
+    // Refresh in background silently
     if(typeof API!=='undefined'){
       fetch(window.location.origin+'/api/kapasitas',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
         .then(function(r){return r.json();})
-        .then(function(list){DB.kap=list;_pop(list.find(function(x){return x.id===id;}))})
-        .catch(function(){_pop(DB.kap.find(function(x){return x.id===id;}))});
-    } else {
-      _pop(DB.kap.find(function(x){return x.id===id;}));
+        .then(function(list){DB.kap=list;})
+        .catch(function(){});
     }
   } else {
     const newKapId='KAP-'+(DB.kap.length+1).toString().padStart(4,'0');
@@ -3562,21 +3565,22 @@ function openMesinForm(id){try{
   setVal('mesin_machine_line','');
   if(id){
     var _pop=function(rec){
-      if(!rec){toast('Data tidak ditemukan.','error');setDisp(arguments.callee,'');return;}
-    setText('mesin_form_title','Edit Mesin');
-    (function(){const _e=ge('mesin_edit_id');if(_e)_e.value=id;})()
-    (function(){const _e=ge('mesin_id');if(_e)_e.value=rec.machine_id;})()
-    (function(){const _e=ge('mesin_id');if(_e)_e.disabled=true;})();
-    (function(){const _e=ge('mesin_name');if(_e)_e.value=rec.machine_name;})()
-    setVal('mesin_machine_line',rec.machine_line||'');
+      if(!rec){toast('Data tidak ditemukan.','error');setDisp('mesin_form_card','none');return;}
+      setText('mesin_form_title','Edit Mesin');
+      (function(){const _e=ge('mesin_edit_id');if(_e)_e.value=id;})()
+      (function(){const _e=ge('mesin_id');if(_e)_e.value=rec.machine_id;})()
+      (function(){const _e=ge('mesin_id');if(_e)_e.disabled=true;})();
+      (function(){const _e=ge('mesin_name');if(_e)_e.value=rec.machine_name;})()
+      setVal('mesin_machine_line',rec.machine_line||'');
     };
+    // Use in-memory DB first so form populates instantly, like item price UI
+    _pop(DB.mesin.find(function(x){return x.id===id;}));
+    // Refresh in background silently
     if(typeof API!=='undefined'){
       fetch(window.location.origin+'/api/mesin',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
         .then(function(r){return r.json();})
-        .then(function(list){DB.mesin=list;_pop(list.find(function(x){return x.id===id;}))})
-        .catch(function(){_pop(DB.mesin.find(function(x){return x.id===id;}))});
-    } else {
-      _pop(DB.mesin.find(function(x){return x.id===id;}));
+        .then(function(list){DB.mesin=list;})
+        .catch(function(){});
     }
   } else {
     setText('mesin_form_title','Tambah Mesin');
