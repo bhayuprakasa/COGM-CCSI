@@ -492,6 +492,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <div class="flabel req">UOM (Satuan)</div>
           <input class="finput" id="item_uom" placeholder="Contoh: KG, PCS, MTR">
         </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:.5rem;padding-top:1.4rem">
+          <input type="checkbox" id="item_is_fg" style="accent-color:var(--cyan);cursor:pointer;width:16px;height:16px">
+          <label for="item_is_fg" style="cursor:pointer;font-size:.82rem;color:var(--t1);font-weight:500">Barang Jadi (Finish Good)</label>
+        </div>
       </div>
     </div>
   </div>
@@ -1982,7 +1986,16 @@ function openSearchModal(type, codeField, nameField, extra){
   (function(){const _e=ge('searchModal');if(_e)_e.classList.add('open');})();
 }
 function buildSearchData(type){
-  if(type==='item') sm_data=DB.items.map(i=>({code:i.code,name:i.name,sub:i.uom}));
+  if(type==='item'){
+    // kapasitas: hanya Finish Good (is_fg=1); item price: hanya non-FG (is_fg=0); lainnya: semua item
+    if(sm_field==='kap_item_code'){
+      sm_data=DB.items.filter(i=>i.is_fg).map(i=>({code:i.code,name:i.name,sub:i.uom+' | FG'}));
+    } else if(sm_field==='ip_item_code'){
+      sm_data=DB.items.filter(i=>!i.is_fg).map(i=>({code:i.code,name:i.name,sub:i.uom}));
+    } else {
+      sm_data=DB.items.map(i=>({code:i.code,name:i.name,sub:i.uom+(i.is_fg?' | FG':'')}));
+    }
+  }
   else if(type==='price') sm_data=DB.prices.map(p=>({code:p.id,name:p.created_dt||p.created||'',sub:p.lines.length+' lines'}));
   else if(type==='exrate') sm_data=DB.exrates.map(e=>({code:e.currency_id,name:e.currency_id,sub:latestRate(e)}));
   else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Rp '+Number(d.rate).toLocaleString('id-ID')+'/jam'}));
@@ -2100,6 +2113,7 @@ function openItemForm(id){try{
   setVal('item_code','');
   setVal('item_name','');
   setVal('item_uom','');
+  const fgCb=ge('item_is_fg'); if(fgCb) fgCb.checked=false;
   ge('item_code')&&(ge('item_code').disabled=false);
   if(id){
     var populate=function(rec){
@@ -2109,6 +2123,7 @@ function openItemForm(id){try{
       setVal('item_code',rec.code||'');
       setVal('item_name',rec.name||'');
       setVal('item_uom',rec.uom||'');
+      const _fgCb=ge('item_is_fg'); if(_fgCb) _fgCb.checked=!!(rec.is_fg);
       ge('item_code')&&(ge('item_code').disabled=true);
       document.getElementById('item_form_card').scrollIntoView({behavior:'smooth'});
     };
@@ -2132,6 +2147,7 @@ function saveItem(){try{
   const code=document.getElementById('item_code').value.trim();
   const name=document.getElementById('item_name').value.trim();
   const uom=document.getElementById('item_uom').value.trim();
+  const is_fg=document.getElementById('item_is_fg')&&document.getElementById('item_is_fg').checked?1:0;
   if(!code||!name||!uom){toast('Item Code, Name, dan UOM wajib diisi.','error');return;}
 
   const who=currentUser?currentUser.nama:'System';
@@ -2141,27 +2157,28 @@ function saveItem(){try{
     if(rec){
       if(rec.name!==name) recordHistory('item',editId,'Item Name',rec.name,name);
       if(rec.uom!==uom) recordHistory('item',editId,'UOM',rec.uom,uom);
+      if(rec.is_fg!==is_fg) recordHistory('item',editId,'Barang Jadi',rec.is_fg?'Ya':'Tidak',is_fg?'Ya':'Tidak');
       if(typeof API!=='undefined'){
-        apiSave(API.items.update(editId,{name,uom}),function(){
-          rec.name=name; rec.uom=uom;
+        apiSave(API.items.update(editId,{name,uom,is_fg}),function(){
+          rec.name=name; rec.uom=uom; rec.is_fg=is_fg;
           toast('Item berhasil diupdate.','success');
           closeItemForm(); loadAllData().then(function(){renderItems();updateCounts();});
         }); return;
       }
-      rec.name=name; rec.uom=uom; rec.updated=now; rec.modified_by=who; rec.modified_dt=now;
+      rec.name=name; rec.uom=uom; rec.is_fg=is_fg; rec.updated=now; rec.modified_by=who; rec.modified_dt=now;
     }
     toast('Item berhasil diupdate.','success');
   } else {
     if(DB.items.find(i=>i.code===code)){toast('Item Code sudah ada!','error');return;}
     if(typeof API!=='undefined'){
-      apiSave(API.items.create({code,name,uom}),function(res){
-        if(res&&res.id) DB.items.push({id:res.id,code,name,uom});
+      apiSave(API.items.create({code,name,uom,is_fg}),function(res){
+        if(res&&res.id) DB.items.push({id:res.id,code,name,uom,is_fg});
         toast('Item berhasil ditambahkan.','success');
         closeItemForm(); loadAllData().then(function(){renderItems();updateCounts();});
       }); return;
     }
     const id='ITM-'+(++itemSeq).toString().padStart(4,'0');
-    DB.items.push({id,code,name,uom,created:now,created_by:who,created_dt:now,updated:now,modified_by:who,modified_dt:now});
+    DB.items.push({id,code,name,uom,is_fg,created:now,created_by:who,created_dt:now,updated:now,modified_by:who,modified_dt:now});
     toast('Item berhasil ditambahkan.','success');
   }
   closeItemForm(); renderItems(); updateCounts();
@@ -2188,6 +2205,7 @@ function renderItems(){try{
       col('item','code')&&'<th>Item Code</th>',
       col('item','name')&&'<th>Item Name</th>',
       col('item','uom')&&'<th>UOM</th>',
+      col('item','fg')&&'<th>Barang Jadi</th>',
       col('item','cby')&&'<th>Created By</th>',
       col('item','cdt')&&'<th>Created</th>',
       col('item','mby')&&'<th>Modified By</th>',
@@ -2207,6 +2225,7 @@ function renderItems(){try{
       ${col('item','code')?`<td><span class="run-num">${i.code}</span></td>`:''}
       ${col('item','name')?`<td>${i.name}</td>`:''}
       ${col('item','uom')?`<td><span class="badge badge-cyan">${i.uom}</span></td>`:''}
+      ${col('item','fg')?`<td style="text-align:center">${i.is_fg?'<span class="badge badge-green" title="Finish Good">✔ FG</span>':'<span style="color:var(--t3);font-size:.72rem">—</span>'}</td>`:''}
       ${col('item','cby')?`<td class="audit-cell">${i.created_by||'—'}</td>`:''}
       ${col('item','cdt')?`<td class="audit-cell">${i.created_dt||i.created||'—'}</td>`:''}
       ${col('item','mby')?`<td class="audit-cell">${i.modified_by||'—'}</td>`:''}
@@ -5666,6 +5685,7 @@ const COL_DEFS = {
     {key:'code',    label:'Item Code',    always:true},
     {key:'name',    label:'Item Name',    always:true},
     {key:'uom',     label:'UOM'},
+    {key:'fg',      label:'Barang Jadi'},
     {key:'cby',     label:'Created By'},
     {key:'cdt',     label:'Created Date'},
     {key:'mby',     label:'Modified By'},
