@@ -2118,6 +2118,8 @@ function openItemForm(id){try{
   if(id){
     var populate=function(rec){
       if(!rec){toast('Data item tidak ditemukan.','error');return;}
+      // Blokir edit jika item sudah dipakai di transaksi
+      if(rec.in_use){toast('Item "'+rec.code+'" sudah digunakan dalam transaksi, data tidak dapat diubah.','error');return;}
       setText('item_form_title','Edit Item — '+rec.code);
       setVal('item_edit_id',id);
       setVal('item_code',rec.code||'');
@@ -2225,15 +2227,19 @@ function renderItems(){try{
       ${col('item','code')?`<td><span class="run-num">${i.code}</span></td>`:''}
       ${col('item','name')?`<td>${i.name}</td>`:''}
       ${col('item','uom')?`<td><span class="badge badge-cyan">${i.uom}</span></td>`:''}
-      ${col('item','fg')?`<td style="text-align:center">${i.is_fg?'<span class="badge badge-green" title="Finish Good">✔ FG</span>':'<span style="color:var(--t3);font-size:.72rem">—</span>'}</td>`:''}
+      ${col('item','fg')?`<td style="text-align:center">${i.is_fg?'<span class="badge badge-green" title="Finish Good">✔ FG</span>':'<span style="color:var(--t3);font-size:.72rem">—</span>'}${i.in_use?'&nbsp;<span class="badge" style="background:var(--acc2,#e57a00);color:#fff;font-size:.65rem" title="Item ini sudah digunakan dalam transaksi">Dipakai</span>':''}</td>`:''}
       ${col('item','cby')?`<td class="audit-cell">${i.created_by||'—'}</td>`:''}
       ${col('item','cdt')?`<td class="audit-cell">${i.created_dt||i.created||'—'}</td>`:''}
       ${col('item','mby')?`<td class="audit-cell">${i.modified_by||'—'}</td>`:''}
       ${col('item','mdt')?`<td class="audit-cell">${i.modified_dt||i.updated||'—'}</td>`:''}
       ${col('item','action')?`<td><div style="display:flex;gap:.3rem">
-        <button class="btn btn-amber btn-xs" onclick="openItemForm('${i.id}')">✏️ Edit</button>
+        ${i.in_use
+          ? `<button class="btn btn-ghost btn-xs" disabled title="Item sudah digunakan dalam transaksi, tidak dapat diubah" style="opacity:.45;cursor:not-allowed">✏️ Edit</button>`
+          : `<button class="btn btn-amber btn-xs" onclick="openItemForm('${i.id}')">✏️ Edit</button>`}
         <button class="btn btn-ghost btn-xs" onclick="showHistory('item','${i.id}')">📜 Riwayat</button>
-        <button class="btn btn-danger btn-xs" onclick="deleteItem('${i.id}')">🗑</button>
+        ${i.in_use
+          ? `<button class="btn btn-ghost btn-xs" disabled title="Item sudah digunakan dalam transaksi, tidak dapat dihapus" style="opacity:.45;cursor:not-allowed">🗑</button>`
+          : `<button class="btn btn-danger btn-xs" onclick="deleteItem('${i.id}')">🗑</button>`}
       </div></td>`:''}
     </tr>
   `).join('');
