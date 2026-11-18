@@ -68,8 +68,34 @@ router.delete('/users/:id', requireEdit, async (req,res) => {
 });
 
 // ── ITEMS ──
+
+// Cek apakah item sudah digunakan di transaksi manapun
+async function isItemUsed(code) {
+  const checks = await Promise.all([
+    query(`SELECT 1 FROM masterbom_lines WHERE item_code=? LIMIT 1`, [code]),
+    query(`SELECT 1 FROM bom_lines       WHERE item_code=? LIMIT 1`, [code]),
+    query(`SELECT 1 FROM item_prices     WHERE item_code=? LIMIT 1`, [code]),
+    query(`SELECT 1 FROM kapasitas       WHERE item_code=? LIMIT 1`, [code]),
+    query(`SELECT 1 FROM price_lines     WHERE item_code=? LIMIT 1`, [code]),
+  ]);
+  return checks.some(r => r.length > 0);
+}
+
 router.get('/items', requireAuth, async (req,res) => {
-  try { res.json(await query(`SELECT * FROM items ORDER BY code`)); }
+  try {
+    // Sertakan flag in_use: 1 jika item sudah dipakai di transaksi apapun
+    const items = await query(`
+      SELECT i.*,
+        CASE WHEN
+          EXISTS(SELECT 1 FROM masterbom_lines WHERE item_code = i.code) OR
+          EXISTS(SELECT 1 FROM bom_lines       WHERE item_code = i.code) OR
+          EXISTS(SELECT 1 FROM item_prices     WHERE item_code = i.code) OR
+          EXISTS(SELECT 1 FROM kapasitas       WHERE item_code = i.code) OR
+          EXISTS(SELECT 1 FROM price_lines     WHERE item_code = i.code)
+        THEN 1 ELSE 0 END AS in_use
+      FROM items i ORDER BY i.code`);
+    res.json(items);
+  }
   catch(e) { res.status(500).json({error:e.message}); }
 });
 
@@ -90,6 +116,14 @@ router.post('/items', requireEdit, async (req,res) => {
 
 router.put('/items/:id', requireEdit, async (req,res) => {
   try {
+    // Ambil code item untuk dicek penggunaannya
+    const [item] = await query(`SELECT code FROM items WHERE id=?`, [req.params.id]);
+    if (!item) return res.status(404).json({error:'Item tidak ditemukan: '+req.params.id});
+
+    // Tolak jika item sudah pernah dipakai di transaksi
+    if (await isItemUsed(item.code))
+      return res.status(400).json({error:'Item sudah digunakan dalam transaksi, data tidak dapat diubah.'});
+
     const {name,uom,is_fg} = req.body;
     const fgVal = is_fg ? 1 : 0;
     await query(`UPDATE items SET name=?,uom=?,is_fg=?,modified_by=?,modified_dt=? WHERE id=?`,
@@ -100,6 +134,14 @@ router.put('/items/:id', requireEdit, async (req,res) => {
 
 router.delete('/items/:id', requireEdit, async (req,res) => {
   try {
+    // Ambil code item untuk dicek penggunaannya
+    const [item] = await query(`SELECT code FROM items WHERE id=?`, [req.params.id]);
+    if (!item) return res.status(404).json({error:'Item tidak ditemukan: '+req.params.id});
+
+    // Tolak jika item sudah pernah dipakai di transaksi
+    if (await isItemUsed(item.code))
+      return res.status(400).json({error:'Item sudah digunakan dalam transaksi, tidak dapat dihapus.'});
+
     const r = await query(`DELETE FROM items WHERE id=?`,[req.params.id]);
     if(r.affectedRows===0) return res.status(404).json({error:'Item tidak ditemukan: '+req.params.id});
     res.json({ok:true});
