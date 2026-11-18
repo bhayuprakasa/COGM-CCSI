@@ -1,13 +1,25 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(git pull *)",
+      "Bash(git push *)",
+      "Bash(git pull origin *)",
+      "Bash(git push origin *)",
+      "Bash(git pull --rebase *)",
+      "Bash(git fetch *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  },
   "hooks": {
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "BRANCH=$(git -C \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\" branch --show-current 2>/dev/null); if [ -n \"$BRANCH\" ]; then git pull origin \"$BRANCH\" --rebase 2>&1 && git push origin \"$BRANCH\" 2>&1; fi",
+            "command": "ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); BRANCH=$(git -C \"$ROOT\" branch --show-current 2>/dev/null); if [ -n \"$BRANCH\" ]; then if ! git -C \"$ROOT\" diff --quiet || ! git -C \"$ROOT\" diff --cached --quiet || [ -n \"$(git -C \"$ROOT\" ls-files --others --exclude-standard)\" ]; then git -C \"$ROOT\" add -A && git -C \"$ROOT\" commit -m \"Auto-commit: save work in progress [$(date '+%Y-%m-%d %H:%M')]\" 2>&1; fi; git -C \"$ROOT\" pull origin \"$BRANCH\" --rebase 2>&1 && git -C \"$ROOT\" push origin \"$BRANCH\" 2>&1; fi",
             "timeout": 60,
-            "statusMessage": "Syncing git: pull & push..."
+            "statusMessage": "Syncing git: commit, pull & push..."
           }
         ]
       }
