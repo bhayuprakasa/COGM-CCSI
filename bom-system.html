@@ -1326,6 +1326,14 @@ function latestRate(e){
   const sorted=[...e.lines].sort((a,b)=>new Date(b.tanggal)-new Date(a.tanggal));
   return 'Rp '+Number(sorted[0].rate).toLocaleString('id-ID');
 }
+// Cari item berdasarkan code (exact) ATAU name (case-insensitive)
+// Digunakan di semua kolom item_code agar bisa input nama item juga
+function findItemByCodeOrName(query){
+  if(!query) return null;
+  const q=query.trim();
+  return DB.items.find(it=>it.code===q) ||
+         DB.items.find(it=>it.name.toLowerCase()===q.toLowerCase());
+}
 function filterSearchModal(){
   const q=document.getElementById('sm_search').value.toLowerCase();
   const res=document.getElementById('sm_results');
@@ -1554,7 +1562,7 @@ function renderPriceLines(){
     <tr>
       <td>
         <div style="display:flex;gap:.3rem;align-items:center">
-          <input class="li-input" style="width:90px" value="${l.item_code}" placeholder="Kode..."
+          <input class="li-input" id="pl_vis_code_${i}" style="width:90px" value="${l.item_code}" placeholder="Kode atau Nama..."
             oninput="priceLines[${i}].item_code=this.value;autofillPriceItem(${i})">
           <button class="btn btn-ghost btn-xs" onclick="openSearchModal('item','pl_code_${i}','pl_name_${i}');setTimeout(()=>{document.getElementById('pl_code_${i}')&&document.getElementById('pl_code_${i}').dispatchEvent(new Event('change'))},100)" style="padding:.2rem .4rem;font-size:.7rem">🔍</button>
           <input type="hidden" id="pl_code_${i}" value="${l.item_code}">
@@ -1585,9 +1593,17 @@ function renderPriceLines(){
   });
 }
 function autofillPriceItem(i, forcedCode, forcedName){
-  const code=forcedCode||priceLines[i].item_code;
-  const item=DB.items.find(it=>it.code===code);
+  const rawCode=forcedCode||priceLines[i].item_code;
+  const item=findItemByCodeOrName(rawCode);
   if(item){
+    // Jika match by name, update input kode ke kode asli
+    if(item.code!==rawCode){
+      priceLines[i].item_code=item.code;
+      const ci=document.getElementById('pl_code_'+i);
+      if(ci) ci.value=item.code;
+      const vi=document.getElementById('pl_vis_code_'+i);
+      if(vi) vi.value=item.code;
+    }
     priceLines[i].item_name=item.name;
     const nm=document.getElementById('pl_nm_'+i);
     if(nm) nm.value=item.name;
@@ -1858,11 +1874,15 @@ function openKapForm(id){try{
     document.getElementById('kap_created').value=nowStr();
     setText('kap_form_title','Tambah Kapasitas Mesin');
   }
-  // wire item code search
+  // wire item code search — support lookup by name juga
   const codeEl=document.getElementById('kap_item_code');
   codeEl.oninput=function(){
-    const item=DB.items.find(i=>i.code===this.value);
-    if(item) (function(){const _e=ge('kap_item_name');if(_e)_e.value=item.name;})()
+    const item=findItemByCodeOrName(this.value);
+    if(item){
+      // Jika match by name, ganti input dengan kode asli
+      if(item.code!==this.value) this.value=item.code;
+      (function(){const _e=ge('kap_item_name');if(_e)_e.value=item.name;})();
+    }
   };
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openKapForm:",e);}}
@@ -2399,10 +2419,18 @@ function recalcAllGroups(){
 function recalcBomTotal(){ recalcAllGroups(); }
 
 function onBomLineItemCode(gIdx,lIdx,code,forcedName){
-  const item=DB.items.find(it=>it.code===code);
+  const item=findItemByCodeOrName(code);
   const row=document.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
   if(!row) return;
   const l=bomGroups[gIdx].lines[lIdx];
+  // Jika match by name, resolve ke kode asli dan update input
+  if(item && item.code!==code){
+    code=item.code;
+    const ci=row.querySelector('.bom-line-code');
+    if(ci) ci.value=code;
+    const hi=document.getElementById('__bc_'+gIdx+'_'+lIdx);
+    if(hi) hi.value=code;
+  }
   l.item_code=code;
   if(item){
     row.querySelector('.bom-line-name').value=item.name;
@@ -2963,10 +2991,18 @@ function deleteMBomLine(gIdx,lIdx){
 }
 
 function onMBomItemCode(gIdx,lIdx,code,forcedName){
-  const item=DB.items.find(it=>it.code===code);
+  const item=findItemByCodeOrName(code);
   const row=document.querySelector('tr[data-mg="'+gIdx+'"][data-ml="'+lIdx+'"]');
   if(!row) return;
   const l=mbomGroups[gIdx].lines[lIdx];
+  // Jika match by name, resolve ke kode asli dan update input
+  if(item && item.code!==code){
+    code=item.code;
+    const ci=row.querySelector('.mbom-line-code');
+    if(ci) ci.value=code;
+    const hi=document.getElementById('__mbc_'+gIdx+'_'+lIdx);
+    if(hi) hi.value=code;
+  }
   l.item_code=code;
   if(item){
     row.querySelector('.mbom-line-name').value=item.name;
