@@ -212,6 +212,27 @@ async function initSchema() {
         sort_order INT DEFAULT 0
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
+      // Tabel harga pembelian (purchase price list) — header
+      `CREATE TABLE IF NOT EXISTS prices (
+        id VARCHAR(100) PRIMARY KEY,
+        created_by VARCHAR(100), created_dt VARCHAR(50),
+        modified_by VARCHAR(100), modified_dt VARCHAR(50)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+      // Detail baris harga per item dalam satu price list
+      `CREATE TABLE IF NOT EXISTS price_lines (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        price_id VARCHAR(100) NOT NULL,
+        item_code VARCHAR(100), item_name VARCHAR(255), uom VARCHAR(50),
+        qty DECIMAL(15,4) DEFAULT 0,
+        currency VARCHAR(20) DEFAULT 'USD',
+        price DECIMAL(20,6) DEFAULT 0,
+        hedging DECIMAL(10,4) DEFAULT 0,
+        landed DECIMAL(10,4) DEFAULT 0,
+        modified_by VARCHAR(100), modified_dt VARCHAR(50),
+        FOREIGN KEY (price_id) REFERENCES prices(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
       `CREATE TABLE IF NOT EXISTS sequences (
         name VARCHAR(50) PRIMARY KEY, value INT DEFAULT 0
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
