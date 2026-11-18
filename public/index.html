@@ -4663,7 +4663,12 @@ function parseCSV(text){
     }
     cols.push(cur.trim()); return cols;
   };
-  const header=parseRow(lines[0]).map(h=>h.replace(/^"|"$/g,'').trim());
+  // Parse header; handle "double-wrapped" CSV where each row is a single outer-quoted field
+  // e.g. "ItemCode,""ItemName"",""UOM""" → parseRow gives 1 col → re-parse inner value
+  const rawHeaderCols=parseRow(lines[0]);
+  const header=(rawHeaderCols.length===1&&rawHeaderCols[0].includes(',')
+    ?parseRow(rawHeaderCols[0])
+    :rawHeaderCols).map(h=>h.replace(/^"|"$/g,'').trim());
   const cfg=UPLOAD_CONFIG[uploadType];
   // Validate columns (case-insensitive)
   const headerLower=header.map(h=>h.toLowerCase());
@@ -4673,7 +4678,9 @@ function parseCSV(text){
   cfg.columns.forEach(c=>colIdx[c]=headerLower.indexOf(c.toLowerCase()));
   const rows=[];
   for(let i=1;i<lines.length;i++){
-    const cols=parseRow(lines[i]);
+    // Handle double-wrapped rows same as header
+    let cols=parseRow(lines[i]);
+    if(cols.length===1&&cols[0].includes(',')) cols=parseRow(cols[0]);
     if(cols.every(c=>!c.trim())) continue; // skip empty rows
     const row={};
     cfg.columns.forEach(c=>row[c]=(cols[colIdx[c]]||'').replace(/^"|"$/g,'').trim());
