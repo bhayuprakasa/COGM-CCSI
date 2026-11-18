@@ -6028,18 +6028,57 @@ function deleteSelected(tbl, fn){
   clearSelected(tbl);
 }
 
-function deleteSelectedItems(sel){ DB.items=DB.items.filter(x=>!sel.has(x.id)); renderItems(); updateCounts(); toast(sel.size+' item dihapus.','info'); }
-function deleteSelectedPrices(sel){ DB.prices=DB.prices.filter(x=>!sel.has(x.id)); renderPrices(); updateCounts(); toast(sel.size+' price dihapus.','info'); }
-function deleteSelectedExrates(sel){ DB.exrates=DB.exrates.filter(x=>!sel.has(x.id)); renderExrates(); updateCounts(); toast(sel.size+' exchange rate dihapus.','info'); }
-function deleteSelectedDlfoh(sel){ DB.dlfoh=DB.dlfoh.filter(x=>!sel.has(x.id)); renderDlfoh(); updateCounts(); toast(sel.size+' DL-FOH dihapus.','info'); }
-function deleteSelectedMesin(sel){ DB.mesin=DB.mesin.filter(x=>!sel.has(x.id)); renderMesin(); updateCounts(); toast(sel.size+' mesin dihapus.','info'); }
-function deleteSelectedKap(sel){ DB.kap=DB.kap.filter(x=>!sel.has(x.id)); renderKap(); updateCounts(); toast(sel.size+' kapasitas dihapus.','info'); }
-function deleteSelectedMBom(sel){ DB.masterbom=DB.masterbom.filter(x=>!sel.has(x.id)); renderMBom(); updateCounts(); toast(sel.size+' master BOM dihapus.','info'); }
+// Helper: panggil API delete untuk setiap id yang dipilih secara paralel,
+// lalu update DB lokal hanya jika semua berhasil
+function _bulkDeleteAPI(ids, apiFn, onDone, onErr) {
+  Promise.all(ids.map(id => apiFn(id)))
+    .then(onDone)
+    .catch(e => { toast('Gagal hapus: ' + e.message, 'error'); if(onErr) onErr(); });
+}
+
+function deleteSelectedItems(sel){
+  _bulkDeleteAPI([...sel], API.items.delete.bind(API.items),
+    function(){ DB.items=DB.items.filter(x=>!sel.has(x.id)); renderItems(); updateCounts(); toast(sel.size+' item dihapus.','info'); },
+    function(){ loadAllData().then(function(){ renderItems(); updateCounts(); }); });
+}
+function deleteSelectedPrices(sel){
+  _bulkDeleteAPI([...sel], API.prices.delete.bind(API.prices),
+    function(){ DB.prices=DB.prices.filter(x=>!sel.has(x.id)); renderPrices(); updateCounts(); toast(sel.size+' price dihapus.','info'); },
+    function(){ loadAllData().then(function(){ renderPrices(); updateCounts(); }); });
+}
+function deleteSelectedExrates(sel){
+  _bulkDeleteAPI([...sel], API.exrates.delete.bind(API.exrates),
+    function(){ DB.exrates=DB.exrates.filter(x=>!sel.has(x.id)); renderExrates(); updateCounts(); toast(sel.size+' exchange rate dihapus.','info'); },
+    function(){ loadAllData().then(function(){ renderExrates(); updateCounts(); }); });
+}
+function deleteSelectedDlfoh(sel){
+  _bulkDeleteAPI([...sel], API.dlfoh.delete.bind(API.dlfoh),
+    function(){ DB.dlfoh=DB.dlfoh.filter(x=>!sel.has(x.id)); renderDlfoh(); updateCounts(); toast(sel.size+' DL-FOH dihapus.','info'); },
+    function(){ loadAllData().then(function(){ renderDlfoh(); updateCounts(); }); });
+}
+function deleteSelectedMesin(sel){
+  _bulkDeleteAPI([...sel], API.mesin.delete.bind(API.mesin),
+    function(){ DB.mesin=DB.mesin.filter(x=>!sel.has(x.id)); renderMesin(); updateCounts(); toast(sel.size+' mesin dihapus.','info'); },
+    function(){ loadAllData().then(function(){ renderMesin(); updateCounts(); }); });
+}
+function deleteSelectedKap(sel){
+  _bulkDeleteAPI([...sel], API.kapasitas.delete.bind(API.kapasitas),
+    function(){ DB.kap=DB.kap.filter(x=>!sel.has(x.id)); renderKap(); updateCounts(); toast(sel.size+' kapasitas dihapus.','info'); },
+    function(){ loadAllData().then(function(){ renderKap(); updateCounts(); }); });
+}
+function deleteSelectedMBom(sel){
+  _bulkDeleteAPI([...sel], API.masterbom.delete.bind(API.masterbom),
+    function(){ DB.masterbom=DB.masterbom.filter(x=>!sel.has(x.id)); renderMBom(); updateCounts(); toast(sel.size+' master BOM dihapus.','info'); },
+    function(){ loadAllData().then(function(){ renderMBom(); updateCounts(); }); });
+}
 function deleteSelectedBom(sel){
-  const draftOnly=DB.bom.filter(x=>sel.has(x.id)&&(x.status||'draft')==='draft');
-  if(draftOnly.length<sel.size) toast('Hanya BOM berstatus Draft yang dapat dihapus. BOM lain dilewati.','info');
-  DB.bom=DB.bom.filter(x=>!sel.has(x.id)||(x.status||'draft')!=='draft');
-  renderBom(); updateCounts();
+  // Hanya BOM berstatus draft yang boleh dihapus
+  const draftIds=[...sel].filter(id=>{ const b=DB.bom.find(x=>x.id===id); return b&&(b.status||'draft')==='draft'; });
+  if(draftIds.length<sel.size) toast('Hanya BOM berstatus Draft yang dapat dihapus. BOM lain dilewati.','info');
+  if(!draftIds.length) return;
+  _bulkDeleteAPI(draftIds, API.bom.delete.bind(API.bom),
+    function(){ DB.bom=DB.bom.filter(x=>!draftIds.includes(x.id)); renderBom(); updateCounts(); toast(draftIds.length+' BOM dihapus.','info'); },
+    function(){ loadAllData().then(function(){ renderBom(); updateCounts(); }); });
 }
 
 // ═══════════════════════════════════════════

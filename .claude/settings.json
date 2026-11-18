@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "BRANCH=$(git -C \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\" branch --show-current 2>/dev/null); if [ -n \"$BRANCH\" ]; then git pull origin \"$BRANCH\" --rebase 2>&1 && git push origin \"$BRANCH\" 2>&1; fi",
+            "timeout": 60,
+            "statusMessage": "Syncing git: pull & push..."
+          }
+        ]
+      }
+    ]
+  }
+}
