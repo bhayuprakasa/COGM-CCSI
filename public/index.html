@@ -654,7 +654,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="exrate_list_card">
     <div class="card-head">
       <div class="card-title"><span class="card-title-icon">💱</span> Daftar Exchange Rate</div>
       <div style="display:flex;align-items:center;gap:.5rem"><input class="finput" style="width:200px" placeholder="🔍 Cari currency..." oninput="filterExrates(this.value)"><div id="coltoggle_exrate"></div></div>
@@ -725,7 +725,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="dlfoh_list_card">
     <div class="card-head">
       <div class="card-title"><span class="card-title-icon">🏭</span> Daftar DL-FOH Category</div>
       <input class="finput" style="width:200px" placeholder="🔍 Cari category..." oninput="filterDlfoh(this.value)">
@@ -857,7 +857,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="kap_list_card">
     <div class="card-head">
       <div class="card-title"><span class="card-title-icon">⚡</span> Daftar Kapasitas Mesin</div>
       <div style="display:flex;align-items:center;gap:.5rem"><input class="finput" style="width:200px" placeholder="🔍 Cari..." oninput="filterKap(this.value)"><div id="coltoggle_kap"></div></div>
@@ -923,7 +923,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="mesin_list_card">
     <div class="card-head">
       <div class="card-title"><span class="card-title-icon">🔧</span> Daftar Mesin</div>
       <div style="display:flex;align-items:center;gap:.5rem"><input class="finput" style="width:200px" placeholder="🔍 Cari mesin..." oninput="filterMesin(this.value)"><div id="coltoggle_mesin"></div></div>
@@ -2388,38 +2388,27 @@ function renderPrices(){try{
 let exrateLines=[];
 function openExrateForm(id){try{
   exrateLines=[];
+  // Show form, hide list (same pattern as Item Price)
   setDisp('exrate_form_card','');
+  setDisp('exrate_list_card','none');
   setVal('exrate_edit_id','');
   setVal('exrate_currency_id','');
   (function(){const _e=ge('exrate_currency_id');if(_e)_e.disabled=false;})();
   if(id){
     setText('exrate_form_title','Edit Exchange Rate');
-    var _pop=function(rec){
-      if(!rec) return; // skip silently — another call may succeed
-      (function(){const _e=ge('exrate_edit_id');if(_e)_e.value=id;})()
-      (function(){const _e=ge('exrate_currency_id');if(_e)_e.value=rec.currency_id;})()
+    // Synchronous lookup from DB loaded on page navigation
+    var rec=DB.exrates.find(function(x){return x.id===id;});
+    if(rec){
+      (function(){const _e=ge('exrate_edit_id');if(_e)_e.value=id;})();
+      (function(){const _e=ge('exrate_currency_id');if(_e)_e.value=rec.currency_id;})();
       (function(){const _e=ge('exrate_currency_id');if(_e)_e.disabled=true;})();
       exrateLines=JSON.parse(JSON.stringify(rec.lines||[]));
       renderExrateLines();
-    };
-    // Populate immediately from memory if available (instant, no flicker)
-    var memRec=DB.exrates.find(function(x){return x.id===id;});
-    if(memRec) _pop(memRec);
-    // Always fetch fresh from API — overwrites form with authoritative data
-    if(typeof API!=='undefined'){
-      fetch(window.location.origin+'/api/exrates',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
-        .then(function(r){return r.json();})
-        .then(function(list){
-          DB.exrates=list;
-          var fresh=list.find(function(x){return x.id===id;});
-          if(fresh) _pop(fresh);
-          else if(!memRec){toast('Data tidak ditemukan.','error');setDisp('exrate_form_card','none');}
-        })
-        .catch(function(){
-          if(!memRec){toast('Gagal memuat data.','error');setDisp('exrate_form_card','none');}
-        });
-    } else if(!memRec){
-      toast('Data tidak ditemukan.','error');setDisp('exrate_form_card','none');
+    } else {
+      toast('Data tidak ditemukan.','error');
+      setDisp('exrate_form_card','none');
+      setDisp('exrate_list_card','');
+      return;
     }
   } else {
     setText('exrate_form_title','Tambah Exchange Rate');
@@ -2427,7 +2416,7 @@ function openExrateForm(id){try{
   }
   document.getElementById('exrate_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openExrateForm:",e);}}
-function closeExrateForm(){try{setDisp('exrate_form_card','none');exrateLines=[];}catch(e){console.warn("closeExrateForm:",e);}}
+function closeExrateForm(){try{setDisp('exrate_form_card','none');setDisp('exrate_list_card','');exrateLines=[];}catch(e){console.warn("closeExrateForm:",e);}}
 function addExrateLine(){
   exrateLines.push({tanggal:dateStr(),rate:0});
   renderExrateLines();
@@ -2515,7 +2504,9 @@ function renderExrates(){try{
 // DL-FOH
 // ═══════════════════════════════════════════
 function openDlfohForm(id){try{
+  // Show form, hide list (same pattern as Item Price)
   setDisp('dlfoh_form_card','');
+  setDisp('dlfoh_list_card','none');
   setVal('dlfoh_edit_id','');
   setVal('dlfoh_catid','');
   (function(){const _e=ge('dlfoh_catid');if(_e)_e.disabled=false;})();
@@ -2525,35 +2516,27 @@ function openDlfohForm(id){try{
   document.getElementById('dlfoh_created').value=nowStr();
   if(id){
     setText('dlfoh_form_title','Edit DL-FOH');
-    var _pop=function(rec){
-      if(!rec) return;
-      (function(){const _e=ge('dlfoh_edit_id');if(_e)_e.value=id;})()
-      (function(){const _e=ge('dlfoh_catid');if(_e)_e.value=rec.catid;})()
+    var rec=DB.dlfoh.find(function(x){return x.id===id;});
+    if(rec){
+      (function(){const _e=ge('dlfoh_edit_id');if(_e)_e.value=id;})();
+      (function(){const _e=ge('dlfoh_catid');if(_e)_e.value=rec.catid;})();
       (function(){const _e=ge('dlfoh_catid');if(_e)_e.disabled=true;})();
-      (function(){const _e=ge('dlfoh_desc');if(_e)_e.value=rec.desc;})()
-      (function(){const _e=ge('dlfoh_type');if(_e)_e.value=rec.type;})()
-      (function(){const _e=ge('dlfoh_rate');if(_e)_e.value=rec.rate;})()
-      (function(){const _e=ge('dlfoh_created');if(_e)_e.value=rec.created_dt||rec.created||'';})()
-    };
-    var memRec=DB.dlfoh.find(function(x){return x.id===id;});
-    if(memRec) _pop(memRec);
-    if(typeof API!=='undefined'){
-      fetch(window.location.origin+'/api/dlfoh',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
-        .then(function(r){return r.json();})
-        .then(function(list){
-          DB.dlfoh=list;
-          var fresh=list.find(function(x){return x.id===id;});
-          if(fresh) _pop(fresh);
-          else if(!memRec){toast('Data tidak ditemukan.','error');setDisp('dlfoh_form_card','none');}
-        })
-        .catch(function(){if(!memRec){toast('Gagal memuat data.','error');setDisp('dlfoh_form_card','none');}});
-    } else if(!memRec){
-      toast('Data tidak ditemukan.','error');setDisp('dlfoh_form_card','none');
+      (function(){const _e=ge('dlfoh_desc');if(_e)_e.value=rec.desc;})();
+      (function(){const _e=ge('dlfoh_type');if(_e)_e.value=rec.type;})();
+      (function(){const _e=ge('dlfoh_rate');if(_e)_e.value=rec.rate;})();
+      (function(){const _e=ge('dlfoh_created');if(_e)_e.value=rec.created_dt||rec.created||'';})();
+    } else {
+      toast('Data tidak ditemukan.','error');
+      setDisp('dlfoh_form_card','none');
+      setDisp('dlfoh_list_card','');
+      return;
     }
+  } else {
+    setText('dlfoh_form_title','Tambah DL-FOH');
   }
   document.getElementById('dlfoh_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openDlfohForm:",e);}}
-function closeDlfohForm(){try{setDisp('dlfoh_form_card','none');}catch(e){console.warn("closeDlfohForm:",e);}}
+function closeDlfohForm(){try{setDisp('dlfoh_form_card','none');setDisp('dlfoh_list_card','');}catch(e){console.warn("closeDlfohForm:",e);}}
 function saveDlfoh(){try{
   const editId=document.getElementById('dlfoh_edit_id').value;
   const catid=document.getElementById('dlfoh_catid').value.trim();
@@ -2612,7 +2595,9 @@ function renderDlfoh(){try{
 // KAPASITAS MESIN
 // ═══════════════════════════════════════════
 function openKapForm(id){try{
+  // Show form, hide list (same pattern as Item Price)
   setDisp('kap_form_card','');
+  setDisp('kap_list_card','none');
   setVal('kap_edit_id','');
   setVal('kap_item_code','');
   setVal('kap_item_name','');
@@ -2655,24 +2640,18 @@ function openKapForm(id){try{
       document.getElementById('kap_efisiensi').value=rec.efisiensi||'';
       document.getElementById('kap_notes').value=rec.notes||'';
     };
-    var memRec=DB.kap.find(function(x){return x.id===id;});
-    if(memRec) _pop(memRec);
-    if(typeof API!=='undefined'){
-      fetch(window.location.origin+'/api/kapasitas',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
-        .then(function(r){return r.json();})
-        .then(function(list){
-          DB.kap=list;
-          var fresh=list.find(function(x){return x.id===id;});
-          if(fresh) _pop(fresh);
-          else if(!memRec){toast('Data tidak ditemukan.','error');setDisp('kap_form_card','none');}
-        })
-        .catch(function(){if(!memRec){toast('Gagal memuat data.','error');setDisp('kap_form_card','none');}});
-    } else if(!memRec){
-      toast('Data tidak ditemukan.','error');setDisp('kap_form_card','none');
+    var rec=DB.kap.find(function(x){return x.id===id;});
+    if(rec){
+      _pop(rec);
+    } else {
+      toast('Data tidak ditemukan.','error');
+      setDisp('kap_form_card','none');
+      setDisp('kap_list_card','');
+      return;
     }
   } else {
     const newKapId='KAP-'+(DB.kap.length+1).toString().padStart(4,'0');
-    (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})()
+    (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})();
     document.getElementById('kap_created').value=nowStr();
     setText('kap_form_title','Tambah Kapasitas Mesin');
   }
@@ -2684,7 +2663,7 @@ function openKapForm(id){try{
   };
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openKapForm:",e);}}
-function closeKapForm(){try{setDisp('kap_form_card','none');}catch(e){console.warn("closeKapForm:",e);}}
+function closeKapForm(){try{setDisp('kap_form_card','none');setDisp('kap_list_card','');}catch(e){console.warn("closeKapForm:",e);}}
 function onKapMachineChange(){
   const mid=document.getElementById('kap_machine_id').value;
   const rec=DB.mesin.find(m=>m.machine_id===mid);
@@ -3579,7 +3558,9 @@ function renderBom(){try{
 // MASTER MESIN
 // ═══════════════════════════════════════════
 function openMesinForm(id){try{
+  // Show form, hide list (same pattern as Item Price)
   setDisp('mesin_form_card','');
+  setDisp('mesin_list_card','none');
   setVal('mesin_edit_id','');
   setVal('mesin_id','');
   (function(){const _e=ge('mesin_id');if(_e)_e.disabled=false;})();
@@ -3587,35 +3568,25 @@ function openMesinForm(id){try{
   setVal('mesin_machine_line','');
   if(id){
     setText('mesin_form_title','Edit Mesin');
-    var _pop=function(rec){
-      if(!rec) return;
-      (function(){const _e=ge('mesin_edit_id');if(_e)_e.value=id;})()
-      (function(){const _e=ge('mesin_id');if(_e)_e.value=rec.machine_id;})()
+    var rec=DB.mesin.find(function(x){return x.id===id;});
+    if(rec){
+      (function(){const _e=ge('mesin_edit_id');if(_e)_e.value=id;})();
+      (function(){const _e=ge('mesin_id');if(_e)_e.value=rec.machine_id;})();
       (function(){const _e=ge('mesin_id');if(_e)_e.disabled=true;})();
-      (function(){const _e=ge('mesin_name');if(_e)_e.value=rec.machine_name;})()
+      (function(){const _e=ge('mesin_name');if(_e)_e.value=rec.machine_name;})();
       setVal('mesin_machine_line',rec.machine_line||'');
-    };
-    var memRec=DB.mesin.find(function(x){return x.id===id;});
-    if(memRec) _pop(memRec);
-    if(typeof API!=='undefined'){
-      fetch(window.location.origin+'/api/mesin',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
-        .then(function(r){return r.json();})
-        .then(function(list){
-          DB.mesin=list;
-          var fresh=list.find(function(x){return x.id===id;});
-          if(fresh) _pop(fresh);
-          else if(!memRec){toast('Data tidak ditemukan.','error');setDisp('mesin_form_card','none');}
-        })
-        .catch(function(){if(!memRec){toast('Gagal memuat data.','error');setDisp('mesin_form_card','none');}});
-    } else if(!memRec){
-      toast('Data tidak ditemukan.','error');setDisp('mesin_form_card','none');
+    } else {
+      toast('Data tidak ditemukan.','error');
+      setDisp('mesin_form_card','none');
+      setDisp('mesin_list_card','');
+      return;
     }
   } else {
     setText('mesin_form_title','Tambah Mesin');
   }
   document.getElementById('mesin_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openMesinForm:",e);}}
-function closeMesinForm(){try{setDisp('mesin_form_card','none');}catch(e){console.warn("closeMesinForm:",e);}}
+function closeMesinForm(){try{setDisp('mesin_form_card','none');setDisp('mesin_list_card','');}catch(e){console.warn("closeMesinForm:",e);}}
 function saveMesin(){try{
   const editId=document.getElementById('mesin_edit_id').value;
   const machine_id=document.getElementById('mesin_id').value.trim().toUpperCase();
@@ -6861,7 +6832,7 @@ function loadItemPrices(){
     .catch(function(e){console.warn('loadItemPrices:',e);return [];});
 }
 
-// Hook into goPage
+// Hook into goPage — reload Item Price when navigating to that page
 var _origGoPagePrice=null;
 (function(){
   var _orig=window.goPage;
@@ -6871,6 +6842,31 @@ var _origGoPagePrice=null;
       if(id==='price'){setTimeout(function(){loadItemPrices();},100);}
     };
   }
+})();
+
+// ── Reload master data pages on navigation (same pattern as Item Price) ──
+// Ensures DB.exrates / DB.dlfoh / DB.kap / DB.mesin are always fresh when user opens a page
+(function(){
+  var _orig=window.goPage;
+  if(!_orig) return;
+  window.goPage=function(pageId){
+    _orig(pageId);
+    if(typeof API==='undefined') return;
+    var tok=localStorage.getItem('cogm_token')||'';
+    var headers={'x-token':tok};
+    function reload(endpoint, assign){
+      setTimeout(function(){
+        fetch(window.location.origin+'/api/'+endpoint,{headers:headers,cache:'no-cache'})
+          .then(function(r){return r.json();})
+          .then(function(list){assign(list);})
+          .catch(function(){});
+      },100);
+    }
+    if(pageId==='exrate')    reload('exrates',   function(l){DB.exrates=l;renderExrates&&renderExrates();});
+    if(pageId==='dlfoh')     reload('dlfoh',     function(l){DB.dlfoh=l;  renderDlfoh&&renderDlfoh();});
+    if(pageId==='kapasitas') reload('kapasitas', function(l){DB.kap=l;    renderKap&&renderKap();});
+    if(pageId==='mesin')     reload('mesin',     function(l){DB.mesin=l;  renderMesin&&renderMesin();});
+  };
 })();
 
 // ── Open form ──
