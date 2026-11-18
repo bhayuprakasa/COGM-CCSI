@@ -58,6 +58,7 @@ async function initSchema() {
       `CREATE TABLE IF NOT EXISTS items (
         id VARCHAR(50) PRIMARY KEY, code VARCHAR(100) UNIQUE NOT NULL,
         name VARCHAR(255) NOT NULL, uom VARCHAR(50) NOT NULL,
+        is_fg TINYINT(1) NOT NULL DEFAULT 0,
         created_by VARCHAR(100), created_dt VARCHAR(50),
         modified_by VARCHAR(100), modified_dt VARCHAR(50)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
@@ -251,20 +252,21 @@ async function initSchema() {
       { table:'bom_lines',       col:'modified_by',       def:'VARCHAR(100)'            },
       { table:'bom_lines',       col:'modified_dt',       def:'VARCHAR(50)'             },
       { table:'bom',             col:'usd_rate_snapshot', def:'DECIMAL(20,4) DEFAULT 0' },
+      { table:'items',           col:'is_fg',             def:'TINYINT(1) NOT NULL DEFAULT 0' },
     ];
 
     // Batch check all columns at once — include all tables and columns being migrated
     const [existing] = await conn.execute(
       `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = ?
-         AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom')
-         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot')`,
+         AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items')
+         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg')`,
       [cfg.database]
     );
-    const existSet = new Set(existing.map(r => r.TABLE_NAME + '.' + r.COLUMN_NAME));
+    const existSet = new Set(existing.map(r => r.TABLE_NAME.toLowerCase() + '.' + r.COLUMN_NAME.toLowerCase()));
 
     for (const {table, col, def} of toAdd) {
-      if (!existSet.has(table + '.' + col)) {
+      if (!existSet.has(table.toLowerCase() + '.' + col.toLowerCase())) {
         await conn.execute(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
         console.log(`   + Added ${table}.${col}`);
       }
