@@ -2398,7 +2398,9 @@ function openExrateForm(id){try{
     (function(){const _e=ge('exrate_edit_id');if(_e)_e.value=id;})()
     (function(){const _e=ge('exrate_currency_id');if(_e)_e.value=rec.currency_id;})()
     (function(){const _e=ge('exrate_currency_id');if(_e)_e.disabled=true;})();
-    exrateLines=JSON.parse(JSON.stringify(rec.lines));
+    // Populate lines then render — must be called after async fetch completes
+    exrateLines=JSON.parse(JSON.stringify(rec.lines||[]));
+    renderExrateLines();
     };
     if(typeof API!=='undefined'){
       fetch(window.location.origin+'/api/exrates',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
@@ -2410,8 +2412,8 @@ function openExrateForm(id){try{
     }
   } else {
     setText('exrate_form_title','Tambah Exchange Rate');
+    renderExrateLines();
   }
-  renderExrateLines();
   document.getElementById('exrate_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openExrateForm:",e);}}
 function closeExrateForm(){try{setDisp('exrate_form_card','none');exrateLines=[];}catch(e){console.warn("closeExrateForm:",e);}}
