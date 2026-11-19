@@ -948,7 +948,12 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           </div>
           <div class="form-group">
             <div class="flabel req">Product Name</div>
-            <input class="finput" id="mbom_product" placeholder="Nama produk">
+            <!-- Hidden field menyimpan item_name (value yang dikirim ke API); input readonly untuk display -->
+            <div class="search-field-wrap">
+              <input class="finput" id="mbom_product" readonly placeholder="Pilih produk FG..." style="cursor:pointer" onclick="openSearchModal('fg_item','mbom_product_code','mbom_product')">
+              <span class="search-icon clickable" onclick="openSearchModal('fg_item','mbom_product_code','mbom_product')">🔍</span>
+            </div>
+            <input type="hidden" id="mbom_product_code">
           </div>
           <div class="form-group">
             <div class="flabel">Customer Name</div>
@@ -1948,7 +1953,7 @@ function openSearchModal(type, codeField, nameField, extra){
   sm_type=type; sm_field=codeField; sm_nameField=nameField||'';
   // Only overwrite sm_extra if caller explicitly passes a 4th argument
   if(arguments.length>=4) sm_extra = extra||null;
-  const titles={item:'Pilih Item',price:'Pilih Price ID',exrate:'Pilih Currency',dlfoh:'Pilih DL-FOH Category',kap:'Pilih Kapasitas'};
+  const titles={item:'Pilih Item',fg_item:'Pilih Produk (FG)',price:'Pilih Price ID',exrate:'Pilih Currency',dlfoh:'Pilih DL-FOH Category',kap:'Pilih Kapasitas'};
   setText('sm_title',titles[type]||'Search');
   setVal('sm_search','');
   buildSearchData(type);
@@ -1956,7 +1961,11 @@ function openSearchModal(type, codeField, nameField, extra){
   (function(){const _e=ge('searchModal');if(_e)_e.classList.add('open');})();
 }
 function buildSearchData(type){
-  if(type==='item'){
+  if(type==='fg_item'){
+    // Hanya tampilkan item dengan flag Finish Good (is_fg=1) untuk Product Name di Master BOM
+    sm_data=DB.items.filter(i=>i.is_fg).map(i=>({code:i.code,name:i.name,sub:i.uom+' | FG'}));
+  }
+  else if(type==='item'){
     // kapasitas: hanya Finish Good (is_fg=1); item price: hanya non-FG (is_fg=0); lainnya: semua item
     if(sm_field==='kap_item_code'){
       sm_data=DB.items.filter(i=>i.is_fg).map(i=>({code:i.code,name:i.name,sub:i.uom+' | FG'}));
@@ -1994,6 +2003,14 @@ function selectSearchResult(code,name){
   const codeEl=document.getElementById(sm_field);
   if(codeEl) codeEl.value=code;
   if(sm_nameField){const nel=document.getElementById(sm_nameField);if(nel) nel.value=name;}
+  // Product Name Master BOM — hanya item FG, simpan name ke mbom_product, code ke mbom_product_code
+  if(sm_type==='fg_item'){
+    const codeHidden=document.getElementById('mbom_product_code');
+    if(codeHidden) codeHidden.value=code;
+    const nameEl=document.getElementById('mbom_product');
+    if(nameEl) nameEl.value=name;
+    closeSearchModal(); return;
+  }
   // Master BOM select for BOM header
   if(sm_type==='masterbom'){
     onMasterBomSelect(code);
@@ -3912,7 +3929,7 @@ let mbomSeq=0;
 function openMBomForm(id){try{
   mbomGroups=[];
   setVal('mbom_edit_id','');
-  ['mbom_product','mbom_customer','mbom_project'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['mbom_product','mbom_product_code','mbom_customer','mbom_project'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['mbom_fiber_cnt','mbom_buffer_qty','mbom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   setVal('mbom_new_ml_sel','');
   const _mmid=ge('mbom_new_mid_sel');if(_mmid)_mmid.innerHTML='<option value="">← Pilih Machine Line dulu</option>';
