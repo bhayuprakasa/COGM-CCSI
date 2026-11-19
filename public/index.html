@@ -791,73 +791,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <div class="flabel">Item Name</div>
           <input class="finput" id="kap_item_name" readonly placeholder="Auto dari item code">
         </div>
-        <div class="form-group">
-          <div class="flabel req">Proses</div>
-          <select class="fselect" id="kap_proses">
-            <option value="">— Pilih Proses —</option>
-            <option>Coloring</option>
-            <option>Buffering</option>
-            <option>Stranding</option>
-            <option>Jacketing</option>
-            <option>Armoring</option>
-            <option>Pipe Line</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <div class="flabel req">Machine Line</div>
-          <select class="fselect" id="kap_filter_ml" onchange="onKapFilterMachineLineChange()">
-            <option value="">— Pilih Machine Line —</option>
-            <option>Colouring</option>
-            <option>Buffering</option>
-            <option>Stranding</option>
-            <option>Jacketing</option>
-            <option>Armoring</option>
-            <option>Pipe Line</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <div class="flabel req">Machine ID</div>
-          <div class="search-field-wrap">
-            <select class="fselect" id="kap_machine_id" onchange="onKapMachineChange()">
-              <option value="">— Pilih Machine Line dulu —</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <div class="flabel">Machine Name</div>
-          <input class="finput" id="kap_machine_name" readonly placeholder="Auto dari Machine ID">
-        </div>
       </div>
-      <div class="sec-head" style="margin-top:.9rem">Spesifikasi Kapasitas</div>
-      <div class="form-grid fg-2">
-        <div class="form-group">
-          <div class="flabel req">Tube</div>
-          <input class="finput" type="number" id="kap_tube" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <div class="flabel req">Fiber</div>
-          <input class="finput" type="number" id="kap_fiber" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <div class="flabel req">Kecepatan (MPM)</div>
-          <input class="finput" type="number" id="kap_kecepatan" placeholder="0.00" step="0.01" min="0">
-        </div>
-        <div class="form-group">
-          <div class="flabel req">DL (Orang)</div>
-          <input class="finput" type="number" id="kap_dl" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <div class="flabel req">Efisiensi (%)</div>
-          <input class="finput" type="number" id="kap_efisiensi" placeholder="0.00" step="0.01" min="0" max="100">
-        </div>
-      </div>
-      <div class="sec-head" style="margin-top:.9rem">Catatan</div>
-      <div class="form-grid" style="grid-template-columns:1fr">
-        <div class="form-group">
-          <div class="flabel">Notes</div>
-          <textarea class="ftextarea" id="kap_notes" rows="3" placeholder="Catatan tambahan tentang kapasitas mesin ini..."></textarea>
-        </div>
-      </div>
+      <!-- Section Line: bisa tambah lebih dari 1 baris -->
+      <div class="sec-head" style="margin-top:.9rem">Line</div>
+      <div id="kap_lines_container" style="display:flex;flex-direction:column;gap:.5rem"></div>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="addKapLine()" style="margin-top:.5rem;width:fit-content">+ Tambah Line</button>
     </div>
   </div>
 
@@ -2619,55 +2557,64 @@ function renderDlfoh(){try{
 // ═══════════════════════════════════════════
 // KAPASITAS MESIN
 // ═══════════════════════════════════════════
+// Machine Line options untuk form kapasitas
+const KAP_MACHINE_LINES=['Colouring','Buffering','Stranding','Jacketing','Armoring','Pipe Line'];
+
+// Render satu baris line (Machine Line + Duration) ke dalam container
+function buildKapLineRow(ml,dur){
+  const idx=Date.now()+Math.random(); // id unik per baris
+  const opts=KAP_MACHINE_LINES.map(o=>`<option value="${o}" ${o===ml?'selected':''}>${o}</option>`).join('');
+  const row=document.createElement('div');
+  row.className='kap-line-row';
+  row.style.cssText='display:flex;gap:.5rem;align-items:center;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.5rem .6rem';
+  row.innerHTML=`
+    <div class="form-group" style="flex:1;margin:0">
+      <div class="flabel req" style="margin-bottom:.25rem">Machine Line</div>
+      <select class="fselect kap-line-ml">${opts}</select>
+    </div>
+    <div class="form-group" style="flex:1;margin:0">
+      <div class="flabel req" style="margin-bottom:.25rem">Duration Process (Jam)</div>
+      <input class="finput kap-line-dur" type="number" step="0.001" min="0" placeholder="0.000" value="${dur||''}">
+    </div>
+    <button type="button" onclick="this.closest('.kap-line-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem;flex-shrink:0" title="Hapus baris">✕</button>`;
+  return row;
+}
+
+// Tambah satu baris kosong ke container
+function addKapLine(ml,dur){
+  document.getElementById('kap_lines_container').appendChild(buildKapLineRow(ml||'',dur||''));
+}
+
+// Ambil semua baris line dari form sebagai array [{machine_line, duration}]
+function getKapLines(){
+  return Array.from(document.querySelectorAll('#kap_lines_container .kap-line-row')).map(row=>({
+    machine_line: row.querySelector('.kap-line-ml').value,
+    duration: parseFloat(row.querySelector('.kap-line-dur').value)||0
+  }));
+}
+
 function openKapForm(id){try{
-  // Show form, hide list (same pattern as Item Price)
   setDisp('kap_form_card','');
   setDisp('kap_list_card','none');
   setVal('kap_edit_id','');
   setVal('kap_item_code','');
   setVal('kap_item_name','');
-  setVal('kap_tube','');
-  setVal('kap_fiber','');
-  setVal('kap_proses','');
-  setVal('kap_machine_name','');
-  setVal('kap_kecepatan','');
-  setVal('kap_dl','');
-  setVal('kap_efisiensi','');
-  setVal('kap_notes','');
-  // Reset machine line filter and machine id
-  setVal('kap_filter_ml','');
-  const msel=document.getElementById('kap_machine_id');
-  if(msel) msel.innerHTML='<option value="">— Pilih Machine Line dulu —</option>';
+  // Reset baris line
+  document.getElementById('kap_lines_container').innerHTML='';
   if(id){
     setText('kap_form_title','Edit Kapasitas Mesin');
-    var _pop=function(rec){
-      if(!rec) return;
-      (function(){const _e=ge('kap_edit_id');if(_e)_e.value=id;})()
-      (function(){const _e=ge('kap_id_disp');if(_e)_e.value=rec.kapid;})()
-      (function(){const _e=ge('kap_created');if(_e)_e.value=rec.created_dt||rec.created||'';})()
-      (function(){const _e=ge('kap_item_code');if(_e)_e.value=rec.item_code;})()
-      (function(){const _e=ge('kap_item_name');if(_e)_e.value=rec.item_name;})()
-      (function(){const _e=ge('kap_tube');if(_e)_e.value=rec.tube;})()
-      (function(){const _e=ge('kap_fiber');if(_e)_e.value=rec.fiber;})()
-      (function(){const _e=ge('kap_proses');if(_e)_e.value=rec.proses;})()
-      // Restore machine line filter from mesin record, then populate machine dropdown
-      const mesinRec=DB.mesin.find(m=>m.machine_id===rec.machine_id);
-      const ml=mesinRec?mesinRec.machine_line:'';
-      setVal('kap_filter_ml', ml);
-      if(msel){
-        const filtered=ml?DB.mesin.filter(m=>m.machine_line===ml):DB.mesin;
-        msel.innerHTML='<option value="">— Pilih Machine ID —</option>'+
-          filtered.map(m=>`<option value="${m.machine_id}" ${m.machine_id===rec.machine_id?'selected':''}>${m.machine_id} — ${m.machine_name}</option>`).join('');
-      }
-      document.getElementById('kap_machine_name').value=rec.machine_name||'';
-      document.getElementById('kap_kecepatan').value=rec.kecepatan||'';
-      document.getElementById('kap_dl').value=rec.dl||'';
-      document.getElementById('kap_efisiensi').value=rec.efisiensi||'';
-      document.getElementById('kap_notes').value=rec.notes||'';
-    };
     var rec=DB.kap.find(function(x){return x.id===id;});
     if(rec){
-      _pop(rec);
+      (function(){const _e=ge('kap_edit_id');if(_e)_e.value=id;})();
+      (function(){const _e=ge('kap_id_disp');if(_e)_e.value=rec.kapid;})();
+      (function(){const _e=ge('kap_created');if(_e)_e.value=rec.created_dt||rec.created||'';})();
+      (function(){const _e=ge('kap_item_code');if(_e)_e.value=rec.item_code;})();
+      (function(){const _e=ge('kap_item_name');if(_e)_e.value=rec.item_name;})();
+      // Parse lines dari notes (disimpan sebagai JSON)
+      var lines=[];
+      try{lines=JSON.parse(rec.notes||'[]');}catch(e){lines=[];}
+      if(lines.length){lines.forEach(function(l){addKapLine(l.machine_line,l.duration);});}
+      else{addKapLine();}
     } else {
       toast('Data tidak ditemukan.','error');
       setDisp('kap_form_card','none');
@@ -2679,43 +2626,35 @@ function openKapForm(id){try{
     (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})();
     document.getElementById('kap_created').value=nowStr();
     setText('kap_form_title','Tambah Kapasitas Mesin');
+    addKapLine(); // satu baris default
   }
   // wire item code search
   const codeEl=document.getElementById('kap_item_code');
   codeEl.oninput=function(){
     const item=DB.items.find(i=>i.code===this.value);
-    if(item) (function(){const _e=ge('kap_item_name');if(_e)_e.value=item.name;})()
+    if(item)(function(){const _e=ge('kap_item_name');if(_e)_e.value=item.name;})();
   };
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openKapForm:",e);}}
 function closeKapForm(){try{setDisp('kap_form_card','none');setDisp('kap_list_card','');}catch(e){console.warn("closeKapForm:",e);}}
-function onKapMachineChange(){
-  const mid=document.getElementById('kap_machine_id').value;
-  const rec=DB.mesin.find(m=>m.machine_id===mid);
-  document.getElementById('kap_machine_name').value=rec?rec.machine_name:'';
-}
 function saveKap(){try{
   const editId=document.getElementById('kap_edit_id').value;
   const kapid=document.getElementById('kap_id_disp').value;
   const created=document.getElementById('kap_created').value;
   const item_code=document.getElementById('kap_item_code').value.trim();
   const item_name=document.getElementById('kap_item_name').value.trim();
-  const tube=parseInt(document.getElementById('kap_tube').value)||0;
-  const fiber=parseInt(document.getElementById('kap_fiber').value)||0;
-  const proses=document.getElementById('kap_proses').value;
-  const machine_id=document.getElementById('kap_machine_id').value;
-  const machine_name=document.getElementById('kap_machine_name').value;
-  const kecepatan=parseFloat(document.getElementById('kap_kecepatan').value)||0;
-  const dl=parseInt(document.getElementById('kap_dl').value)||0;
-  const efisiensi=parseFloat(document.getElementById('kap_efisiensi').value)||0;
-  const notes=document.getElementById('kap_notes').value.trim();
-  if(!item_code||!proses||!machine_id){toast('Item Code, Proses, dan Machine ID wajib diisi.','error');return;}
-  const payload={item_code,item_name,tube,fiber,proses,machine_id,machine_name,kecepatan,dl,efisiensi,notes,updated:nowStr()};
-    if(typeof API!=='undefined'){
-    const kpay={item_code,item_name,tube,fiber,proses,machine_id,machine_name,kecepatan,dl,efisiensi,notes};
+  if(!item_code){toast('Item Code wajib diisi.','error');return;}
+  const lines=getKapLines();
+  if(!lines.length){toast('Tambahkan minimal 1 baris Line.','error');return;}
+  // Simpan lines sebagai JSON di field notes
+  const notes=JSON.stringify(lines);
+  // Kirim ke API (field lama dikirim kosong/0 agar kompatibel dengan schema DB)
+  const kpay={item_code,item_name,proses:'',machine_id:'',machine_name:'',tube:0,fiber:0,kecepatan:0,dl:0,efisiensi:0,notes};
+  if(typeof API!=='undefined'){
     if(editId){apiSave(API.kapasitas.update(editId,kpay),function(){toast('Kapasitas diupdate.','success');closeKapForm();loadAllData().then(function(){renderKap();updateCounts();});});return;}
     else{apiSave(API.kapasitas.create(Object.assign({kapid},kpay)),function(){toast('Kapasitas disimpan.','success');closeKapForm();loadAllData().then(function(){renderKap();updateCounts();});});return;}
   }
+  const payload=Object.assign({updated:nowStr()},kpay);
   if(editId){
     const rec=DB.kap.find(k=>k.id===editId);
     if(rec) Object.assign(rec,payload);
@@ -2738,34 +2677,26 @@ function renderKap(){try{
   if(thead) thead.innerHTML='<tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll(\'kap\',this.checked)" title="Pilih Semua"></th>'+[
     col('kap','kapid')&&'<th>Kap. ID</th>',col('kap','created')&&'<th>Created</th>',
     col('kap','icode')&&'<th>Item Code</th>',col('kap','iname')&&'<th>Item Name</th>',
-    col('kap','proses')&&'<th>Proses</th>',col('kap','machid')&&'<th>Machine ID</th>',
-    col('kap','machname')&&'<th>Machine Name</th>',col('kap','tube')&&'<th>Tube</th>',
-    col('kap','fiber')&&'<th>Fiber</th>',col('kap','speed')&&'<th>Kec. (MPM)</th>',
-    col('kap','dl')&&'<th>DL</th>',col('kap','eff')&&'<th>Efisiensi (%)</th>',
-    col('kap','notes')&&'<th>Notes</th>',col('kap','action')&&'<th>Aksi</th>'
+    col('kap','lines')&&'<th>Lines</th>',col('kap','action')&&'<th>Aksi</th>'
   ].filter(Boolean).join('')+'</tr>';
   const tbody=document.getElementById('kap_tbody');
-  const rows=DB.kap.filter(k=>!kapFilter||(k.kapid.toLowerCase().includes(kapFilter)||k.item_code.toLowerCase().includes(kapFilter)||(k.proses||'').toLowerCase().includes(kapFilter)));
+  const rows=DB.kap.filter(k=>!kapFilter||(k.kapid.toLowerCase().includes(kapFilter)||k.item_code.toLowerCase().includes(kapFilter)));
   setText('kap_count',DB.kap.length);
   const span=COL_DEFS.kap.filter(c=>colState.kap[c.key]!==false).length;
   if(!rows.length){tbody.innerHTML=`<tr><td colspan="${span}"><div class="empty-state"><div class="es-icon">⚡</div><p>Belum ada data kapasitas mesin.</p></div></td></tr>`;return;}
-  tbody.innerHTML=rows.map(k=>`<tr>
-      <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('kap','${k.id}')?' checked':''} onchange="toggleRowSelect('kap','${k.id}',this.checked)"></td>
+  tbody.innerHTML=rows.map(k=>{
+    // Parse lines dari notes
+    var klines=[];try{klines=JSON.parse(k.notes||'[]');}catch(e){klines=[];}
+    var linesSummary=klines.length?klines.map(function(l){return`<span class="badge badge-violet" style="font-size:.65rem">${l.machine_line}</span>`;}).join(' '):'<span class="muted">—</span>';
+    return`<tr>
+      <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('kap',k.id)?' checked':''} onchange="toggleRowSelect('kap','${k.id}',this.checked)"></td>
     ${col('kap','kapid')?`<td><span class="run-num">${k.kapid}</span></td>`:''}
     ${col('kap','created')?`<td class="muted mono" style="font-size:.7rem;white-space:nowrap">${k.created_dt||k.created||'—'}</td>`:''}
     ${col('kap','icode')?`<td class="mono">${k.item_code}</td>`:''}
     ${col('kap','iname')?`<td style="white-space:nowrap">${k.item_name}</td>`:''}
-    ${col('kap','proses')?`<td><span class="badge badge-violet">${k.proses}</span></td>`:''}
-    ${col('kap','machid')?`<td class="mono" style="font-size:.72rem">${k.machine_id||'—'}</td>`:''}
-    ${col('kap','machname')?`<td style="white-space:nowrap">${k.machine_name||'—'}</td>`:''}
-    ${col('kap','tube')?`<td style="text-align:center">${k.tube}</td>`:''}
-    ${col('kap','fiber')?`<td style="text-align:center">${k.fiber}</td>`:''}
-    ${col('kap','speed')?`<td style="text-align:right;font-family:var(--fm);font-size:.75rem">${Number(k.kecepatan||0).toFixed(2)}</td>`:''}
-    ${col('kap','dl')?`<td style="text-align:center">${k.dl||0}</td>`:''}
-    ${col('kap','eff')?`<td style="text-align:right"><span class="badge ${(k.efisiensi||0)>=80?'badge-green':(k.efisiensi||0)>=50?'badge-amber':'badge-red'}">${Number(k.efisiensi||0).toFixed(1)}%</span></td>`:''}
-    ${col('kap','notes')?`<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t3);font-size:.72rem" title="${(k.notes||'').replace(/"/g,'&quot;')}">${k.notes||'—'}</td>`:''}
+    ${col('kap','lines')?`<td style="font-size:.72rem">${linesSummary}</td>`:''}
     ${col('kap','action')?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openKapForm('${k.id}')">✏️ Edit</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`:''}
-  </tr>`).join('');
+  </tr>`;}).join('');
 }catch(e){console.warn("renderKap:",e);}}
 
 // ═══════════════════════════════════════════
@@ -2925,21 +2856,6 @@ function onBomMachineLineFilter(){
   }
 }
 
-function onKapFilterMachineLineChange(){
-  // In kapasitas form: filter Machine ID based on machine_line selection
-  const ml=(ge('kap_filter_ml')||{value:''}).value;
-  const msel=ge('kap_machine_id');
-  if(!msel) return;
-  const filtered=ml?DB.mesin.filter(m=>m.machine_line===ml):DB.mesin;
-  if(!filtered.length){
-    msel.innerHTML='<option value="">— Tidak ada mesin untuk line ini —</option>';
-  } else {
-    msel.innerHTML='<option value="">— Pilih Machine ID —</option>'+
-      filtered.map(m=>`<option value="${m.machine_id}">${m.machine_id} — ${m.machine_name}</option>`).join('');
-  }
-  // Reset machine name
-  setVal('kap_machine_name','');
-}
 
 function onBomKapChange(){
   const kapId=document.getElementById('new_kap_id_sel').value;
@@ -5766,15 +5682,7 @@ const COL_DEFS = {
     {key:'created', label:'Created'},
     {key:'icode',   label:'Item Code'},
     {key:'iname',   label:'Item Name'},
-    {key:'proses',  label:'Proses'},
-    {key:'machid',  label:'Machine ID'},
-    {key:'machname',label:'Machine Name'},
-    {key:'tube',    label:'Tube'},
-    {key:'fiber',   label:'Fiber'},
-    {key:'speed',   label:'Kecepatan (MPM)'},
-    {key:'dl',      label:'DL (Org)'},
-    {key:'eff',     label:'Efisiensi (%)'},
-    {key:'notes',   label:'Notes'},
+    {key:'lines',   label:'Lines'},
     {key:'action',  label:'Aksi',         always:true},
   ],
   bom: [
@@ -5978,57 +5886,30 @@ function viewExrateDetail(id){try{
 function viewKapDetail(id){try{
   const rec = DB.kap.find(k=>k.id===id);
   if(!rec) return;
-  const machineRec = DB.mesin.find(m=>m.machine_id===rec.machine_id);
+  // Parse lines dari notes
+  var klines=[];try{klines=JSON.parse(rec.notes||'[]');}catch(e){klines=[];}
+  const linesHtml=klines.length?`<table style="width:100%;border-collapse:collapse;font-size:.8rem">
+    <thead><tr>
+      <th style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:left;color:var(--t3);font-size:.68rem;text-transform:uppercase">Machine Line</th>
+      <th style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;color:var(--t3);font-size:.68rem;text-transform:uppercase">Duration Process (Jam)</th>
+    </tr></thead>
+    <tbody>${klines.map(function(l){return`<tr>
+      <td style="padding:.35rem .6rem;border:1px solid var(--b2)"><span class="badge badge-violet">${l.machine_line}</span></td>
+      <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.duration||0).toFixed(3)}</td>
+    </tr>`;}).join('')}</tbody>
+  </table>`:'<div style="color:var(--t3);font-size:.8rem">Tidak ada data line.</div>';
 
   const html = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;font-size:.8rem;margin-bottom:1rem;padding:.75rem;background:var(--s2);border-radius:var(--r);border:1px solid var(--b1)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;font-size:.8rem;margin-bottom:1rem;padding:.75rem;background:var(--s2);border-radius:var(--r);border:1px solid var(--b1)">
       <div><span style="color:var(--t3);font-size:.7rem">Kapasitas ID</span><div style="font-family:var(--fm);color:var(--cyan);font-weight:600;margin-top:.15rem">${rec.kapid}</div></div>
-      <div><span style="color:var(--t3);font-size:.7rem">Created</span><div style="font-size:.75rem;margin-top:.15rem">${rec.created||'—'}</div></div>
-      <div><span style="color:var(--t3);font-size:.7rem">Proses</span><div style="margin-top:.15rem"><span class="badge badge-violet">${rec.proses||'—'}</span></div></div>
+      <div><span style="color:var(--t3);font-size:.7rem">Created</span><div style="font-size:.75rem;margin-top:.15rem">${rec.created_dt||rec.created||'—'}</div></div>
+      <div><span style="color:var(--t3);font-size:.7rem">Item Code</span><div class="mono" style="color:var(--cyan);margin-top:.15rem">${rec.item_code||'—'}</div></div>
+      <div><span style="color:var(--t3);font-size:.7rem">Item Name</span><div style="margin-top:.15rem">${rec.item_name||'—'}</div></div>
     </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
-      <!-- Item Info -->
-      <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.75rem">
-        <div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem">Informasi Item</div>
-        <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.8rem">
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--t3)">Item Code</span><span class="mono" style="color:var(--cyan)">${rec.item_code||'—'}</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--t3)">Item Name</span><span>${rec.item_name||'—'}</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--t3)">Tube</span><span class="mono">${rec.tube||0}</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--t3)">Fiber</span><span class="mono">${rec.fiber||0}</span></div>
-        </div>
-      </div>
-      <!-- Machine Info -->
-      <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.75rem">
-        <div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem">Informasi Mesin</div>
-        <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.8rem">
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--t3)">Machine ID</span><span class="mono" style="color:var(--amber)">${rec.machine_id||'—'}</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--t3)">Machine Name</span><span>${machineRec?machineRec.machine_name:(rec.machine_name||'—')}</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--t3)">Kecepatan</span><span class="mono">${Number(rec.kecepatan||0).toFixed(2)} MPM</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--t3)">DL (Orang)</span><span class="mono">${rec.dl||0}</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Performance -->
-    <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.75rem;margin-bottom:.75rem">
-      <div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem">Performa</div>
-      <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap">
-        <div style="text-align:center">
-          <div style="font-family:var(--fm);font-size:1.4rem;font-weight:700;color:${(rec.efisiensi||0)>=80?'var(--green)':(rec.efisiensi||0)>=50?'var(--amber)':'var(--red)'}">${Number(rec.efisiensi||0).toFixed(1)}%</div>
-          <div style="font-size:.68rem;color:var(--t3)">Efisiensi</div>
-        </div>
-        <div style="flex:1;background:var(--s3);border-radius:99px;height:8px;overflow:hidden;min-width:120px">
-          <div style="height:100%;width:${Math.min(rec.efisiensi||0,100)}%;background:${(rec.efisiensi||0)>=80?'var(--green)':(rec.efisiensi||0)>=50?'var(--amber)':'var(--red)'};border-radius:99px;transition:width .4s"></div>
-        </div>
-      </div>
-    </div>
-
-    ${rec.notes?`
     <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.75rem">
-      <div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.35rem">Notes</div>
-      <div style="font-size:.8rem;color:var(--t2);line-height:1.6">${rec.notes}</div>
-    </div>`:''}`;
+      <div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem">Line</div>
+      ${linesHtml}
+    </div>`;
 
   openDetailModal('Detail Kapasitas Mesin — '+rec.kapid, html);
 }catch(e){console.warn("viewKapDetail:",e);}}
