@@ -483,6 +483,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       </div>
     <button class="btn btn-primary" onclick="openItemForm()">+ Tambah Item</button>
     <button class="btn btn-ghost" id="ge_toggle_item" onclick="geToggleAll('item')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+    <button class="btn btn-primary" id="ge_saveall_item" onclick="geSaveAll('item')" style="display:none">💾 Simpan Semua</button>
     <button class="btn btn-ghost" onclick="openUploadModal('item')">⬆ Upload CSV</button>
   </div>
 
@@ -544,6 +545,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     </div>
     <button class="btn btn-primary" onclick="openItemPriceForm()">+ Set Harga Item</button>
     <button class="btn btn-ghost" id="ge_toggle_itemprice" onclick="geToggleAll('itemprice')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+    <button class="btn btn-primary" id="ge_saveall_itemprice" onclick="geSaveAll('itemprice')" style="display:none">💾 Simpan Semua</button>
     <button class="btn btn-ghost" onclick="openUploadModal('itemprice')">⬆ Upload CSV</button>
   </div>
 
@@ -647,6 +649,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       </div>
     <button class="btn btn-primary" onclick="openExrateForm()">+ Tambah Currency</button>
     <button class="btn btn-ghost" id="ge_toggle_exrate" onclick="geToggleAll('exrate')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+    <button class="btn btn-primary" id="ge_saveall_exrate" onclick="geSaveAll('exrate')" style="display:none">💾 Simpan Semua</button>
   </div>
 
   <div class="card" id="exrate_form_card" style="display:none">
@@ -706,6 +709,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       </div>
     <button class="btn btn-primary" onclick="openDlfohForm()">+ Tambah Category</button>
     <button class="btn btn-ghost" id="ge_toggle_dlfoh" onclick="geToggleAll('dlfoh')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+    <button class="btn btn-primary" id="ge_saveall_dlfoh" onclick="geSaveAll('dlfoh')" style="display:none">💾 Simpan Semua</button>
     <button class="btn btn-ghost" onclick="openUploadModal('dlfoh')">⬆ Upload CSV</button>
   </div>
 
@@ -778,6 +782,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       </div>
     <button class="btn btn-primary" onclick="openKapForm()">+ Tambah Kapasitas</button>
     <button class="btn btn-ghost" id="ge_toggle_kap" onclick="geToggleAll('kap')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+    <button class="btn btn-primary" id="ge_saveall_kap" onclick="geSaveAll('kap')" style="display:none">💾 Simpan Semua</button>
     <button class="btn btn-ghost" onclick="openUploadModal('kap')">⬆ Upload CSV</button>
   </div>
 
@@ -849,6 +854,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       </div>
     <button class="btn btn-primary" onclick="openMesinForm()">+ Tambah Mesin</button>
     <button class="btn btn-ghost" id="ge_toggle_mesin" onclick="geToggleAll('mesin')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+    <button class="btn btn-primary" id="ge_saveall_mesin" onclick="geSaveAll('mesin')" style="display:none">💾 Simpan Semua</button>
     <button class="btn btn-ghost" onclick="openUploadModal('mesin')">⬆ Upload CSV</button>
   </div>
 
@@ -916,6 +922,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       </div>
     <button class="btn btn-primary" onclick="openMBomForm()">+ Tambah Master BOM</button>
     <button class="btn btn-ghost" id="ge_toggle_mbom" onclick="geToggleAll('mbom')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+    <button class="btn btn-primary" id="ge_saveall_mbom" onclick="geSaveAll('mbom')" style="display:none">💾 Simpan Semua</button>
     <button class="btn btn-ghost" onclick="openUploadModal('masterbom')">⬆ Upload CSV</button>
   </div>
 
@@ -1040,6 +1047,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       </div>
     <button class="btn btn-primary" onclick="openBomForm()">+ Buat BOM Baru</button>
     <button class="btn btn-ghost" id="ge_toggle_bom" onclick="geToggleAll('bom')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+    <button class="btn btn-primary" id="ge_saveall_bom" onclick="geSaveAll('bom')" style="display:none">💾 Simpan Semua</button>
   </div>
 
   <!-- BOM FORM -->
@@ -7177,14 +7185,17 @@ function geRender(page){
 // Toggle mode Edit Grid semua baris — dipanggil dari tombol toolbar
 function geToggleAll(page){
   var btn=document.getElementById('ge_toggle_'+page);
+  var sab=document.getElementById('ge_saveall_'+page); // tombol Simpan Semua
   if(GE[page]==='__all__'){
     // Keluar dari mode Edit Grid
     GE[page]=null;
     if(btn){btn.textContent='✎ Edit Grid';btn.style.color='';btn.style.borderColor='';}
+    if(sab) sab.style.display='none';
   } else {
     // Masuk mode Edit Grid — semua baris jadi editable
     GE[page]='__all__';
     if(btn){btn.textContent='✕ Keluar Edit Grid';btn.style.color='var(--cyan)';btn.style.borderColor='rgba(34,211,238,.4)';}
+    if(sab) sab.style.display='';
   }
   geRender(page);
 }
@@ -7200,7 +7211,9 @@ function geStart(page, id) {
 function geCancel(page) {
   GE[page] = null;
   var btn=document.getElementById('ge_toggle_'+page);
+  var sab=document.getElementById('ge_saveall_'+page);
   if(btn){btn.textContent='✎ Edit Grid';btn.style.color='';btn.style.borderColor='';}
+  if(sab) sab.style.display='none';
   geRender(page);
 }
 
@@ -7333,6 +7346,136 @@ function geSaveMBom(id) {
     rec.product=product.trim();rec.customer=customer.trim();rec.project=project.trim();
     renderMBom();
     toast('Master BOM berhasil disimpan','success');
+  });
+}
+
+// ── Save All: simpan semua baris yang sedang di-edit sekaligus ────
+// Dipanggil dari tombol "💾 Simpan Semua" di toolbar, hanya aktif saat mode __all__
+// Membaca nilai dari semua input GE di DOM, fire Promise.all, lalu render sekali
+function geSaveAll(page) {
+  var dbMap = {
+    item:'items', itemprice:'prices', exrate:'exrates',
+    dlfoh:'dlfoh', kap:'kap', mesin:'mesin', mbom:'masterbom', bom:'bom'
+  };
+  var list = DB[dbMap[page]] || [];
+  if(!list.length){ toast('Tidak ada data','error'); return; }
+
+  var promises = [];
+  var saved = 0, errors = 0;
+
+  list.forEach(function(rec){
+    var id = rec.id;
+    var p;
+
+    if(page==='item'){
+      var name=(document.getElementById('ge_item_name_'+id)||{}).value;
+      var uom =(document.getElementById('ge_item_uom_'+id)||{}).value;
+      var fgEl=document.getElementById('ge_item_fg_'+id);
+      if(name==null) return; // input tidak ada di DOM, skip
+      var is_fg=fgEl?(fgEl.checked?1:0):(rec.is_fg||0);
+      name=name.trim()||rec.name; uom=(uom||'').trim()||rec.uom||'';
+      p=Promise.resolve(API.items.update(id,{name,uom,is_fg}))
+        .then(function(){rec.name=name;rec.uom=uom;rec.is_fg=is_fg;saved++;})
+        .catch(function(){errors++;});
+
+    } else if(page==='itemprice'){
+      var code=rec.item_code;
+      var currency=(document.getElementById('ge_ip_curr_'+code)||{}).value;
+      if(currency==null) return;
+      var price   =parseFloat((document.getElementById('ge_ip_price_'+code)||{}).value)||rec.price||0;
+      var hedging =parseFloat((document.getElementById('ge_ip_hed_'+code)||{}).value)||rec.hedging||0;
+      var landed  =parseFloat((document.getElementById('ge_ip_land_'+code)||{}).value)||rec.landed||0;
+      var eff_date=(document.getElementById('ge_ip_edate_'+code)||{}).value||rec.effective_date||new Date().toISOString().slice(0,10);
+      currency=currency||rec.currency||'USD';
+      p=Promise.resolve(API.itemPrice.update(code,{currency,price,hedging,landed,effective_date:eff_date}))
+        .then(function(){rec.currency=currency;rec.price=price;rec.hedging=hedging;rec.landed=landed;rec.effective_date=eff_date;saved++;})
+        .catch(function(){errors++;});
+
+    } else if(page==='exrate'){
+      var rateEl=document.getElementById('ge_er_rate_'+id);
+      if(!rateEl) return;
+      var rate=parseFloat(rateEl.value)||0;
+      var date=(document.getElementById('ge_er_date_'+id)||{}).value||new Date().toISOString().slice(0,10);
+      if(!rate){saved++;return;} // kosongkan skip saja
+      var lines=(rec.lines||[]).slice();
+      var idx=lines.findIndex(function(l){return l.date===date;});
+      if(idx>=0){lines[idx]=Object.assign({},lines[idx],{rate:rate});}
+      else{lines.push({currency:rec.currency||'',rate:rate,date:date});}
+      p=Promise.resolve(API.exrates.update(id,{lines:lines}))
+        .then(function(){rec.lines=lines;saved++;})
+        .catch(function(){errors++;});
+
+    } else if(page==='dlfoh'){
+      var descEl=document.getElementById('ge_dl_desc_'+id);
+      if(!descEl) return;
+      var desc=descEl.value.trim()||rec.desc||'';
+      var type=(document.getElementById('ge_dl_type_'+id)||{}).value||rec.type||'';
+      var rate=parseFloat((document.getElementById('ge_dl_rate_'+id)||{}).value)||rec.rate||0;
+      p=Promise.resolve(API.dlfoh.update(id,{desc,type,rate}))
+        .then(function(){rec.desc=desc;rec.type=type;rec.rate=rate;saved++;})
+        .catch(function(){errors++;});
+
+    } else if(page==='kap'){
+      var codeEl=document.getElementById('ge_kap_code_'+id);
+      if(!codeEl) return;
+      var item_code=codeEl.value.trim()||rec.item_code||'';
+      var item_name=(document.getElementById('ge_kap_name_'+id)||{}).value||rec.item_name||'';
+      var payload={item_code,item_name:item_name.trim(),
+        proses:rec.proses,machine_id:rec.machine_id,machine_name:rec.machine_name,
+        tube:rec.tube,fiber:rec.fiber,kecepatan:rec.kecepatan,
+        dl:rec.dl,efisiensi:rec.efisiensi,notes:rec.notes};
+      p=Promise.resolve(API.kapasitas.update(id,payload))
+        .then(function(){rec.item_code=item_code;rec.item_name=item_name.trim();saved++;})
+        .catch(function(){errors++;});
+
+    } else if(page==='mesin'){
+      var nameEl=document.getElementById('ge_m_name_'+id);
+      if(!nameEl) return;
+      var machine_name=nameEl.value.trim()||rec.machine_name||'';
+      var machine_line=(document.getElementById('ge_m_line_'+id)||{}).value||rec.machine_line||'';
+      p=Promise.resolve(API.mesin.update(id,{machine_name,machine_line}))
+        .then(function(){rec.machine_name=machine_name;rec.machine_line=machine_line;saved++;})
+        .catch(function(){errors++;});
+
+    } else if(page==='mbom'){
+      var prodEl=document.getElementById('ge_mb_prod_'+id);
+      if(!prodEl) return;
+      var product=prodEl.value.trim()||rec.product||'';
+      var customer=(document.getElementById('ge_mb_cust_'+id)||{}).value||rec.customer||'';
+      var project=(document.getElementById('ge_mb_proj_'+id)||{}).value||rec.project||'';
+      var payload={product,customer:customer.trim(),project:project.trim(),
+        fiber_cnt:rec.fiber_cnt,buffer_qty:rec.buffer_qty,fiber_qty:rec.fiber_qty,
+        groups:rec.groups||[]};
+      p=Promise.resolve(API.masterbom.update(id,payload))
+        .then(function(){rec.product=product;rec.customer=customer.trim();rec.project=project.trim();saved++;})
+        .catch(function(){errors++;});
+
+    } else if(page==='bom'){
+      if((rec.status||'draft')!=='draft'){return;} // skip non-draft
+      var prodEl=document.getElementById('ge_bom_prod_'+id);
+      if(!prodEl) return;
+      var product=prodEl.value.trim()||rec.product||'';
+      var customer=(document.getElementById('ge_bom_cust_'+id)||{}).value||rec.customer||'';
+      var price_id=(document.getElementById('ge_bom_price_'+id)||{}).value||rec.price_id||'';
+      var payload={product,customer:customer.trim(),
+        project:rec.project,fiber_cnt:rec.fiber_cnt,buffer_qty:rec.buffer_qty,fiber_qty:rec.fiber_qty,
+        price_id:price_id.trim()||null,master_bom_id:rec.master_bom_id,
+        usd_rate_snapshot:rec.usd_rate_snapshot,groups:rec.groups||[]};
+      p=Promise.resolve(API.bom.update(id,payload))
+        .then(function(){rec.product=product;rec.customer=customer.trim();rec.price_id=price_id.trim()||null;saved++;})
+        .catch(function(){errors++;});
+    }
+
+    if(p) promises.push(p);
+  });
+
+  if(!promises.length){ toast('Tidak ada perubahan untuk disimpan','info'); return; }
+  toast('Menyimpan '+promises.length+' baris...','info');
+
+  Promise.all(promises).then(function(){
+    geRender(page);
+    if(errors>0) toast(saved+' berhasil disimpan, '+errors+' gagal','error');
+    else toast(saved+' baris berhasil disimpan','success');
   });
 }
 
