@@ -255,6 +255,22 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .tbl tr:hover td{background:var(--s2);}
 .tbl td.mono{font-family:var(--fm);font-size:.75rem;}
 .tbl td.muted{color:var(--t3);}
+/* GRID EDIT — inline editing langsung di baris tabel */
+.ge-input{
+  background:var(--s3);border:1px solid var(--b2);border-radius:5px;
+  color:var(--t1);font-family:var(--ff);font-size:.78rem;padding:.25rem .4rem;
+  outline:none;width:100%;min-width:60px;transition:border-color .15s;-moz-appearance:textfield;
+}
+.ge-input::-webkit-outer-spin-button,.ge-input::-webkit-inner-spin-button{-webkit-appearance:none;}
+.ge-input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,211,238,.12);}
+.ge-select{
+  background:var(--s3);border:1px solid var(--b2);border-radius:5px;
+  color:var(--t1);font-family:var(--ff);font-size:.78rem;padding:.25rem .4rem;
+  outline:none;width:100%;cursor:pointer;transition:border-color .15s;
+}
+.ge-select:focus{border-color:var(--cyan);}
+.ge-select option{background:var(--s3);}
+tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba(34,211,238,.18)!important;border-bottom:1px solid rgba(34,211,238,.18)!important;}
 
 /* BADGE */
 .badge{
@@ -2159,28 +2175,32 @@ function renderItems(){try{
   setText('item_count',DB.items.length);
   const span=COL_DEFS.item.filter(c=>colState.item[c.key]!==false).length;
   if(!rows.length){tbody.innerHTML=`<tr><td colspan="${span}"><div class="empty-state"><div class="es-icon">📦</div><p>Belum ada data item.</p></div></td></tr>`;return;}
-  tbody.innerHTML=rows.map(i=>`
-    <tr>
+  tbody.innerHTML=rows.map(i=>{const _ge=GE.item===i.id;return`
+    <tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('item','${i.id}')?' checked':''} onchange="toggleRowSelect('item','${i.id}',this.checked)"></td>
       ${col('item','code')?`<td><span class="run-num">${i.code}</span></td>`:''}
-      ${col('item','name')?`<td>${i.name}</td>`:''}
-      ${col('item','uom')?`<td><span class="badge badge-cyan">${i.uom}</span></td>`:''}
-      ${col('item','fg')?`<td style="text-align:center">${i.is_fg?'<span class="badge badge-green" title="Finish Good">✔ FG</span>':'<span style="color:var(--t3);font-size:.72rem">—</span>'}${i.in_use?'&nbsp;<span class="badge" style="background:var(--acc2,#e57a00);color:#fff;font-size:.65rem" title="Item ini sudah digunakan dalam transaksi">Dipakai</span>':''}</td>`:''}
+      ${col('item','name')?(_ge?`<td><input class="ge-input" id="ge_item_name" value="${geEsc(i.name)}"></td>`:`<td>${i.name}</td>`):''}
+      ${col('item','uom')?(_ge?`<td><input class="ge-input" id="ge_item_uom" value="${geEsc(i.uom)}" style="width:80px"></td>`:`<td><span class="badge badge-cyan">${i.uom}</span></td>`):''}
+      ${col('item','fg')?(_ge?`<td style="text-align:center;white-space:nowrap"><input type="checkbox" class="ge-input" id="ge_item_fg" ${i.is_fg?'checked':''} style="width:16px;height:16px;accent-color:var(--cyan);cursor:pointer"> <label for="ge_item_fg" style="font-size:.72rem;color:var(--t2);cursor:pointer">FG</label></td>`:`<td style="text-align:center">${i.is_fg?'<span class="badge badge-green" title="Finish Good">✔ FG</span>':'<span style="color:var(--t3);font-size:.72rem">—</span>'}${i.in_use?'&nbsp;<span class="badge" style="background:var(--acc2,#e57a00);color:#fff;font-size:.65rem" title="Item ini sudah digunakan dalam transaksi">Dipakai</span>':''}</td>`):''}
       ${col('item','cby')?`<td class="audit-cell">${i.created_by||'—'}</td>`:''}
       ${col('item','cdt')?`<td class="audit-cell">${i.created_dt||i.created||'—'}</td>`:''}
       ${col('item','mby')?`<td class="audit-cell">${i.modified_by||'—'}</td>`:''}
       ${col('item','mdt')?`<td class="audit-cell">${i.modified_dt||i.updated||'—'}</td>`:''}
-      ${col('item','action')?`<td><div style="display:flex;gap:.3rem">
+      ${col('item','action')?(_ge?`<td><div style="display:flex;gap:.3rem">
+        <button class="btn btn-primary btn-xs" onclick="geSaveItem('${i.id}')">💾 Simpan</button>
+        <button class="btn btn-secondary btn-xs" onclick="geCancel('item')">✕ Batal</button>
+      </div></td>`:`<td><div style="display:flex;gap:.3rem">
         ${i.in_use
           ? `<button class="btn btn-ghost btn-xs" disabled title="Item sudah digunakan dalam transaksi, tidak dapat diubah" style="opacity:.45;cursor:not-allowed">✏️ Edit</button>`
           : `<button class="btn btn-amber btn-xs" onclick="openItemForm('${i.id}')">✏️ Edit</button>`}
+        ${i.in_use?'':`<button class="btn btn-ghost btn-xs" onclick="geStart('item','${i.id}')" title="Edit langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button>`}
         <button class="btn btn-ghost btn-xs" onclick="showHistory('item','${i.id}')">📜 Riwayat</button>
         ${i.in_use
           ? `<button class="btn btn-ghost btn-xs" disabled title="Item sudah digunakan dalam transaksi, tidak dapat dihapus" style="opacity:.45;cursor:not-allowed">🗑</button>`
           : `<button class="btn btn-danger btn-xs" onclick="deleteItem('${i.id}')">🗑</button>`}
-      </div></td>`:''}
+      </div></td>`):''}
     </tr>
-  `).join('');
+  `}).join('');
 }catch(e){console.warn("renderItems:",e);}}
 
 // ═══════════════════════════════════════════
@@ -2454,13 +2474,14 @@ function renderExrates(){try{
   setText('exrate_count',DB.exrates.length);
   const span=COL_DEFS.exrate.filter(c=>colState.exrate[c.key]!==false).length;
   if(!rows.length){tbody.innerHTML=`<tr><td colspan="${span}"><div class="empty-state"><div class="es-icon">💱</div><p>Belum ada data exchange rate.</p></div></td></tr>`;return;}
-  tbody.innerHTML=rows.map(e=>`<tr>
+  const _erToday=new Date().toISOString().slice(0,10);
+  tbody.innerHTML=rows.map(e=>{const _ge=GE.exrate===e.id;const _lr=latestRate(e);return`<tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('exrate','${e.id}')?' checked':''} onchange="toggleRowSelect('exrate','${e.id}',this.checked)"></td>
     ${col('exrate','cid')?`<td><span class="badge badge-green">${e.currency_id}</span></td>`:''}
-    ${col('exrate','rate')?`<td class="mono">${latestRate(e)}</td>`:''}
+    ${col('exrate','rate')?(_ge?`<td style="white-space:nowrap"><input class="ge-input" type="number" id="ge_er_rate" value="${_lr}" step="any" style="width:110px;display:inline-block"> <input class="ge-input" type="date" id="ge_er_date" value="${_erToday}" style="width:130px;display:inline-block"></td>`:`<td class="mono">${_lr}</td>`):''}
     ${col('exrate','updated')?`<td class="muted mono" style="font-size:.72rem">${e.updated_dt||e.updated||'—'}</td>`:''}
-    ${col('exrate','action')?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewExrateDetail('${e.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openExrateForm('${e.id}')">✏️ Edit</button><button class="btn btn-danger btn-xs" onclick="deleteExrate('${e.id}')">🗑</button></div></td>`:''}
-  </tr>`).join('');
+    ${col('exrate','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveExrate('${e.id}')">💾 Simpan</button><button class="btn btn-secondary btn-xs" onclick="geCancel('exrate')">✕ Batal</button></div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewExrateDetail('${e.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openExrateForm('${e.id}')">✏️ Edit</button><button class="btn btn-ghost btn-xs" onclick="geStart('exrate','${e.id}')" title="Tambah/update rate langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button><button class="btn btn-danger btn-xs" onclick="deleteExrate('${e.id}')">🗑</button></div></td>`):''}
+  </tr>`}).join('');
 }catch(e){console.warn("renderExrates:",e);}}
 
 // ═══════════════════════════════════════════
@@ -2538,20 +2559,24 @@ function renderDlfoh(){try{
   const rows=DB.dlfoh.filter(d=>!dlfohFilter||(d.catid.toLowerCase().includes(dlfohFilter)||d.desc.toLowerCase().includes(dlfohFilter)));
   setText('dlfoh_count',DB.dlfoh.length);
   if(!rows.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="es-icon">🏭</div><p>Belum ada data DL-FOH.</p></div></td></tr>';return;}
-  tbody.innerHTML=rows.map(d=>`
-    <tr><td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('dlfoh',d.id)?'checked':''} onchange="toggleRowSelect('dlfoh','${d.id}',this.checked)"></td>
+  tbody.innerHTML=rows.map(d=>{const _ge=GE.dlfoh===d.id;return`
+    <tr${_ge?' class="ge-row"':''}><td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('dlfoh','${d.id}')?'checked':''} onchange="toggleRowSelect('dlfoh','${d.id}',this.checked)"></td>
       <td><span class="run-num">${d.catid}</span></td>
-      <td>${d.desc}</td>
-      <td><span class="badge badge-violet">${d.type}</span></td>
-      <td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>
+      ${_ge?`<td><input class="ge-input" id="ge_dl_desc" value="${geEsc(d.desc)}"></td>`:`<td>${d.desc}</td>`}
+      ${_ge?`<td><select class="ge-select" id="ge_dl_type" style="width:110px"><option value="Machine" ${d.type==='Machine'?'selected':''}>Machine</option><option value="Labour" ${d.type==='Labour'?'selected':''}>Labour</option><option value="Overhead" ${d.type==='Overhead'?'selected':''}>Overhead</option></select></td>`:`<td><span class="badge badge-violet">${d.type}</span></td>`}
+      ${_ge?`<td><input class="ge-input" type="number" id="ge_dl_rate" value="${d.rate}" style="width:120px"></td>`:`<td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>`}
       <td class="muted mono" style="font-size:.72rem">${d.created_dt||d.created||'—'}</td>
-      <td><div style="display:flex;gap:.3rem">
+      ${_ge?`<td><div style="display:flex;gap:.3rem">
+        <button class="btn btn-primary btn-xs" onclick="geSaveDlfoh('${d.id}')">💾 Simpan</button>
+        <button class="btn btn-secondary btn-xs" onclick="geCancel('dlfoh')">✕ Batal</button>
+      </div></td>`:`<td><div style="display:flex;gap:.3rem">
         <button class="btn btn-amber btn-xs" onclick="openDlfohForm('${d.id}')">✏️ Edit</button>
+        <button class="btn btn-ghost btn-xs" onclick="geStart('dlfoh','${d.id}')" title="Edit langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button>
         <button class="btn btn-ghost btn-xs" onclick="showHistory('dlfoh','${d.id}')">📜</button>
         <button class="btn btn-danger btn-xs" onclick="deleteDlfoh('${d.id}')">🗑</button>
-      </div></td>
+      </div></td>`}
     </tr>
-  `).join('');
+  `}).join('');
 }catch(e){console.warn("renderDlfoh:",e);}}
 
 // ═══════════════════════════════════════════
@@ -2685,17 +2710,18 @@ function renderKap(){try{
   const span=COL_DEFS.kap.filter(c=>colState.kap[c.key]!==false).length;
   if(!rows.length){tbody.innerHTML=`<tr><td colspan="${span}"><div class="empty-state"><div class="es-icon">⚡</div><p>Belum ada data kapasitas mesin.</p></div></td></tr>`;return;}
   tbody.innerHTML=rows.map(k=>{
+    const _ge=GE.kap===k.id;
     // Parse lines dari notes
     var klines=[];try{klines=JSON.parse(k.notes||'[]');}catch(e){klines=[];}
     var linesSummary=klines.length?klines.map(function(l){return`<span class="badge badge-violet" style="font-size:.65rem">${l.machine_line}</span>`;}).join(' '):'<span class="muted">—</span>';
-    return`<tr>
+    return`<tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('kap',k.id)?' checked':''} onchange="toggleRowSelect('kap','${k.id}',this.checked)"></td>
     ${col('kap','kapid')?`<td><span class="run-num">${k.kapid}</span></td>`:''}
     ${col('kap','created')?`<td class="muted mono" style="font-size:.7rem;white-space:nowrap">${k.created_dt||k.created||'—'}</td>`:''}
-    ${col('kap','icode')?`<td class="mono">${k.item_code}</td>`:''}
-    ${col('kap','iname')?`<td style="white-space:nowrap">${k.item_name}</td>`:''}
+    ${col('kap','icode')?(_ge?`<td><input class="ge-input" id="ge_kap_code" value="${geEsc(k.item_code)}" style="width:110px" oninput="const _it=DB.items.find(i=>i.code===this.value.toUpperCase().trim());const _n=ge('ge_kap_name');if(_n)_n.value=_it?_it.name:''"></td>`:`<td class="mono">${k.item_code}</td>`):''}
+    ${col('kap','iname')?(_ge?`<td><input class="ge-input" id="ge_kap_name" value="${geEsc(k.item_name)}" readonly style="color:var(--t3)"></td>`:`<td style="white-space:nowrap">${k.item_name}</td>`):''}
     ${col('kap','lines')?`<td style="font-size:.72rem">${linesSummary}</td>`:''}
-    ${col('kap','action')?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openKapForm('${k.id}')">✏️ Edit</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`:''}
+    ${col('kap','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveKap('${k.id}')">💾 Simpan</button><button class="btn btn-secondary btn-xs" onclick="geCancel('kap')">✕ Batal</button></div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openKapForm('${k.id}')">✏️ Edit</button><button class="btn btn-ghost btn-xs" onclick="geStart('kap','${k.id}')" title="Edit item code di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`):''}
   </tr>`;}).join('');
 }catch(e){console.warn("renderKap:",e);}}
 
@@ -3469,10 +3495,11 @@ function renderBom(){try{
     const canSubmit=(currentUser&&(currentUser.role==='admin'||currentUser.role==='editor'))&&status==='draft';
     const canCancel=(currentUser&&(currentUser.role==='admin'||currentUser.role==='editor'))&&(status.startsWith('pending_')||status.startsWith('rejected_'));
     const approveLevel=canApproveLevel(status);
-    return `<tr>`+_bchk+`
+    const _ge=GE.bom===b.id;
+    return `<tr${_ge?' class="ge-row"':''}>`+_bchk+`
       ${col('bom','bomid')?`<td><span class="run-num">${b.bomid}</span></td>`:''}
-      ${col('bom','product')?`<td><strong>${b.product}</strong></td>`:''}
-      ${col('bom','customer')?`<td class="muted">${b.customer||'—'}</td>`:''}
+      ${col('bom','product')?(_ge?`<td><input class="ge-input" id="ge_bom_prod" value="${geEsc(b.product)}"></td>`:`<td><strong>${b.product}</strong></td>`):''}
+      ${col('bom','customer')?(_ge?`<td><input class="ge-input" id="ge_bom_cust" value="${geEsc(b.customer||'')}"></td>`:`<td class="muted">${b.customer||'—'}</td>`):''}
       ${col('bom','price')?`<td>${b.price_id?'<span class="badge badge-amber">'+b.price_id+'</span>':'—'}</td>`:''}
       ${col('bom','mlines')?`<td>${(b.machine_lines||[]).map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')||'—'}</td>`:''}
       ${col('bom','status')?`<td><span class="badge ${statusBadge}" style="font-size:.65rem">${si.label}</span></td>`:''}
@@ -3480,15 +3507,19 @@ function renderBom(){try{
       ${col('bom','cdt')?`<td class="audit-cell">${b.created_dt||b.created||'—'}</td>`:''}
       ${col('bom','mby')?`<td class="audit-cell">${b.modified_by||'—'}</td>`:''}
       ${col('bom','mdt')?`<td class="audit-cell">${b.modified_dt||'—'}</td>`:''}
-      ${col('bom','action')?`<td><div style="display:flex;gap:.25rem;flex-wrap:wrap">
+      ${col('bom','action')?(_ge?`<td><div style="display:flex;gap:.25rem;flex-wrap:wrap">
+        <button class="btn btn-primary btn-xs" onclick="geSaveBom('${b.id}')">💾 Simpan</button>
+        <button class="btn btn-secondary btn-xs" onclick="geCancel('bom')">✕ Batal</button>
+      </div></td>`:`<td><div style="display:flex;gap:.25rem;flex-wrap:wrap">
         <button class="btn btn-ghost btn-xs" onclick="viewBomDetail('${b.id}','bom')">👁</button>
         ${canEditBom?`<button class="btn btn-amber btn-xs" onclick="openBomForm('${b.id}')">✏️</button>`:''}
+        ${canEditBom?`<button class="btn btn-ghost btn-xs" onclick="geStart('bom','${b.id}')" title="Edit product/customer di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button>`:''}
         ${canSubmit?`<button class="btn btn-success btn-xs" onclick="submitBom('${b.id}')">📤 Submit</button>`:''}
         ${approveLevel?`<button class="btn btn-primary btn-xs" onclick="openApprovalModal('${b.id}')">✅ Approve</button>`:''}
         ${approveLevel?`<button class="btn btn-danger btn-xs" onclick="openRejectModal('${b.id}')" title="Reject BOM ini">❌ Reject</button>`:''}
         ${canCancel?`<button class="btn btn-ghost btn-xs" onclick="cancelBom('${b.id}')" style="color:var(--amber);border-color:var(--amber)" title="Kembalikan ke Draft">↩ Cancel</button>`:''}
         ${canEdit()&&canEditBomStatus(status)?`<button class="btn btn-danger btn-xs" onclick="deleteBom('${b.id}')">🗑</button>`:''}
-      </div></td>`:''}
+      </div></td>`):''}
     </tr>`;
   }).join('');
 }catch(e){console.warn("renderBom:",e);}}
@@ -3571,15 +3602,16 @@ function renderMesin(){try{
   const rows=DB.mesin.filter(m=>!mesinFilter||(m.machine_id.toLowerCase().includes(mesinFilter)||m.machine_name.toLowerCase().includes(mesinFilter)));
   const span=COL_DEFS.mesin.filter(c=>colState.mesin[c.key]!==false).length;
   if(!rows.length){tbody.innerHTML=`<tr><td colspan="${span}"><div class="empty-state"><div class="es-icon">🔧</div><p>Belum ada data mesin. Tambah mesin terlebih dahulu.</p></div></td></tr>`;return;}
-  tbody.innerHTML=rows.map(m=>`<tr>
+  const _mlOpts=['Colouring','Buffering','Stranding','Jacketing','Armouring','Pipe Line'];
+  tbody.innerHTML=rows.map(m=>{const _ge=GE.mesin===m.id;return`<tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('mesin','${m.id}')?' checked':''} onchange="toggleRowSelect('mesin','${m.id}',this.checked)"></td>
     ${col('mesin','mid')?`<td><span class="run-num">${m.machine_id}</span></td>`:''}
-    ${col('mesin','mname')?`<td>${m.machine_name}</td>`:''}
-    ${col('mesin','mline')?`<td><span style="color:var(--muted);margin-right:5px;font-size:.85rem">|</span><span class="badge badge-violet">${m.machine_line||'—'}</span></td>`:''}
+    ${col('mesin','mname')?(_ge?`<td><input class="ge-input" id="ge_m_name" value="${geEsc(m.machine_name)}"></td>`:`<td>${m.machine_name}</td>`):''}
+    ${col('mesin','mline')?(_ge?`<td><select class="ge-select" id="ge_m_line" style="width:130px">${_mlOpts.map(o=>`<option value="${o}" ${m.machine_line===o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td><span style="color:var(--muted);margin-right:5px;font-size:.85rem">|</span><span class="badge badge-violet">${m.machine_line||'—'}</span></td>`):''}
     ${col('mesin','created')?`<td class="muted mono" style="font-size:.72rem">${m.created_dt||m.created||'—'}</td>`:''}
     ${col('mesin','updated')?`<td class="muted mono" style="font-size:.72rem">${m.modified_dt||m.updated||'—'}</td>`:''}
-    ${col('mesin','action')?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-amber btn-xs" onclick="openMesinForm('${m.id}')">✏️ Edit</button><button class="btn btn-ghost btn-xs" onclick="showHistory('mesin','${m.id}')">📜 Riwayat</button><button class="btn btn-danger btn-xs" onclick="deleteMesin('${m.id}')">🗑</button></div></td>`:''}
-  </tr>`).join('');
+    ${col('mesin','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveMesin('${m.id}')">💾 Simpan</button><button class="btn btn-secondary btn-xs" onclick="geCancel('mesin')">✕ Batal</button></div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-amber btn-xs" onclick="openMesinForm('${m.id}')">✏️ Edit</button><button class="btn btn-ghost btn-xs" onclick="geStart('mesin','${m.id}')" title="Edit langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button><button class="btn btn-ghost btn-xs" onclick="showHistory('mesin','${m.id}')">📜 Riwayat</button><button class="btn btn-danger btn-xs" onclick="deleteMesin('${m.id}')">🗑</button></div></td>`):''}
+  </tr>`}).join('');
 }catch(e){console.warn("renderMesin:",e);}}
 
 // ═══════════════════════════════════════════
@@ -4360,21 +4392,31 @@ function renderMBom(){try{
     // Created fields: MySQL returns created_dt
     const createdBy = b.created_by||'&#8212;';
     const createdDt = b.created_dt||b.created||'&#8212;';
-    return '<tr>'
+    const _ge=GE.mbom===b.id;
+    return '<tr'+(_ge?' class="ge-row"':'')+'>'
       +'<td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" '+(isSelected('masterbom',b.id)?'checked':'')+' onchange="toggleRowSelect(\'masterbom\',\''+b.id+'\',this.checked)"></td>'
       +'<td><span class="run-num">'+b.bomid+'</span></td>'
-      +'<td><strong>'+b.product+'</strong></td>'
-      +'<td class="muted">'+(b.customer||'&#8212;')+'</td>'
-      +'<td class="muted">'+(b.project||'&#8212;')+'</td>'
+      +(_ge?'<td><input class="ge-input" id="ge_mb_prod" value="'+geEsc(b.product)+'"></td>'
+           :'<td><strong>'+b.product+'</strong></td>')
+      +(_ge?'<td><input class="ge-input" id="ge_mb_cust" value="'+geEsc(b.customer||'')+'"></td>'
+           :'<td class="muted">'+(b.customer||'&#8212;')+'</td>')
+      +(_ge?'<td><input class="ge-input" id="ge_mb_proj" value="'+geEsc(b.project||'')+'"></td>'
+           :'<td class="muted">'+(b.project||'&#8212;')+'</td>')
       +'<td>'+mlines.map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')+'</td>'
       +'<td style="text-align:center"><span class="badge badge-amber">'+itemCount+' item</span></td>'
       +'<td class="audit-cell">'+createdBy+'</td>'
       +'<td class="audit-cell">'+createdDt+'</td>'
-      +'<td><div style="display:flex;gap:.3rem;flex-wrap:wrap">'
-      +'<button class="btn btn-ghost btn-xs" onclick="viewMBomDetail(\''+b.id+'\')">&#128065; Detail</button>'
-      +'<button class="btn btn-amber btn-xs" onclick="openMBomForm(\''+b.id+'\')">&#9999;&#65039; Edit</button>'
-      +'<button class="btn btn-danger btn-xs" onclick="deleteMBom(\''+b.id+'\')">&#128465;</button>'
-      +'</div></td></tr>';
+      +(_ge?'<td><div style="display:flex;gap:.3rem">'
+           +'<button class="btn btn-primary btn-xs" onclick="geSaveMBom(\''+b.id+'\')">&#128190; Simpan</button>'
+           +'<button class="btn btn-secondary btn-xs" onclick="geCancel(\'mbom\')">&#10005; Batal</button>'
+           +'</div></td>'
+           :'<td><div style="display:flex;gap:.3rem;flex-wrap:wrap">'
+           +'<button class="btn btn-ghost btn-xs" onclick="viewMBomDetail(\''+b.id+'\')">&#128065; Detail</button>'
+           +'<button class="btn btn-amber btn-xs" onclick="openMBomForm(\''+b.id+'\')">&#9999;&#65039; Edit</button>'
+           +'<button class="btn btn-ghost btn-xs" onclick="geStart(\'mbom\',\''+b.id+'\')" title="Edit header di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">&#9998;</button>'
+           +'<button class="btn btn-danger btn-xs" onclick="deleteMBom(\''+b.id+'\')">&#128465;</button>'
+           +'</div></td>')
+      +'</tr>';
   }).join('');
 }catch(e){console.warn('renderMBom:',e);}}
 
@@ -7013,21 +7055,34 @@ function renderItemPrices(){
     return;
   }
   tbody.innerHTML=rows.map(function(p){
-    return '<tr>'
+    var _ge=GE.itemprice===p.item_code;
+    var _currs=['USD','IDR','EUR','CNY','JPY','SGD'];
+    var _currOpts=_currs.map(function(c){return'<option value="'+c+'" '+(p.currency===c?'selected':'')+'>'+c+'</option>';}).join('');
+    return (_ge?'<tr class="ge-row">':'<tr>')
       +'<td><span class="run-num" style="font-size:.75rem">'+p.item_code+'</span></td>'
       +'<td>'+(p.item_name||'—')+'</td>'
-      +'<td><span class="badge badge-cyan">'+p.currency+'</span></td>'
-      +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(p.price,6)+'</td>'
-      +'<td style="text-align:right;font-family:var(--fm)">'+fmt_num(p.hedging,2)+'%</td>'
-      +'<td style="text-align:right;font-family:var(--fm)">'+fmt_num(p.landed,2)+'%</td>'
-      +'<td class="muted mono" style="font-size:.75rem">'+(p.effective_date||'—')+'</td>'
+      +(_ge?'<td><select class="ge-select" id="ge_ip_curr" style="width:75px">'+_currOpts+'</select></td>'
+           :'<td><span class="badge badge-cyan">'+p.currency+'</span></td>')
+      +(_ge?'<td><input class="ge-input" type="number" id="ge_ip_price" value="'+p.price+'" step="0.000001" style="width:120px;text-align:right"></td>'
+           :'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(p.price,6)+'</td>')
+      +(_ge?'<td><input class="ge-input" type="number" id="ge_ip_hed" value="'+(p.hedging||0)+'" step="0.01" style="width:70px;text-align:right"></td>'
+           :'<td style="text-align:right;font-family:var(--fm)">'+fmt_num(p.hedging,2)+'%</td>')
+      +(_ge?'<td><input class="ge-input" type="number" id="ge_ip_land" value="'+(p.landed||0)+'" step="0.01" style="width:70px;text-align:right"></td>'
+           :'<td style="text-align:right;font-family:var(--fm)">'+fmt_num(p.landed,2)+'%</td>')
+      +(_ge?'<td><input class="ge-input" type="date" id="ge_ip_edate" value="'+(p.effective_date||'')+'" style="width:130px"></td>'
+           :'<td class="muted mono" style="font-size:.75rem">'+(p.effective_date||'—')+'</td>')
       +'<td class="muted" style="font-size:.72rem">'+(p.modified_by||'—')+'</td>'
       +'<td class="muted mono" style="font-size:.72rem">'+(p.modified_dt||'—')+'</td>'
-      +'<td><div style="display:flex;gap:.3rem">'
-      +'<button class="btn btn-ghost btn-xs" onclick="viewItemPriceHistory(\''+p.item_code+'\')" title="History Harga">📜 Log</button>'
-      +'<button class="btn btn-amber btn-xs" onclick="openItemPriceForm(\''+p.item_code+'\')">✏️ Edit</button>'
-      +'<button class="btn btn-danger btn-xs" onclick="deleteItemPrice(\''+p.item_code+'\')">🗑</button>'
-      +'</div></td>'
+      +(_ge?'<td><div style="display:flex;gap:.3rem">'
+           +'<button class="btn btn-primary btn-xs" onclick="geSaveItemPrice(\''+p.item_code+'\')">💾 Simpan</button>'
+           +'<button class="btn btn-secondary btn-xs" onclick="geCancel(\'itemprice\')">✕ Batal</button>'
+           +'</div></td>'
+           :'<td><div style="display:flex;gap:.3rem">'
+           +'<button class="btn btn-ghost btn-xs" onclick="viewItemPriceHistory(\''+p.item_code+'\')" title="History Harga">📜 Log</button>'
+           +'<button class="btn btn-amber btn-xs" onclick="openItemPriceForm(\''+p.item_code+'\')">✏️ Edit</button>'
+           +'<button class="btn btn-ghost btn-xs" onclick="geStart(\'itemprice\',\''+p.item_code+'\')" title="Edit langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button>'
+           +'<button class="btn btn-danger btn-xs" onclick="deleteItemPrice(\''+p.item_code+'\')">🗑</button>'
+           +'</div></td>')
       +'</tr>';
   }).join('');
 }
@@ -7063,5 +7118,207 @@ function handleIpItemSelect(code){
     setVal('ip_landed','0');
     setVal('ip_effective_date',new Date().toISOString().slice(0,10));
   }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// GRID EDIT (GE) — state, helpers, dan save functions untuk semua menu
+// ══════════════════════════════════════════════════════════════════
+
+// State per-page: GE.item = id record yang sedang di-edit, null = tidak ada
+var GE = {
+  item: null, itemprice: null, exrate: null, dlfoh: null,
+  kap: null, mesin: null, mbom: null, bom: null
+};
+
+// Escape HTML untuk value di dalam attribute (mencegah XSS di inline edit)
+function geEsc(v) {
+  return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Mulai edit mode: set GE state lalu re-render halaman bersangkutan
+function geStart(page, id) {
+  GE[page] = id;
+  if(page==='item')       renderItems();
+  else if(page==='itemprice') renderItemPrices();
+  else if(page==='exrate')    renderExrates();
+  else if(page==='dlfoh')     renderDlfoh();
+  else if(page==='kap')       renderKap();
+  else if(page==='mesin')     renderMesin();
+  else if(page==='mbom')      renderMBom();
+  else if(page==='bom')       renderBom();
+}
+
+// Batalkan edit mode: reset GE state lalu re-render
+function geCancel(page) {
+  GE[page] = null;
+  if(page==='item')       renderItems();
+  else if(page==='itemprice') renderItemPrices();
+  else if(page==='exrate')    renderExrates();
+  else if(page==='dlfoh')     renderDlfoh();
+  else if(page==='kap')       renderKap();
+  else if(page==='mesin')     renderMesin();
+  else if(page==='mbom')      renderMBom();
+  else if(page==='bom')       renderBom();
+}
+
+// ── Save: Items ──────────────────────────────────────────────────
+// PUT /items/:id  →  { name, uom, is_fg }
+function geSaveItem(id) {
+  var name  = (document.getElementById('ge_item_name')||{}).value||'';
+  var uom   = (document.getElementById('ge_item_uom')||{}).value||'';
+  var is_fg = (document.getElementById('ge_item_fg')||{}).checked ? 1 : 0;
+  if(!name.trim()){toast('Nama item tidak boleh kosong','error');return;}
+  apiSave(API.items.update(id,{name:name.trim(),uom:uom.trim(),is_fg:is_fg}), function(){
+    GE.item=null;
+    // Update DB lokal agar tidak perlu reload penuh
+    var rec=DB.items.find(function(r){return r.id==id||r.id===id;});
+    if(rec){rec.name=name.trim();rec.uom=uom.trim();rec.is_fg=is_fg;rec.item_name=name.trim();}
+    renderItems();
+    toast('Item berhasil disimpan','success');
+  });
+}
+
+// ── Save: Item Prices ────────────────────────────────────────────
+// PUT /item-prices/:code  →  { currency, price, hedging, landed, effective_date }
+// ID input: ge_ip_curr, ge_ip_price, ge_ip_hed, ge_ip_land, ge_ip_edate (sesuai renderItemPrices)
+function geSaveItemPrice(code) {
+  var currency = (document.getElementById('ge_ip_curr')||{}).value||'USD';
+  var price    = parseFloat((document.getElementById('ge_ip_price')||{}).value)||0;
+  var hedging  = parseFloat((document.getElementById('ge_ip_hed')||{}).value)||0;
+  var landed   = parseFloat((document.getElementById('ge_ip_land')||{}).value)||0;
+  var eff_date = (document.getElementById('ge_ip_edate')||{}).value||new Date().toISOString().slice(0,10);
+  apiSave(API.itemPrice.update(code,{currency,price,hedging,landed,effective_date:eff_date}), function(){
+    GE.itemprice=null;
+    // Update cache harga lokal
+    var rec=DB.prices.find(function(r){return r.item_code==code||r.item_code===code;});
+    if(rec){rec.currency=currency;rec.price=price;rec.hedging=hedging;rec.landed=landed;rec.effective_date=eff_date;}
+    renderItemPrices();
+    toast('Harga berhasil disimpan','success');
+  });
+}
+
+// ── Save: Exchange Rates ──────────────────────────────────────────
+// PUT /exrates/:id  →  { lines: [{currency, rate, date},...] }
+// Tambahkan/update entry untuk tanggal yang diisi, preserve baris lain
+function geSaveExrate(id) {
+  var rate = parseFloat((document.getElementById('ge_er_rate')||{}).value)||0;
+  var date = (document.getElementById('ge_er_date')||{}).value||new Date().toISOString().slice(0,10);
+  if(!rate){toast('Rate tidak boleh 0','error');return;}
+  var rec=DB.exrates.find(function(r){return r.id==id||r.id===id;});
+  if(!rec){toast('Data tidak ditemukan','error');return;}
+  var lines=(rec.lines||[]).slice(); // salin array agar tidak mutasi langsung
+  var idx=lines.findIndex(function(l){return l.date===date;});
+  if(idx>=0){lines[idx]=Object.assign({},lines[idx],{rate:rate});}
+  else{lines.push({currency:rec.currency||'',rate:rate,date:date});}
+  apiSave(API.exrates.update(id,{lines:lines}), function(){
+    GE.exrate=null;
+    rec.lines=lines;
+    renderExrates();
+    toast('Rate berhasil disimpan','success');
+  });
+}
+
+// ── Save: DLFOH ──────────────────────────────────────────────────
+// PUT /dlfoh/:id  →  { desc, type, rate }
+function geSaveDlfoh(id) {
+  var desc = (document.getElementById('ge_dl_desc')||{}).value||'';
+  var type = (document.getElementById('ge_dl_type')||{}).value||'';
+  var rate = parseFloat((document.getElementById('ge_dl_rate')||{}).value)||0;
+  if(!desc.trim()){toast('Deskripsi tidak boleh kosong','error');return;}
+  apiSave(API.dlfoh.update(id,{desc:desc.trim(),type,rate}), function(){
+    GE.dlfoh=null;
+    var rec=DB.dlfoh.find(function(r){return r.id==id||r.id===id;});
+    if(rec){rec.desc=desc.trim();rec.type=type;rec.rate=rate;}
+    renderDlfoh();
+    toast('DLFOH berhasil disimpan','success');
+  });
+}
+
+// ── Save: Kapasitas ───────────────────────────────────────────────
+// PUT /kapasitas/:id  →  semua field (server butuh semua field)
+function geSaveKap(id) {
+  var item_code=(document.getElementById('ge_kap_code')||{}).value||'';
+  var item_name=(document.getElementById('ge_kap_name')||{}).value||'';
+  if(!item_code.trim()){toast('Item code tidak boleh kosong','error');return;}
+  var rec=DB.kap.find(function(r){return r.id==id||r.id===id;});
+  if(!rec){toast('Data tidak ditemukan','error');return;}
+  // Kirim semua field existing, hanya ubah item_code & item_name
+  var payload={
+    item_code:item_code.trim(), item_name:item_name.trim(),
+    proses:rec.proses, machine_id:rec.machine_id, machine_name:rec.machine_name,
+    tube:rec.tube, fiber:rec.fiber, kecepatan:rec.kecepatan,
+    dl:rec.dl, efisiensi:rec.efisiensi, notes:rec.notes
+  };
+  apiSave(API.kapasitas.update(id,payload), function(){
+    GE.kap=null;
+    rec.item_code=item_code.trim();rec.item_name=item_name.trim();
+    renderKap();
+    toast('Kapasitas berhasil disimpan','success');
+  });
+}
+
+// ── Save: Mesin ──────────────────────────────────────────────────
+// PUT /mesin/:id  →  { machine_name, machine_line }
+function geSaveMesin(id) {
+  var machine_name=(document.getElementById('ge_m_name')||{}).value||'';
+  var machine_line=(document.getElementById('ge_m_line')||{}).value||'';
+  if(!machine_name.trim()){toast('Nama mesin tidak boleh kosong','error');return;}
+  apiSave(API.mesin.update(id,{machine_name:machine_name.trim(),machine_line}), function(){
+    GE.mesin=null;
+    var rec=DB.mesin.find(function(r){return r.id==id||r.id===id;});
+    if(rec){rec.machine_name=machine_name.trim();rec.machine_line=machine_line;}
+    renderMesin();
+    toast('Mesin berhasil disimpan','success');
+  });
+}
+
+// ── Save: Master BOM ──────────────────────────────────────────────
+// PUT /masterbom/:id  →  { product, customer, project, fiber_cnt, buffer_qty, fiber_qty, groups }
+// groups harus disertakan agar server tidak menghapus baris grup yang ada
+function geSaveMBom(id) {
+  var product =(document.getElementById('ge_mb_prod')||{}).value||'';
+  var customer=(document.getElementById('ge_mb_cust')||{}).value||'';
+  var project =(document.getElementById('ge_mb_proj')||{}).value||'';
+  if(!product.trim()){toast('Product tidak boleh kosong','error');return;}
+  var rec=DB.masterbom.find(function(r){return r.id==id||r.id===id;});
+  if(!rec){toast('Data tidak ditemukan','error');return;}
+  var payload={
+    product:product.trim(), customer:customer.trim(), project:project.trim(),
+    fiber_cnt:rec.fiber_cnt, buffer_qty:rec.buffer_qty, fiber_qty:rec.fiber_qty,
+    groups:rec.groups||[]  // preserve existing machine line groups
+  };
+  apiSave(API.masterbom.update(id,payload), function(){
+    GE.mbom=null;
+    rec.product=product.trim();rec.customer=customer.trim();rec.project=project.trim();
+    renderMBom();
+    toast('Master BOM berhasil disimpan','success');
+  });
+}
+
+// ── Save: BOM ────────────────────────────────────────────────────
+// PUT /bom/:id  →  { product, customer, project, fiber_cnt, buffer_qty, fiber_qty,
+//                    price_id, master_bom_id, usd_rate_snapshot, groups }
+// Hanya bisa edit jika status === 'draft'
+function geSaveBom(id) {
+  var product =(document.getElementById('ge_bom_prod')||{}).value||'';
+  var customer=(document.getElementById('ge_bom_cust')||{}).value||'';
+  if(!product.trim()){toast('Product tidak boleh kosong','error');return;}
+  var rec=DB.bom.find(function(r){return r.id==id||r.id===id;});
+  if(!rec){toast('Data tidak ditemukan','error');return;}
+  if((rec.status||'draft')!=='draft'){toast('Hanya BOM dengan status Draft yang bisa diedit','error');return;}
+  var payload={
+    product:product.trim(), customer:customer.trim(),
+    project:rec.project, fiber_cnt:rec.fiber_cnt,
+    buffer_qty:rec.buffer_qty, fiber_qty:rec.fiber_qty,
+    price_id:rec.price_id, master_bom_id:rec.master_bom_id,
+    usd_rate_snapshot:rec.usd_rate_snapshot,
+    groups:rec.groups||[]  // preserve existing calculation groups
+  };
+  apiSave(API.bom.update(id,payload), function(){
+    GE.bom=null;
+    rec.product=product.trim();rec.customer=customer.trim();
+    renderBom();
+    toast('BOM berhasil disimpan','success');
+  });
 }
 </script>
