@@ -736,9 +736,9 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <div class="flabel req">Type</div>
           <select class="fselect" id="dlfoh_type">
             <option value="">— Pilih Type —</option>
-            <option>Machine</option>
-            <option>Labour</option>
-            <option>Overhead</option>
+            <option>DL</option>
+            <option>FFOH</option>
+            <option>VFOH</option>
           </select>
         </div>
         <div class="form-group">
@@ -3071,7 +3071,8 @@ function renderBomLineRow(gIdx,lIdx,l){
 function renderDlfohRow(gIdx,dIdx,dl){
   const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
   const t=rec?rec.type:'—';
-  const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':'badge-amber';
+  // badge color: DL=green, FFOH=violet, VFOH=amber
+  const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
   return `
     <tr data-dg="${gIdx}" data-di="${dIdx}">
       <td>
@@ -3200,7 +3201,8 @@ function recalcGroupDlfoh(gIdx){
       if(hourCell) hourCell.value=fmt_num(th,4);
       if(costCell) costCell.value=fmt_num(dl.total_cost,0);
       const t=rec?rec.type:'—';
-      const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':'badge-amber';
+      // badge color: DL=green, FFOH=violet, VFOH=amber
+      const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
       row.cells[1].innerHTML='<span class="badge '+cls+'" style="font-size:.6rem">'+t+'</span>';
     }
   });
@@ -3308,21 +3310,22 @@ function recalcSummaries(){try{
 }catch(e){console.warn("recalcSummaries:",e);}}
 
 function recalcDlfohPerHour(){try{
-  const totals={Labour:0,Machine:0,Overhead:0};
+  // Akumulasi cost per tipe baru: DL, FFOH, VFOH
+  const totals={DL:0,FFOH:0,VFOH:0};
   bomGroups.forEach(g=>{
     g.dlfohLines.forEach(dl=>{
       const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
       const type=rec?rec.type:'';
-      if(type==='Labour') totals.Labour+=(dl.total_cost||0);
-      else if(type==='Machine') totals.Machine+=(dl.total_cost||0);
-      else if(type==='Overhead'||type==='Other') totals.Overhead+=(dl.total_cost||0);
+      if(type==='DL') totals.DL+=(dl.total_cost||0);
+      else if(type==='FFOH') totals.FFOH+=(dl.total_cost||0);
+      else if(type==='VFOH') totals.VFOH+=(dl.total_cost||0);
     });
   });
   const usdRate=getLatestRate('USD');
   const rows=[
-    {label:'Direct Labor', key:'Labour'},
-    {label:'Fixed FOH',    key:'Machine'},
-    {label:'Variable FOH', key:'Overhead'},
+    {label:'Direct Labor', key:'DL'},
+    {label:'Fixed FOH',    key:'FFOH'},
+    {label:'Variable FOH', key:'VFOH'},
   ];
   const tbody=document.getElementById('dlfoh_perhour_body');
   if(!tbody) return;
@@ -3347,14 +3350,15 @@ function recalcSummaryMaterial(){try{
   const totalMatUSD=allLines.reduce((s,l)=>s+(l.total_amt||0),0);
   const totalMatWoFiberUSD=totalMatUSD-totalFiberUSD;
   const usdRate=getLatestRate('USD');
+  // Filter per tipe baru: DL, FFOH, VFOH
   const dlTotalIDR=bomGroups.flatMap(g=>g.dlfohLines)
-    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='Labour';})
+    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='DL';})
     .reduce((s,dl)=>s+(dl.total_cost||0),0);
   const fixedTotalIDR=bomGroups.flatMap(g=>g.dlfohLines)
-    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='Machine';})
+    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='FFOH';})
     .reduce((s,dl)=>s+(dl.total_cost||0),0);
   const varTotalIDR=bomGroups.flatMap(g=>g.dlfohLines)
-    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&(r.type==='Overhead'||r.type==='Other');})
+    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='VFOH';})
     .reduce((s,dl)=>s+(dl.total_cost||0),0);
   const dlUSD=usdRate>0?dlTotalIDR/usdRate:0;
   const fixedUSD=usdRate>0?fixedTotalIDR/usdRate:0;
