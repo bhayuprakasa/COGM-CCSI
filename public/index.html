@@ -2832,6 +2832,14 @@ function openBomForm(id){try{
       if(!g.kapPct) g.kapPct=100;
       if(!g.dlLot)  g.dlLot=1;
       if(!g.fohLot) g.fohLot=1;
+      // Proses/setup time: use stored value or derive from legacy speed/kapPct for backward compat
+      if(g.proses_time!==undefined && g.prosesTime===undefined) g.prosesTime=parseFloat(g.proses_time)||0;
+      if(g.setup_time!==undefined  && g.setupTime===undefined)  g.setupTime =parseFloat(g.setup_time)||0;
+      if(g.prosesTime===undefined){
+        const spd=g.speed||1,kap=(g.kapPct||100)/100;
+        g.prosesTime=spd>0&&kap>0?parseFloat((1000/(spd*60*kap)).toFixed(5)):0;
+      }
+      if(g.setupTime===undefined) g.setupTime=0;
       // Normalize dlfohLines: idx→index from MySQL
       g.dlfohLines=g.dlfohLines.map(function(dl){
         return {
@@ -2939,13 +2947,18 @@ function addMachineLineGroup(){
   const machine_id=document.getElementById('new_machine_id_sel').value;
   const kapId=document.getElementById('new_kap_id_sel').value;
   const kapRec=DB.kap.find(k=>k.kapid===kapId);
-  // pre-fill speed & efisiensi from kapasitas if available
-  const speed=kapRec?parseFloat(kapRec.kecepatan)||1:1;
-  const kapPct=kapRec?parseFloat(kapRec.efisiensi)||100:100;
+  // Auto-fill prosesTime and setupTime from kapasitas notes line matching machine_line
+  var prosesTime=0,setupTime=0;
+  if(kapRec){
+    var klines=[];try{klines=JSON.parse(kapRec.notes||'[]');}catch(e){klines=[];}
+    var matchLine=klines.find(function(l){return l.machine_line===ml;})||klines[0]||{};
+    prosesTime=parseFloat(matchLine.duration)||0;
+    setupTime=parseFloat(matchLine.setup)||0;
+  }
   bomGroups.push({
     machine_line:ml, machine_id, kap_id:kapId,
     lines:[], dlfohLines:[],
-    speed, kapPct, dlLot:1, fohLot:1
+    prosesTime, setupTime, dlLot:1, fohLot:1
   });
   sel.value='';
   setVal('new_machine_id_sel','');
@@ -3014,14 +3027,14 @@ function renderBomGroups(){
           <div style="font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.4rem">DL-FOH &amp; Kapasitas</div>
           <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem;align-items:center">
             <div style="display:flex;align-items:center;gap:.3rem">
-              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Kap.%</span>
-              <input class="li-input" type="number" style="width:55px" value="${g.kapPct}"
-                oninput="bomGroups[${gIdx}].kapPct=parseFloat(this.value)||100;recalcGroupDlfoh(${gIdx})">
+              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Proses Time (Jam)</span>
+              <input class="li-input" type="number" step="0.0001" style="width:70px" value="${g.prosesTime||0}"
+                oninput="bomGroups[${gIdx}].prosesTime=parseFloat(this.value)||0;recalcGroupDlfoh(${gIdx})">
             </div>
             <div style="display:flex;align-items:center;gap:.3rem">
-              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Speed MPM</span>
-              <input class="li-input" type="number" style="width:55px" value="${g.speed}"
-                oninput="bomGroups[${gIdx}].speed=parseFloat(this.value)||1;recalcGroupDlfoh(${gIdx})">
+              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Setup Time (Jam)</span>
+              <input class="li-input" type="number" step="0.0001" style="width:70px" value="${g.setupTime||0}"
+                oninput="bomGroups[${gIdx}].setupTime=parseFloat(this.value)||0;recalcGroupDlfoh(${gIdx})">
             </div>
             <div style="display:flex;align-items:center;gap:.3rem">
               <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">DL Lot</span>
@@ -3119,8 +3132,9 @@ function renderDlfohRow(gIdx,dIdx,dl){
       <td><input class="li-input dlfoh-idx-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,5)}"
         data-manual="${dl.index_manual?'1':'0'}"
         oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"></td>
-      <td><input class="li-input dlfoh-line-setup" type="number" style="width:54px" value="${dl.setup||0}"
-        oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;recalcGroupDlfoh(${gIdx})"></td>
+      <td><input class="li-input dlfoh-line-setup dlfoh-setup-cell" type="number" style="width:54px" value="${dl.setup||0}"
+        data-manual="${dl.setup_manual?'1':'0'}"
+        oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"></td>
       <td><input class="li-input dlfoh-line-factor" type="number" style="width:54px" value="${dl.factor||1}"
         oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].factor=parseFloat(this.value)||1;recalcGroupDlfoh(${gIdx})"></td>
       <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,4)}" readonly></td>
@@ -3188,7 +3202,7 @@ function recalcBomLine(gIdx,lIdx){
 }
 
 function recalcGroupDlfohFromRow(gIdx,dIdx){
-  // Recalc only total_hour and total_cost for a single row (index was manually edited)
+  // Recalc only total_hour and total_cost for a single row (index or setup was manually edited)
   const g=bomGroups[gIdx];
   const fohLot=g.fohLot||1;
   const dl=g.dlfohLines[dIdx];
@@ -3210,14 +3224,15 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
 
 function recalcGroupDlfoh(gIdx){
   const g=bomGroups[gIdx];
-  const kap=(g.kapPct||100)/100;
-  const speed=g.speed||1;
+  // prosesTime = variable (× factor), setupTime = constant regardless of qty
+  const prosesTime=g.prosesTime||0;
+  const setupTime=g.setupTime||0;
   const fohLot=g.fohLot||1;
-  // Auto-calculate index from speed/kap, skip lines where user manually set index
-  const autoIdx=speed*60*kap>0?1000/(speed*60*kap):0;
   g.dlfohLines.forEach((dl,dIdx)=>{
     // Only overwrite index if user has NOT manually edited it
-    if(!dl.index_manual) dl.index=autoIdx;
+    if(!dl.index_manual) dl.index=prosesTime;
+    // Only overwrite setup if user has NOT manually edited it
+    if(!dl.setup_manual) dl.setup=setupTime;
     const idx=dl.index;
     const th=idx*(dl.factor||1)+(dl.setup||0);
     dl.total_hour=th;
@@ -3226,9 +3241,11 @@ function recalcGroupDlfoh(gIdx){
     const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
     if(row){
       const idxCell=row.querySelector('.dlfoh-idx-cell');
+      const setupCell=row.querySelector('.dlfoh-setup-cell');
       const hourCell=row.querySelector('.dlfoh-hour-cell');
       const costCell=row.querySelector('.dlfoh-cost-cell');
       if(idxCell&&!dl.index_manual) idxCell.value=fmt_num(idx,5);
+      if(setupCell&&!dl.setup_manual) setupCell.value=fmt_num(dl.setup,5);
       if(hourCell) hourCell.value=fmt_num(th,4);
       if(costCell) costCell.value=fmt_num(dl.total_cost,0);
       const t=rec?rec.type:'—';
@@ -3960,6 +3977,9 @@ function openMBomForm(id){try{
         var fohLot=parseFloat(g.fohLot||g.foh_lot)||1;
         g.kapPct=kapPct; g.dlLot=dlLot; g.fohLot=fohLot;
         if(!g.speed) g.speed=1;
+        // Proses/setup time: use stored or derive from legacy speed/kapPct
+        if(g.prosesTime===undefined){var spd2=g.speed||1,kap2=(g.kapPct||100)/100;g.prosesTime=spd2>0&&kap2>0?parseFloat((1000/(spd2*60*kap2)).toFixed(5)):0;}
+        if(g.setupTime===undefined) g.setupTime=parseFloat(g.setup_time)||0;
         if(!g.lines) g.lines=[];
         g.dlfohLines=g.dlfohLines.map(function(d){
           return {cat:d.cat||'',type:d.type||'',
@@ -4042,9 +4062,15 @@ function addMBomGroup(){
   const machine_id=(ge('mbom_new_mid_sel')||{value:''}).value;
   const kapId=(ge('mbom_new_kap_sel')||{value:''}).value;
   const kapRec=DB.kap.find(k=>k.kapid===kapId);
-  const speed=kapRec?parseFloat(kapRec.kecepatan)||1:1;
-  const kapPct=kapRec?parseFloat(kapRec.efisiensi)||100:100;
-  mbomGroups.push({machine_line:ml,machine_id,kap_id:kapId,lines:[],dlfohLines:[],speed,kapPct,dlLot:1,fohLot:1});
+  // Auto-fill prosesTime and setupTime from kapasitas notes line matching machine_line
+  var mbProsesTime=0,mbSetupTime=0;
+  if(kapRec){
+    var mbKlines=[];try{mbKlines=JSON.parse(kapRec.notes||'[]');}catch(e){mbKlines=[];}
+    var mbMatchLine=mbKlines.find(function(l){return l.machine_line===ml;})||mbKlines[0]||{};
+    mbProsesTime=parseFloat(mbMatchLine.duration)||0;
+    mbSetupTime=parseFloat(mbMatchLine.setup)||0;
+  }
+  mbomGroups.push({machine_line:ml,machine_id,kap_id:kapId,lines:[],dlfohLines:[],prosesTime:mbProsesTime,setupTime:mbSetupTime,dlLot:1,fohLot:1});
   if(sel) sel.value='';
   const msel=ge('mbom_new_mid_sel');if(msel)msel.innerHTML='<option value="">← Pilih Machine Line dulu</option>';
   const ksel=ge('mbom_new_kap_sel');if(ksel)ksel.value='';
@@ -4097,14 +4123,14 @@ function renderMBomGroups(){
           <div style="font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.4rem">DL-FOH &amp; Kapasitas</div>
           <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem;align-items:center">
             <div style="display:flex;align-items:center;gap:.3rem">
-              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Kap.%</span>
-              <input class="li-input" type="number" style="width:55px" value="${g.kapPct}"
-                oninput="mbomGroups[${gIdx}].kapPct=parseFloat(this.value)||100;recalcMBomGroupDlfoh(${gIdx})">
+              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Proses Time (Jam)</span>
+              <input class="li-input" type="number" step="0.0001" style="width:70px" value="${g.prosesTime||0}"
+                oninput="mbomGroups[${gIdx}].prosesTime=parseFloat(this.value)||0;recalcMBomGroupDlfoh(${gIdx})">
             </div>
             <div style="display:flex;align-items:center;gap:.3rem">
-              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Speed MPM</span>
-              <input class="li-input" type="number" style="width:55px" value="${g.speed}"
-                oninput="mbomGroups[${gIdx}].speed=parseFloat(this.value)||1;recalcMBomGroupDlfoh(${gIdx})">
+              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Setup Time (Jam)</span>
+              <input class="li-input" type="number" step="0.0001" style="width:70px" value="${g.setupTime||0}"
+                oninput="mbomGroups[${gIdx}].setupTime=parseFloat(this.value)||0;recalcMBomGroupDlfoh(${gIdx})">
             </div>
             <div style="display:flex;align-items:center;gap:.3rem">
               <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">DL Lot</span>
@@ -4214,7 +4240,7 @@ function renderMBomDlfohRow(gIdx,dIdx,dl){
     +'<td><span class="badge '+cls+'" style="font-size:.6rem" id="mbom_dtype_'+gIdx+'_'+dIdx+'">'+t+'</span></td>'
     +'<td><input class="li-input mbom-dl-idx" type="number" style="width:72px" value="'+fmt_num(dl.index||0,5)+'" '
     +'oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index_manual=true;recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
-    +'<td><input class="li-input mbom-dl-setup" type="number" style="width:56px" value="'+(dl.setup||0)+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup=parseFloat(this.value)||0;recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
+    +'<td><input class="li-input mbom-dl-setup" type="number" style="width:56px" value="'+(dl.setup||0)+'" data-manual="'+(dl.setup_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
     +'<td><input class="li-input mbom-dl-factor" type="number" style="width:56px" value="'+(dl.factor||1)+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor=parseFloat(this.value)||1;recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
     +'<td><input class="li-input mbom-dl-hour" style="width:70px" value="'+fmt_num(dl.total_hour||0,4)+'" readonly></td>'
     +'<td><button class="btn btn-danger btn-xs" onclick="deleteMBomDlfohLine('+gIdx+','+dIdx+')">&#10005;</button></td>'
@@ -4241,11 +4267,12 @@ function deleteMBomDlfohLine(gIdx,dIdx){
 
 function recalcMBomGroupDlfoh(gIdx){
   const g=mbomGroups[gIdx];
-  const kap=(g.kapPct||100)/100;
-  const speed=g.speed||1;
-  const autoIdx=speed*60*kap>0?1000/(speed*60*kap):0;
+  // prosesTime = variable (× factor), setupTime = constant regardless of qty
+  const prosesTime=g.prosesTime||0;
+  const setupTime=g.setupTime||0;
   g.dlfohLines.forEach((dl,dIdx)=>{
-    if(!dl.index_manual) dl.index=autoIdx;
+    if(!dl.index_manual) dl.index=prosesTime;
+    if(!dl.setup_manual) dl.setup=setupTime;
     const th=dl.index*(dl.factor||1)+(dl.setup||0);
     dl.total_hour=th;
     // Always sync type from DB.dlfoh master — source of truth
@@ -4255,6 +4282,7 @@ function recalcMBomGroupDlfoh(gIdx){
     const row=document.querySelector('tr[data-mdg="'+gIdx+'"][data-mdi="'+dIdx+'"]');
     if(row){
       const ic=row.querySelector('.mbom-dl-idx'); if(ic&&!dl.index_manual) ic.value=fmt_num(dl.index,5);
+      const sc=row.querySelector('.mbom-dl-setup'); if(sc&&!dl.setup_manual) sc.value=fmt_num(dl.setup,5);
       const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,4);
       const cls=displayType==='Machine'?'badge-violet':displayType==='Labour'?'badge-green':displayType==='Overhead'?'badge-amber':'';
       const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
@@ -4358,8 +4386,8 @@ function viewMBomDetail(id){try{
       grpsHtml+='<div style="display:flex;gap:1.5rem;font-size:.75rem;margin-bottom:.5rem">';
       grpsHtml+='<span>Machine ID: <b>'+(g.machine_id||'—')+'</b></span>';
       grpsHtml+='<span>Kap ID: <b>'+(g.kap_id||'—')+'</b></span>';
-      grpsHtml+='<span>Speed: <b>'+(g.speed||1)+'</b></span>';
-      grpsHtml+='<span>Kap%: <b>'+(g.kapPct||g.kap_pct||100)+'%</b></span></div>';
+      grpsHtml+='<span>Proses Time: <b>'+(g.prosesTime||0)+' jam</b></span>';
+      grpsHtml+='<span>Setup Time: <b>'+(g.setupTime||0)+' jam</b></span></div>';
 
       if((g.lines||[]).length){
         grpsHtml+='<div style="font-size:.72rem;font-weight:600;margin:.4rem 0 .3rem;color:var(--muted)">MATERIAL LINES</div>';
@@ -4484,10 +4512,14 @@ function onMasterBomSelect(mbomId){
     const dlLot =parseFloat(g.dlLot ||g.dl_lot )||1;
     const fohLot=parseFloat(g.fohLot||g.foh_lot)||1;
     const speed =parseFloat(g.speed)||1;
+    // Proses/setup time: use stored value or derive from legacy speed/kapPct
+    var gProsesTime=parseFloat(g.prosesTime||g.proses_time)||null;
+    if(gProsesTime===null) gProsesTime=speed>0&&kapPct>0?parseFloat((1000/(speed*60*(kapPct/100))).toFixed(5)):0;
+    const gSetupTime=parseFloat(g.setupTime||g.setup_time)||0;
     bomGroups.push({
       machine_line:g.machine_line,
       machine_id:g.machine_id||'', kap_id:g.kap_id||'',
-      speed:speed, kapPct:kapPct,
+      prosesTime:gProsesTime, setupTime:gSetupTime,
       dlLot:dlLot, fohLot:fohLot,
       lines:(g.lines||[]).map(l=>({
         item_code:l.item_code, item_name:l.item_name,
@@ -5527,6 +5559,8 @@ function viewBomDetail(id, src){try{
         dlLot:  parseFloat(g.dlLot ||g.dl_lot )||1,
         fohLot: parseFloat(g.fohLot||g.foh_lot)||1,
         speed:  parseFloat(g.speed)||1,
+        prosesTime: (function(){var pt=parseFloat(g.prosesTime||g.proses_time);if(!isNaN(pt))return pt;var spd=parseFloat(g.speed)||1,kap=(parseFloat(g.kapPct||g.kap_pct)||100)/100;return spd>0&&kap>0?parseFloat((1000/(spd*60*kap)).toFixed(5)):0;}()),
+        setupTime: parseFloat(g.setupTime||g.setup_time)||0,
         lines: (g.lines||[]).map(function(l){return Object.assign({},l,{
           qty:parseFloat(l.qty)||0,scrap:parseFloat(l.scrap)||0,
           factor:parseFloat(l.factor)||1,total_qty:parseFloat(l.total_qty)||0,
