@@ -972,7 +972,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <input class="finput" type="number" id="mbom_buffer_qty" placeholder="0" min="0">
           </div>
           <div class="form-group">
-            <div class="flabel">Fiber Qty</div>
+            <div class="flabel">Length Qty</div>
             <input class="finput" type="number" id="mbom_fiber_qty" placeholder="0" min="0">
           </div>
         </div>
@@ -1097,7 +1097,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               <input class="finput" type="number" id="bom_buffer_qty" placeholder="0">
             </div>
             <div class="form-group">
-              <div class="flabel">Fiber Qty</div>
+              <div class="flabel">Length Qty</div>
               <input class="finput" type="number" id="bom_fiber_qty" placeholder="0">
             </div>
             <div class="form-group">
@@ -1561,7 +1561,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <th style="min-width:120px">Project Name</th>
             <th style="min-width:80px;text-align:right">Est Qty</th>
             <th style="min-width:100px">Jenis Fiber</th>
-            <th style="min-width:105px;text-align:right">Fiber Qty<br><span style="font-size:.65rem;color:var(--muted)">(USD)</span></th>
+            <th style="min-width:105px;text-align:right">Length Qty<br><span style="font-size:.65rem;color:var(--muted)">(USD)</span></th>
             <th style="min-width:105px;text-align:right">RM Others<br><span style="font-size:.65rem;color:var(--muted)">(USD)</span></th>
             <th style="min-width:100px;text-align:right">Rate<br><span style="font-size:.65rem;color:var(--muted)">(IDR/USD)</span></th>
             <th style="min-width:120px;text-align:right">Total IDR</th>
@@ -4345,7 +4345,7 @@ function viewMBomDetail(id){try{
     var hdr='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem 1.5rem;margin-bottom:1rem">';
     var fields=[['BOM ID',b.bomid],['Product',b.product],['Customer',b.customer||'—'],
       ['Project',b.project||'—'],['Loose Tube Qty',b.fiber_cnt||'—'],['Fiber / Tube',b.buffer_qty||'—'],
-      ['Fiber Qty',b.fiber_qty||'—'],['Created By',b.created_by||'—'],['Created',b.created_dt||b.created||'—'],
+      ['Length Qty',b.fiber_qty||'—'],['Created By',b.created_by||'—'],['Created',b.created_dt||b.created||'—'],
       ['Modified By',b.modified_by||'—'],['Modified',b.modified_dt||b.updated||'—']];
     fields.forEach(function(f){hdr+='<div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">'+f[0]+'</div><div style="font-weight:600;font-size:.85rem;margin-top:.15rem">'+f[1]+'</div></div>';});
     hdr+='</div>';
@@ -5555,7 +5555,7 @@ function viewBomDetail(id, src){try{
     <div><span style="color:var(--t3);font-size:.68rem">Price ID</span><div>${bom.price_id?'<span class="badge badge-amber">'+bom.price_id+'</span>':'—'}</div></div>
     <div><span style="color:var(--t3);font-size:.68rem">Loose Tube Qty</span><div class="mono">${bom.fiber_cnt||'—'}</div></div>
     <div><span style="color:var(--t3);font-size:.68rem">Buffer Qty</span><div class="mono">${bom.buffer_qty||'—'}</div></div>
-    <div><span style="color:var(--t3);font-size:.68rem">Fiber Qty</span><div class="mono">${bom.fiber_qty||'—'}</div></div>
+    <div><span style="color:var(--t3);font-size:.68rem">Length Qty</span><div class="mono">${bom.fiber_qty||'—'}</div></div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.72rem;color:var(--t3);padding:.6rem .75rem;background:var(--s2);border-radius:var(--r);border:1px solid var(--b1);margin-bottom:.85rem">
     <div>Created: <span style="color:var(--t2)">${bom.created_by||'—'} · ${bom.created_dt||bom.created||'—'}</span></div>
@@ -6846,7 +6846,7 @@ function viewCogsDoc(id){
     +'<th style="padding:.35rem .5rem">BOM ID</th><th style="padding:.35rem .5rem">Product</th>'
     +'<th style="padding:.35rem .5rem">Project</th><th style="padding:.35rem .5rem;text-align:right">Est Qty</th>'
     +'<th style="padding:.35rem .5rem">Jenis Fiber</th>'
-    +'<th style="padding:.35rem .5rem;text-align:right">Fiber Qty(USD)</th>'
+    +'<th style="padding:.35rem .5rem;text-align:right">Length Qty(USD)</th>'
     +'<th style="padding:.35rem .5rem;text-align:right">RM Others(USD)</th>'
     +'<th style="padding:.35rem .5rem;text-align:right">Rate</th>'
     +'<th style="padding:.35rem .5rem;text-align:right">Total IDR</th>'

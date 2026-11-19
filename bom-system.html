@@ -913,7 +913,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <input class="finput" type="number" id="mbom_buffer_qty" placeholder="0" min="0">
           </div>
           <div class="form-group">
-            <div class="flabel">Fiber Qty</div>
+            <div class="flabel">Length Qty</div>
             <input class="finput" type="number" id="mbom_fiber_qty" placeholder="0" min="0">
           </div>
         </div>
@@ -1024,7 +1024,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
               <input class="finput" type="number" id="bom_buffer_qty" placeholder="0">
             </div>
             <div class="form-group">
-              <div class="flabel">Fiber Qty</div>
+              <div class="flabel">Length Qty</div>
               <input class="finput" type="number" id="bom_fiber_qty" placeholder="0">
             </div>
             <div class="form-group">
@@ -3821,7 +3821,7 @@ function viewBomDetail(id, src){try{
     <div><span style="color:var(--t3);font-size:.68rem">Price ID</span><div>${bom.price_id?'<span class="badge badge-amber">'+bom.price_id+'</span>':'—'}</div></div>
     <div><span style="color:var(--t3);font-size:.68rem">Jumlah Fiber</span><div class="mono">${bom.fiber_cnt||'—'}</div></div>
     <div><span style="color:var(--t3);font-size:.68rem">Buffer Qty</span><div class="mono">${bom.buffer_qty||'—'}</div></div>
-    <div><span style="color:var(--t3);font-size:.68rem">Fiber Qty</span><div class="mono">${bom.fiber_qty||'—'}</div></div>
+    <div><span style="color:var(--t3);font-size:.68rem">Length Qty</span><div class="mono">${bom.fiber_qty||'—'}</div></div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.72rem;color:var(--t3);padding:.6rem .75rem;background:var(--s2);border-radius:var(--r);border:1px solid var(--b1);margin-bottom:.85rem">
     <div>Created: <span style="color:var(--t2)">${bom.created_by||'—'} · ${bom.created_dt||bom.created||'—'}</span></div>
