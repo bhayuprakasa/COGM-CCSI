@@ -2539,7 +2539,7 @@ function renderDlfoh(){try{
   setText('dlfoh_count',DB.dlfoh.length);
   if(!rows.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="es-icon">🏭</div><p>Belum ada data DL-FOH.</p></div></td></tr>';return;}
   tbody.innerHTML=rows.map(d=>`
-    <tr><td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('dlfoh','${d.id}')?'checked':''} onchange="toggleRowSelect('dlfoh','${d.id}',this.checked)"></td>
+    <tr><td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('dlfoh',d.id)?'checked':''} onchange="toggleRowSelect('dlfoh','${d.id}',this.checked)"></td>
       <td><span class="run-num">${d.catid}</span></td>
       <td>${d.desc}</td>
       <td><span class="badge badge-violet">${d.type}</span></td>
