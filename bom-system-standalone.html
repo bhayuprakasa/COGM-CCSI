@@ -676,9 +676,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <div class="flabel req">Type</div>
           <select class="fselect" id="dlfoh_type">
             <option value="">— Pilih Type —</option>
-            <option>Machine</option>
-            <option>Labour</option>
-            <option>Overhead</option>
+            <option>DL</option>
+            <option>FFOH</option>
+            <option>VFOH</option>
           </select>
         </div>
         <div class="form-group">
@@ -2329,7 +2329,7 @@ function renderBomLineRow(gIdx,lIdx,l){
 function renderDlfohRow(gIdx,dIdx,dl){
   const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
   const t=rec?rec.type:'—';
-  const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':'badge-amber';
+  const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
   return `
     <tr data-dg="${gIdx}" data-di="${dIdx}">
       <td>
@@ -2454,7 +2454,7 @@ function recalcGroupDlfoh(gIdx){
       if(hourCell) hourCell.value=fmt_num(th,4);
       if(costCell) costCell.value=fmt_num(dl.total_cost,0);
       const t=rec?rec.type:'—';
-      const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':'badge-amber';
+      const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
       row.cells[1].innerHTML='<span class="badge '+cls+'" style="font-size:.6rem">'+t+'</span>';
     }
   });
@@ -2559,21 +2559,21 @@ function recalcSummaries(){try{
 }catch(e){console.warn("recalcSummaries:",e);}}
 
 function recalcDlfohPerHour(){try{
-  const totals={Labour:0,Machine:0,Overhead:0};
+  const totals={DL:0,FFOH:0,VFOH:0};
   bomGroups.forEach(g=>{
     g.dlfohLines.forEach(dl=>{
       const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
       const type=rec?rec.type:'';
-      if(type==='Labour') totals.Labour+=(dl.total_cost||0);
-      else if(type==='Machine') totals.Machine+=(dl.total_cost||0);
-      else if(type==='Overhead'||type==='Other') totals.Overhead+=(dl.total_cost||0);
+      if(type==='DL') totals.DL+=(dl.total_cost||0);
+      else if(type==='FFOH') totals.FFOH+=(dl.total_cost||0);
+      else if(type==='VFOH') totals.VFOH+=(dl.total_cost||0);
     });
   });
   const usdRate=getLatestRate('USD');
   const rows=[
-    {label:'Direct Labor', key:'Labour'},
-    {label:'Fixed FOH',    key:'Machine'},
-    {label:'Variable FOH', key:'Overhead'},
+    {label:'Direct Labor', key:'DL'},
+    {label:'Fixed FOH',    key:'FFOH'},
+    {label:'Variable FOH', key:'VFOH'},
   ];
   const tbody=document.getElementById('dlfoh_perhour_body');
   if(!tbody) return;
@@ -2599,13 +2599,13 @@ function recalcSummaryMaterial(){try{
   const totalMatWoFiberUSD=totalMatUSD-totalFiberUSD;
   const usdRate=getLatestRate('USD');
   const dlTotalIDR=bomGroups.flatMap(g=>g.dlfohLines)
-    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='Labour';})
+    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='DL';})
     .reduce((s,dl)=>s+(dl.total_cost||0),0);
   const fixedTotalIDR=bomGroups.flatMap(g=>g.dlfohLines)
-    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='Machine';})
+    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='FFOH';})
     .reduce((s,dl)=>s+(dl.total_cost||0),0);
   const varTotalIDR=bomGroups.flatMap(g=>g.dlfohLines)
-    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&(r.type==='Overhead'||r.type==='Other');})
+    .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&(r.type==='VFOH');})
     .reduce((s,dl)=>s+(dl.total_cost||0),0);
   const dlUSD=usdRate>0?dlTotalIDR/usdRate:0;
   const fixedUSD=usdRate>0?fixedTotalIDR/usdRate:0;
@@ -3348,7 +3348,7 @@ function recalcMBomLine(gIdx,lIdx){
 function renderMBomDlfohRow(gIdx,dIdx,dl){
   const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
   const t=rec?rec.type:'—';
-  const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':'badge-amber';
+  const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
   return '<tr data-mdg="'+gIdx+'" data-mdi="'+dIdx+'">'
     +'<td><div style="display:flex;gap:.2rem;align-items:center">'
     +'<input class="li-input mbom-dl-cat" style="width:72px" value="'+(dl.cat||'')+'" placeholder="Cat ID" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].cat=this.value;recalcMBomDlfohRow('+gIdx+','+dIdx+')">'
@@ -3398,7 +3398,7 @@ function recalcMBomGroupDlfoh(gIdx){
       const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
       const t=rec?rec.type:'—';
       dl.type=t;
-      const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':'badge-amber';
+      const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
       const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
       if(tb){tb.className='badge '+cls;tb.style.fontSize='.6rem';tb.textContent=t;}
     }
@@ -3415,7 +3415,7 @@ function recalcMBomDlfohRow(gIdx,dIdx){
   const row=document.querySelector('tr[data-mdg="'+gIdx+'"][data-mdi="'+dIdx+'"]');
   if(row){
     const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,4);
-    const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':'badge-amber';
+    const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
     const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
     if(tb){tb.className='badge '+cls;tb.style.fontSize='.6rem';tb.textContent=t;}
   }
@@ -3572,12 +3572,12 @@ const UPLOAD_CONFIG={
   dlfoh:{
     title:'Upload Master DL-FOH',
     columns:['CategoryID','Description','Type','Rate'],
-    info:'Kolom: <b>CategoryID</b> (unik), <b>Description</b>, <b>Type</b> (Machine/Labour/Overhead), <b>Rate</b> (IDR/Jam)',
+    info:'Kolom: <b>CategoryID</b> (unik), <b>Description</b>, <b>Type</b> (DL/FFOH/VFOH), <b>Rate</b> (IDR/Jam)',
     sample:[
       ['CategoryID','Description','Type','Rate'],
-      ['DL-010','Direct Labour Coloring','Labour','95000'],
-      ['FOH-010','FOH Mesin Stranding','Machine','185000'],
-      ['FOH-011','Variable FOH Jacketing','Overhead','75000'],
+      ['DL-010','Direct Labour Coloring','DL','95000'],
+      ['FOH-010','Fixed FOH Mesin Stranding','FFOH','185000'],
+      ['FOH-011','Variable FOH Jacketing','VFOH','75000'],
     ]
   },
   kap:{
@@ -4209,7 +4209,7 @@ function viewBomDetail(id, src){try{
     const dlfohRows=(g.dlfohLines||[]).map(dl=>{
       const catRec=DB.dlfoh.find(d=>d.catid===dl.cat);
       const t=catRec?catRec.type:'—';
-      const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':'badge-amber';
+      const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
       return `<tr>
         <td class="mono">${dl.cat||'—'}</td>
         <td>${catRec?catRec.desc:'—'}</td>
@@ -4272,13 +4272,13 @@ function viewBomDetail(id, src){try{
   // ── DL-FOH Per Hour ──
   const allDlfoh=groups.flatMap(g=>g.dlfohLines||[]);
   const usdRateView=getLatestRate('USD');
-  const dlfohTotals={Labour:0,Machine:0,Overhead:0,Other:0};
+  const dlfohTotals={DL:0,FFOH:0,VFOH:0,Other:0};
   allDlfoh.forEach(dl=>{
     const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
     const t=rec?rec.type:'';
-    if(t==='Labour') dlfohTotals.Labour+=(dl.total_cost||0);
-    else if(t==='Machine') dlfohTotals.Machine+=(dl.total_cost||0);
-    else dlfohTotals.Overhead+=(dl.total_cost||0);
+    if(t==='DL') dlfohTotals.DL+=(dl.total_cost||0);
+    else if(t==='FFOH') dlfohTotals.FFOH+=(dl.total_cost||0);
+    else if(t==='VFOH') dlfohTotals.VFOH+=(dl.total_cost||0);
   });
   html+=`<div style="margin-top:.75rem">
   <div style="font-family:var(--fm);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem">DL-FOH Per Hour</div>
@@ -4286,7 +4286,7 @@ function viewBomDetail(id, src){try{
   <table class="tbl" style="min-width:380px">
     <thead><tr><th style="text-align:left">Category</th><th style="text-align:right">Rate IDR</th><th style="text-align:right">Rate USD</th></tr></thead>
     <tbody>
-      ${[['Direct Labor','Labour'],['Fixed FOH','Machine'],['Variable FOH','Overhead']].map(([lbl,key])=>{
+      ${[['Direct Labor','DL'],['Fixed FOH','FFOH'],['Variable FOH','VFOH']].map(([lbl,key])=>{
         const idr=dlfohTotals[key]||0;
         const usd=usdRateView>0?idr/usdRateView:0;
         return '<tr><td>'+lbl+'</td><td style="text-align:right;font-family:var(--fm);font-size:.78rem">'+Number(idr.toFixed(0)).toLocaleString('id-ID')+'</td><td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(usd,4)+'</td></tr>';
@@ -4300,9 +4300,9 @@ function viewBomDetail(id, src){try{
   const totalFiberUSD=fiberLines.reduce((s,l)=>s+(l.total_amt||0),0);
   const totalMatUSD=allLines.reduce((s,l)=>s+(l.total_amt||0),0);
   const totalMatWoFiberUSD=totalMatUSD-totalFiberUSD;
-  const dlUSD=usdRateView>0?dlfohTotals.Labour/usdRateView:0;
-  const fixedUSD=usdRateView>0?dlfohTotals.Machine/usdRateView:0;
-  const varUSD=usdRateView>0?dlfohTotals.Overhead/usdRateView:0;
+  const dlUSD=usdRateView>0?dlfohTotals.DL/usdRateView:0;
+  const fixedUSD=usdRateView>0?dlfohTotals.FFOH/usdRateView:0;
+  const varUSD=usdRateView>0?dlfohTotals.VFOH/usdRateView:0;
   const totalCogsUSD=totalFiberUSD+totalMatWoFiberUSD+dlUSD+fixedUSD+varUSD;
   const totalCogsIDR=totalCogsUSD*usdRateView;
   const pct=(v)=>totalCogsUSD>0?((v/totalCogsUSD)*100).toFixed(1)+'%':'—';
@@ -4741,9 +4741,9 @@ function seedData(){
     ]},
   ];priceSeq=1;
   DB.dlfoh=[
-    {id:'DLFOH-DL-001',catid:'DL-001',desc:'Direct Labour Coloring',type:'Labour',rate:95000,created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
-    {id:'DLFOH-FOH-001',catid:'FOH-001',desc:'FOH Mesin Stranding',type:'Machine',rate:185000,created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
-    {id:'DLFOH-FOH-002',catid:'FOH-002',desc:'FOH Mesin Jacketing',type:'Machine',rate:210000,created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
+    {id:'DLFOH-DL-001',catid:'DL-001',desc:'Direct Labour Coloring',type:'DL',rate:95000,created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
+    {id:'DLFOH-FOH-001',catid:'FOH-001',desc:'Fixed FOH Mesin Stranding',type:'FFOH',rate:185000,created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
+    {id:'DLFOH-FOH-002',catid:'FOH-002',desc:'Fixed FOH Mesin Jacketing',type:'FFOH',rate:210000,created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
   ];
   DB.mesin=[
     {id:'MCH-M-COLORING-01',machine_id:'M-COLORING-01',machine_name:'Mesin Coloring Line 1',machine_line:'Colouring',created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
