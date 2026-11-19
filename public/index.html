@@ -4542,12 +4542,14 @@ const UPLOAD_CONFIG={
   },
   kap:{
     title:'Upload Master Kapasitas Mesin',
-    columns:['KapasitasID','ItemCode','ItemName','Proses','MachineID','Tube','Fiber','Kecepatan','DL','Efisiensi','Notes'],
-    info:'Kolom: <b>KapasitasID</b>, <b>ItemCode</b>, <b>ItemName</b>, <b>Proses</b>, <b>MachineID</b>, <b>Tube</b>, <b>Fiber</b>, <b>Kecepatan</b> (MPM), <b>DL</b>, <b>Efisiensi</b> (%), <b>Notes</b>',
+    columns:['KapasitasID','ItemCode','ItemName','MachineLine','DurationProcess'],
+    info:'Satu <b>KapasitasID</b> dapat memiliki beberapa baris (lines).<br>'
+      +'Kolom: <b>KapasitasID</b>, <b>ItemCode</b>, <b>ItemName</b>, <b>MachineLine</b> (Colouring/Buffering/Stranding/Jacketing/Armoring/Pipe Line), <b>DurationProcess</b> (Jam, maks 3 desimal)',
     sample:[
-      ['KapasitasID','ItemCode','ItemName','Proses','MachineID','Tube','Fiber','Kecepatan','DL','Efisiensi','Notes'],
-      ['KAP-0010','RM-003','Serat Optik SM','Stranding','M-STRAND-01','6','12','15.5','3','85','Mesin utama stranding'],
-      ['KAP-0011','RM-004','HDPE Compound','Jacketing','M-JACKET-01','1','6','8.0','2','90','Mesin jacketing utama'],
+      ['KapasitasID','ItemCode','ItemName','MachineLine','DurationProcess'],
+      ['KAP-0010','RM-003','Serat Optik SM','Stranding','2.500'],
+      ['KAP-0010','RM-003','Serat Optik SM','Jacketing','1.000'],
+      ['KAP-0011','RM-004','HDPE Compound','Jacketing','3.250'],
     ]
   },
   mesin:{
@@ -4870,13 +4872,26 @@ function confirmUpload(){
     renderDlfoh(); updateCounts();
   }
   else if(uploadType==='kap'){
-    const rows_kap=[];
+    // Group rows by KapasitasID — satu KapasitasID bisa punya banyak baris line
+    const kapMap={};
     uploadParsedData.forEach(r=>{
       const kapid=(r['KapasitasID']||'').trim();
       if(!kapid){skipped++;return;}
-      const machineRec=DB.mesin.find(m=>m.machine_id===(r['MachineID']||''));
-      rows_kap.push({kapid,item_code:r['ItemCode']||'',item_name:r['ItemName']||'',proses:r['Proses']||'',machine_id:r['MachineID']||'',machine_name:machineRec?machineRec.machine_name:'',tube:parseInt(r['Tube'])||0,fiber:parseInt(r['Fiber'])||0,kecepatan:parseFloat(r['Kecepatan'])||0,dl:parseInt(r['DL'])||0,efisiensi:parseFloat(r['Efisiensi'])||0,notes:r['Notes']||''});
+      if(!kapMap[kapid]){
+        kapMap[kapid]={kapid,item_code:(r['ItemCode']||'').trim(),item_name:(r['ItemName']||'').trim(),lines:[]};
+      }
+      const ml=(r['MachineLine']||'').trim();
+      const dur=parseFloat(r['DurationProcess'])||0;
+      if(ml) kapMap[kapid].lines.push({machine_line:ml,duration:dur});
     });
+    const rows_kap=Object.values(kapMap).map(k=>({
+      kapid:k.kapid,
+      item_code:k.item_code,
+      item_name:k.item_name,
+      // Field lama dikirim 0/kosong agar kompatibel schema DB
+      proses:'',machine_id:'',machine_name:'',tube:0,fiber:0,kecepatan:0,dl:0,efisiensi:0,
+      notes:JSON.stringify(k.lines) // lines disimpan sebagai JSON di notes
+    }));
     if(useAPI){
       const promises=[];
       rows_kap.forEach(k=>{
