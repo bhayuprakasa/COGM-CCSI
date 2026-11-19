@@ -3500,7 +3500,7 @@ function renderBom(){try{
       ${col('bom','bomid')?`<td><span class="run-num">${b.bomid}</span></td>`:''}
       ${col('bom','product')?(_ge?`<td><input class="ge-input" id="ge_bom_prod" value="${geEsc(b.product)}"></td>`:`<td><strong>${b.product}</strong></td>`):''}
       ${col('bom','customer')?(_ge?`<td><input class="ge-input" id="ge_bom_cust" value="${geEsc(b.customer||'')}"></td>`:`<td class="muted">${b.customer||'—'}</td>`):''}
-      ${col('bom','price')?`<td>${b.price_id?'<span class="badge badge-amber">'+b.price_id+'</span>':'—'}</td>`:''}
+      ${col('bom','price')?(_ge?`<td><input class="ge-input" id="ge_bom_price" value="${geEsc(b.price_id||'')}" style="width:110px" placeholder="Price ID"></td>`:`<td>${b.price_id?'<span class="badge badge-amber">'+b.price_id+'</span>':'—'}</td>`):''}
       ${col('bom','mlines')?`<td>${(b.machine_lines||[]).map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')||'—'}</td>`:''}
       ${col('bom','status')?`<td><span class="badge ${statusBadge}" style="font-size:.65rem">${si.label}</span></td>`:''}
       ${col('bom','cby')?`<td class="audit-cell">${b.created_by||'—'}</td>`:''}
@@ -7302,6 +7302,7 @@ function geSaveMBom(id) {
 function geSaveBom(id) {
   var product =(document.getElementById('ge_bom_prod')||{}).value||'';
   var customer=(document.getElementById('ge_bom_cust')||{}).value||'';
+  var price_id=(document.getElementById('ge_bom_price')||{}).value||'';
   if(!product.trim()){toast('Product tidak boleh kosong','error');return;}
   var rec=DB.bom.find(function(r){return r.id==id||r.id===id;});
   if(!rec){toast('Data tidak ditemukan','error');return;}
@@ -7310,13 +7311,13 @@ function geSaveBom(id) {
     product:product.trim(), customer:customer.trim(),
     project:rec.project, fiber_cnt:rec.fiber_cnt,
     buffer_qty:rec.buffer_qty, fiber_qty:rec.fiber_qty,
-    price_id:rec.price_id, master_bom_id:rec.master_bom_id,
+    price_id:price_id.trim()||null, master_bom_id:rec.master_bom_id,
     usd_rate_snapshot:rec.usd_rate_snapshot,
-    groups:rec.groups||[]  // preserve existing calculation groups
+    groups:rec.groups||[]
   };
   apiSave(API.bom.update(id,payload), function(){
     GE.bom=null;
-    rec.product=product.trim();rec.customer=customer.trim();
+    rec.product=product.trim();rec.customer=customer.trim();rec.price_id=price_id.trim()||null;
     renderBom();
     toast('BOM berhasil disimpan','success');
   });
