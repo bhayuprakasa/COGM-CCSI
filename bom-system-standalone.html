@@ -419,7 +419,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="nav-item" onclick="goPage('exrate')"><span class="ni">💱</span> Exchange Rate</div>
   <div class="nav-item" onclick="goPage('dlfoh')"><span class="ni">🏭</span> DL-FOH</div>
   <div class="nav-item" onclick="goPage('mesin')"><span class="ni">🔧</span> Master Mesin</div>
-  <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master Route</div>
+  <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master FG (Route)</div>
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
   <div class="nav-item" onclick="goPage('bom')"><span class="ni">📋</span> Bill of Material</div>
@@ -716,13 +716,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <label class="sa-lbl" for="sa_cb_kap">Pilih Semua</label>
         <button class="btn btn-danger btn-xs sa-del" id="sa_del_kap" onclick="deleteSelected('kap',deleteSelectedKap)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_kap">0</span>)</button>
       </div>
-    <button class="btn btn-primary" onclick="openKapForm()">+ Tambah Kapasitas</button>
+    <button class="btn btn-primary" onclick="openKapForm()">+ Tambah Item FG (Route)</button>
     <button class="btn btn-ghost" onclick="openUploadModal('kap')">⬆ Upload CSV</button>
   </div>
 
   <div class="card" id="kap_form_card" style="display:none">
     <div class="card-head">
-      <div class="card-title"><span class="card-title-icon">⚡</span><span id="kap_form_title">Tambah Master Route</span></div>
+      <div class="card-title"><span class="card-title-icon">⚡</span><span id="kap_form_title">Tambah Master FG (Route)</span></div>
       <div style="display:flex;gap:.4rem">
         <button class="btn btn-secondary btn-sm" onclick="closeKapForm()">Batal</button>
         <button class="btn btn-primary btn-sm" onclick="saveKap()">Simpan</button>
@@ -823,7 +823,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="card">
     <div class="card-head">
-      <div class="card-title"><span class="card-title-icon">⚡</span> Daftar Master Route</div>
+      <div class="card-title"><span class="card-title-icon">⚡</span> Daftar Master FG (Route)</div>
       <div style="display:flex;align-items:center;gap:.5rem"><input class="finput" style="width:200px" placeholder="🔍 Cari..." oninput="filterKap(this.value)"><div id="coltoggle_kap"></div></div>
     </div>
     <div class="card-body" style="padding:0">
@@ -1339,7 +1339,7 @@ const pageTitles={
   exrate:'💱 Master Data <span>Exchange Rate</span>',
   dlfoh:'🏭 Master Data <span>DL-FOH</span>',
   mesin:'🔧 Master Data <span>Mesin</span>',
-  kapasitas:'⚡ Master Data <span>Master Route</span>',
+  kapasitas:'⚡ Master Data <span>Master FG (Route)</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
   bom:'📋 <span>Bill of Material</span>',
   history:'📜 <span>History BOM</span>',
@@ -1911,7 +1911,7 @@ function openKapForm(id){try{
   if(id){
     const rec=DB.kap.find(k=>k.id===id);
     if(!rec) return;
-    setText('kap_form_title','Edit Master Route');
+    setText('kap_form_title','Edit Master FG (Route)');
     (function(){const _e=ge('kap_edit_id');if(_e)_e.value=id;})()
     (function(){const _e=ge('kap_id_disp');if(_e)_e.value=rec.kapid;})()
     (function(){const _e=ge('kap_created');if(_e)_e.value=rec.created;})()
@@ -1938,7 +1938,7 @@ function openKapForm(id){try{
     const newKapId='KAP-'+(DB.kap.length+1).toString().padStart(4,'0');
     (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})()
     document.getElementById('kap_created').value=nowStr();
-    setText('kap_form_title','Tambah Master Route');
+    setText('kap_form_title','Tambah Master FG (Route)');
   }
   // wire item code search — support lookup by name juga
   const codeEl=document.getElementById('kap_item_code');
@@ -1978,10 +1978,10 @@ function saveKap(){try{
   if(editId){
     const rec=DB.kap.find(k=>k.id===editId);
     if(rec) Object.assign(rec,payload);
-    toast('Master Route diupdate.','success');
+    toast('Master FG (Route) diupdate.','success');
   } else {
     DB.kap.push({id:'KAP-'+kapid,kapid,created,...payload});
-    toast('Master Route disimpan.','success');
+    toast('Master FG (Route) disimpan.','success');
   }
   closeKapForm(); renderKap(); updateCounts();
 }catch(e){console.warn("saveKap:",e);}}
@@ -3581,7 +3581,7 @@ const UPLOAD_CONFIG={
     ]
   },
   kap:{
-    title:'Upload Master Master Route',
+    title:'Upload Master Master FG (Route)',
     columns:['KapasitasID','ItemCode','ItemName','Proses','MachineID','Tube','Fiber','Kecepatan','DL','Efisiensi','Notes'],
     info:'Kolom: <b>KapasitasID</b>, <b>ItemCode</b>, <b>ItemName</b>, <b>Proses</b>, <b>MachineID</b>, <b>Tube</b>, <b>Fiber</b>, <b>Kecepatan</b> (MPM), <b>DL</b>, <b>Efisiensi</b> (%), <b>Notes</b>',
     sample:[
@@ -4006,7 +4006,7 @@ function closeAddUserForm(){ setDisp('add_user_card','none'); }
 
 function buildCustomAccessChecks(selected){
   const wrap = document.getElementById('custom_access_checks');
-  const pageLabels = {item:'Master Item',price:'Purchase Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',mesin:'Master Mesin',kapasitas:'Master Route',bom:'Bill of Material',history:'History BOM',roles:'Access Role'};
+  const pageLabels = {item:'Master Item',price:'Purchase Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',mesin:'Master Mesin',kapasitas:'Master FG (Route)',bom:'Bill of Material',history:'History BOM',roles:'Access Role'};
   wrap.innerHTML = ALL_PAGES.map(p=>`
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;padding:.3rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--b1)">
       <input type="checkbox" id="chk_${p}" ${selected.includes(p)?'checked':''} style="accent-color:var(--cyan)"> ${pageLabels[p]||p}
@@ -4569,7 +4569,7 @@ function viewExrateDetail(id){try{
   openDetailModal('Detail Exchange Rate — '+rec.currency_id, html);
 }catch(e){console.warn("viewExrateDetail:",e);}}
 
-// ── Master Route Detail ──
+// ── Master FG (Route) Detail ──
 function viewKapDetail(id){try{
   const rec = DB.kap.find(k=>k.id===id);
   if(!rec) return;
@@ -4625,7 +4625,7 @@ function viewKapDetail(id){try{
       <div style="font-size:.8rem;color:var(--t2);line-height:1.6">${rec.notes}</div>
     </div>`:''}`;
 
-  openDetailModal('Detail Master Route — '+rec.kapid, html);
+  openDetailModal('Detail Master FG (Route) — '+rec.kapid, html);
 }catch(e){console.warn("viewKapDetail:",e);}}
 
 

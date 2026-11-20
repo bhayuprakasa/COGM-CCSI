@@ -436,7 +436,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div class="nav-item" onclick="goPage('price')"><span class="ni">💲</span> Item Price</div>
   <div class="nav-item" onclick="goPage('exrate')"><span class="ni">💱</span> Exchange Rate</div>
   <div class="nav-item" onclick="goPage('dlfoh')"><span class="ni">🏭</span> DL-FOH</div>
-  <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master Route</div>
+  <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master FG (Route)</div>
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
   <div class="nav-item" onclick="goPage('bom')"><span class="ni">📋</span> Bill of Material</div>
@@ -801,7 +801,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         <label class="sa-lbl" for="sa_cb_kap">Pilih Semua</label>
         <button class="btn btn-danger btn-xs sa-del" id="sa_del_kap" onclick="deleteSelected('kap',deleteSelectedKap)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_kap">0</span>)</button>
       </div>
-    <button class="btn btn-primary" onclick="openKapForm()">+ Tambah Kapasitas</button>
+    <button class="btn btn-primary" onclick="openKapForm()">+ Tambah Item FG (Route)</button>
     <button class="btn btn-ghost" id="ge_toggle_kap" onclick="geToggleAll('kap')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
     <button class="btn btn-primary" id="ge_saveall_kap" onclick="geSaveAll('kap')" style="display:none">💾 Simpan Semua</button>
     <button class="btn btn-ghost" onclick="openUploadModal('kap')">⬆ Upload CSV</button>
@@ -809,7 +809,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 
   <div class="card" id="kap_form_card" style="display:none">
     <div class="card-head">
-      <div class="card-title"><span class="card-title-icon">⚡</span><span id="kap_form_title">Tambah Master Route</span></div>
+      <div class="card-title"><span class="card-title-icon">⚡</span><span id="kap_form_title">Tambah Master FG (Route)</span></div>
       <div style="display:flex;gap:.4rem">
         <button class="btn btn-secondary btn-sm" onclick="closeKapForm()">Batal</button>
         <button class="btn btn-primary btn-sm" onclick="saveKap()">Simpan</button>
@@ -848,7 +848,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 
   <div class="card" id="kap_list_card">
     <div class="card-head">
-      <div class="card-title"><span class="card-title-icon">⚡</span> Daftar Master Route</div>
+      <div class="card-title"><span class="card-title-icon">⚡</span> Daftar Master FG (Route)</div>
       <div style="display:flex;align-items:center;gap:.5rem"><input class="finput" style="width:200px" placeholder="🔍 Cari..." oninput="filterKap(this.value)"><div id="coltoggle_kap"></div></div>
     </div>
     <div class="card-body" style="padding:0">
@@ -1249,9 +1249,9 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             </thead>
             <tbody>
               <tr><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Direct Material</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Total biaya material BOM (qty × harga × kurs)</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">Item Price + Exchange Rate + Master BOM</span></td></tr>
-              <tr style="background:var(--s2)"><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Direct Labor</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Upah tenaga kerja langsung (rate/jam × jam/km)</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">DL-FOH + Master Route</span></td></tr>
+              <tr style="background:var(--s2)"><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Direct Labor</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Upah tenaga kerja langsung (rate/jam × jam/km)</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">DL-FOH + Master FG (Route)</span></td></tr>
               <tr><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Manufacturing Overhead</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Listrik, consumables, utilitas per km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">DL-FOH (tipe FOH)</span></td></tr>
-              <tr style="background:var(--s2)"><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Depreciation</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Penyusutan mesin produksi per km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">Master Mesin + Master Route</span></td></tr>
+              <tr style="background:var(--s2)"><td style="padding:.45rem .75rem;border:1px solid var(--b2)">Depreciation</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Penyusutan mesin produksi per km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR / km</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">Master Mesin + Master FG (Route)</span></td></tr>
               <tr><td style="padding:.45rem .75rem;border:1px solid var(--b2)">WIP Awal / Akhir</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t2)">Work-in-Progress awal dan akhir periode</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);color:var(--t3)">IDR</td><td style="padding:.45rem .75rem;border:1px solid var(--b2);text-align:center"><span style="background:var(--s3);border:1px solid var(--b2);border-radius:3px;padding:1px 6px;font-size:.75rem">Bill of Material (header)</span></td></tr>
             </tbody>
           </table>
@@ -1315,7 +1315,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Rate labor & overhead/jam</div>
               </div>
               <div onclick="goPage('kapasitas')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
-                <div style="font-size:.7rem;font-weight:700">⚡ Master Route</div>
+                <div style="font-size:.7rem;font-weight:700">⚡ Master FG (Route)</div>
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Produktivitas & jam/km</div>
               </div>
             </div>
@@ -1861,7 +1861,7 @@ const pageTitles={
   exrate:'💱 Master Data <span>Exchange Rate</span>',
   dlfoh:'🏭 Master Data <span>DL-FOH</span>',
   mesin:'🔧 Master Data <span>Mesin</span>',
-  kapasitas:'⚡ Master Data <span>Master Route</span>',
+  kapasitas:'⚡ Master Data <span>Master FG (Route)</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
   bom:'📋 <span>Bill of Material</span>',
   history:'📜 <span>History BOM</span>',
@@ -2627,7 +2627,7 @@ function openKapForm(id){try{
   // Reset baris line
   document.getElementById('kap_lines_container').innerHTML='';
   if(id){
-    setText('kap_form_title','Edit Master Route');
+    setText('kap_form_title','Edit Master FG (Route)');
     var rec=DB.kap.find(function(x){return x.id===id;});
     if(rec){
       (function(){const _e=ge('kap_edit_id');if(_e)_e.value=id;})();
@@ -2651,7 +2651,7 @@ function openKapForm(id){try{
     const newKapId='KAP-'+(DB.kap.length+1).toString().padStart(4,'0');
     (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})();
     document.getElementById('kap_created').value=nowStr();
-    setText('kap_form_title','Tambah Master Route');
+    setText('kap_form_title','Tambah Master FG (Route)');
     addKapLine(); // satu baris default
   }
   // wire item code search
@@ -2684,10 +2684,10 @@ function saveKap(){try{
   if(editId){
     const rec=DB.kap.find(k=>k.id===editId);
     if(rec) Object.assign(rec,payload);
-    toast('Master Route diupdate.','success');
+    toast('Master FG (Route) diupdate.','success');
   } else {
     DB.kap.push({id:'KAP-'+kapid,kapid,created,...payload});
-    toast('Master Route disimpan.','success');
+    toast('Master FG (Route) disimpan.','success');
   }
   closeKapForm(); renderKap(); updateCounts();
 }catch(e){console.warn("saveKap:",e);}}
@@ -4505,7 +4505,7 @@ const UPLOAD_CONFIG={
     ]
   },
   kap:{
-    title:'Upload Master Master Route',
+    title:'Upload Master Master FG (Route)',
     columns:['KapasitasID','ItemCode','ItemName','MachineLine','DurationProcess'],
     info:'Satu <b>KapasitasID</b> dapat memiliki beberapa baris (lines).<br>'
       +'Kolom: <b>KapasitasID</b>, <b>ItemCode</b>, <b>ItemName</b>, <b>MachineLine</b> (Colouring/Buffering/Stranding/Jacketing/Armoring/Pipe Line), <b>DurationProcess</b> (Jam, maks 3 desimal)',
@@ -5223,7 +5223,7 @@ function closeAddUserForm(){ setDisp('add_user_card','none'); }
 
 function buildCustomAccessChecks(selected){
   const wrap = document.getElementById('custom_access_checks');
-  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',kapasitas:'Master Route',bom:'Bill of Material',history:'History BOM',cogs:'COGS Summary',roles:'Access Role'};
+  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',kapasitas:'Master FG (Route)',bom:'Bill of Material',history:'History BOM',cogs:'COGS Summary',roles:'Access Role'};
   wrap.innerHTML = ALL_PAGES.map(p=>`
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;padding:.3rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--b1)">
       <input type="checkbox" id="chk_${p}" ${selected.includes(p)?'checked':''} style="accent-color:var(--cyan)"> ${pageLabels[p]||p}
@@ -5917,7 +5917,7 @@ function viewExrateDetail(id){try{
 }catch(e){console.warn("viewExrateDetail:",e);}}
 
 
-// ── Master Route Detail ──
+// ── Master FG (Route) Detail ──
 function viewKapDetail(id){try{
   const rec = DB.kap.find(k=>k.id===id);
   if(!rec) return;
@@ -5948,7 +5948,7 @@ function viewKapDetail(id){try{
       ${linesHtml}
     </div>`;
 
-  openDetailModal('Detail Master Route — '+rec.kapid, html);
+  openDetailModal('Detail Master FG (Route) — '+rec.kapid, html);
 }catch(e){console.warn("viewKapDetail:",e);}}
 
 
