@@ -6052,10 +6052,12 @@ function viewKapDetail(id){try{
     <thead><tr>
       <th style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:left;color:var(--t3);font-size:.68rem;text-transform:uppercase">Machine Line</th>
       <th style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;color:var(--t3);font-size:.68rem;text-transform:uppercase">Duration Process (Jam)</th>
+      <th style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;color:var(--t3);font-size:.68rem;text-transform:uppercase">Setup Time (Jam)</th>
     </tr></thead>
     <tbody>${klines.map(function(l){return`<tr>
       <td style="padding:.35rem .6rem;border:1px solid var(--b2)"><span class="badge badge-violet">${l.machine_line}</span></td>
       <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.duration||0).toFixed(3)}</td>
+      <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.setup||0).toFixed(3)}</td>
     </tr>`;}).join('')}</tbody>
   </table>`:'<div style="color:var(--t3);font-size:.8rem">Tidak ada data line.</div>';
 
