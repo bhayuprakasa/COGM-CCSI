@@ -2021,6 +2021,12 @@ function selectSearchResult(code,name){
     onMBomItemCode(sm_extra.gi, sm_extra.l, code);
     sm_extra=null; closeSearchModal(); return;
   }
+  // Kapasitas form DL-FOH category search — update input berdasarkan field id
+  if(sm_type==='dlfoh'&&sm_extra&&sm_extra.g==='kap_dlfoh'){
+    const inp=ge(sm_extra.field);
+    if(inp) inp.value=code;
+    sm_extra=null; closeSearchModal(); return;
+  }
   // Master BOM DL-FOH category search
   if(sm_type==='dlfoh'&&sm_extra&&sm_extra.g==='mbom_dlfoh'){
     mbomGroups[sm_extra.gi].dlfohLines[sm_extra.l].cat=code;
@@ -2619,40 +2625,72 @@ function renderDlfoh(){try{
 const KAP_MACHINE_LINES=['Colouring','Buffering','Stranding','Jacketing','Armoring','Pipe Line'];
 
 // Render satu baris line (Machine Line + Duration + Setup) ke dalam container
-function buildKapLineRow(ml,dur,setup){
-  const idx=Date.now()+Math.random(); // id unik per baris
+// Buat satu item DL-FOH di dalam baris kapasitas — uid unik agar search modal tahu target input
+function buildKapDlfohItemHTML(uid,cat){
+  return '<div class="kap-dlfoh-item" style="display:flex;gap:.25rem;align-items:center;margin-bottom:.2rem">'
+    +'<input class="finput kap-dl-cat" id="kdi_'+uid+'" style="width:90px;font-size:.72rem;padding:.2rem .35rem" placeholder="Cat ID" value="'+(cat||'')+'">'
+    +'<button class="btn btn-ghost" style="padding:.1rem .2rem;font-size:.6rem" type="button" onclick="sm_extra={g:\'kap_dlfoh\',field:\'kdi_'+uid+'\'};openSearchModal(\'dlfoh\',\'kdi_'+uid+'\',null)">&#128269;</button>'
+    +'<button type="button" onclick="this.closest(\'.kap-dlfoh-item\').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.85rem;padding:.1rem .25rem">&#10005;</button>'
+    +'</div>';
+}
+
+// Tambah item DL-FOH kosong ke list dalam baris yang diklik
+function addKapDlfohItem(btn){
+  const list=btn.closest('.kap-line-row').querySelector('.kap-dlfoh-list');
+  if(!list) return;
+  const uid=Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  list.insertAdjacentHTML('beforeend',buildKapDlfohItemHTML(uid,''));
+}
+
+function buildKapLineRow(ml,dur,setup,dlfohArr){
+  dlfohArr=dlfohArr||[];
   const opts=KAP_MACHINE_LINES.map(o=>`<option value="${o}" ${o===ml?'selected':''}>${o}</option>`).join('');
   const row=document.createElement('div');
   row.className='kap-line-row';
-  row.style.cssText='display:flex;gap:.5rem;align-items:center;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.5rem .6rem';
+  // flex-direction column agar DL-FOH section muat di bawah
+  row.style.cssText='display:flex;flex-direction:column;gap:.4rem;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.5rem .6rem';
+  // Render semua DL-FOH items yang sudah ada
+  const dlHTML=dlfohArr.map(function(d){
+    const uid=Date.now()+'_'+Math.random().toString(36).slice(2,6);
+    return buildKapDlfohItemHTML(uid,d.cat);
+  }).join('');
   row.innerHTML=`
-    <div class="form-group" style="flex:1;margin:0">
-      <div class="flabel req" style="margin-bottom:.25rem">Machine Line</div>
-      <select class="fselect kap-line-ml">${opts}</select>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <div class="form-group" style="flex:1;margin:0">
+        <div class="flabel req" style="margin-bottom:.25rem">Machine Line</div>
+        <select class="fselect kap-line-ml">${opts}</select>
+      </div>
+      <div class="form-group" style="flex:1;margin:0">
+        <div class="flabel req" style="margin-bottom:.25rem">Duration Process (Jam)</div>
+        <input class="finput kap-line-dur" type="number" step="0.001" min="0" placeholder="0.000" value="${dur||''}">
+      </div>
+      <div class="form-group" style="flex:1;margin:0">
+        <div class="flabel" style="margin-bottom:.25rem">Setup (Jam)</div>
+        <input class="finput kap-line-setup" type="number" step="0.001" min="0" placeholder="0.000" value="${setup||''}">
+      </div>
+      <button type="button" onclick="this.closest('.kap-line-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem;flex-shrink:0;align-self:flex-end" title="Hapus baris">✕</button>
     </div>
-    <div class="form-group" style="flex:1;margin:0">
-      <div class="flabel req" style="margin-bottom:.25rem">Duration Process (Jam)</div>
-      <input class="finput kap-line-dur" type="number" step="0.001" min="0" placeholder="0.000" value="${dur||''}">
-    </div>
-    <div class="form-group" style="flex:1;margin:0">
-      <div class="flabel" style="margin-bottom:.25rem">Setup (Jam)</div>
-      <input class="finput kap-line-setup" type="number" step="0.001" min="0" placeholder="0.000" value="${setup||''}">
-    </div>
-    <button type="button" onclick="this.closest('.kap-line-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem;flex-shrink:0" title="Hapus baris">✕</button>`;
+    <div style="border-left:2px solid var(--b1);padding-left:.6rem;margin-left:.25rem">
+      <div style="font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:.3rem">DL-FOH Categories</div>
+      <div class="kap-dlfoh-list">${dlHTML}</div>
+      <button type="button" class="btn btn-ghost btn-xs" style="margin-top:.2rem;font-size:.65rem" onclick="addKapDlfohItem(this)">+ Category</button>
+    </div>`;
   return row;
 }
 
 // Tambah satu baris kosong ke container
-function addKapLine(ml,dur,setup){
-  document.getElementById('kap_lines_container').appendChild(buildKapLineRow(ml||'',dur||'',setup||''));
+function addKapLine(ml,dur,setup,dlfoh){
+  document.getElementById('kap_lines_container').appendChild(buildKapLineRow(ml||'',dur||'',setup||'',dlfoh||[]));
 }
 
-// Ambil semua baris line dari form sebagai array [{machine_line, duration, setup}]
+// Ambil semua baris line dari form — termasuk array dlfoh per line
 function getKapLines(){
   return Array.from(document.querySelectorAll('#kap_lines_container .kap-line-row')).map(row=>({
     machine_line: row.querySelector('.kap-line-ml').value,
     duration: parseFloat(row.querySelector('.kap-line-dur').value)||0,
-    setup: parseFloat(row.querySelector('.kap-line-setup').value)||0
+    setup: parseFloat(row.querySelector('.kap-line-setup').value)||0,
+    // Kumpulkan category id dari tiap item DL-FOH yang terisi
+    dlfoh: Array.from(row.querySelectorAll('.kap-dl-cat')).map(i=>({cat:i.value.trim()})).filter(d=>d.cat)
   }));
 }
 
@@ -2676,8 +2714,8 @@ function openKapForm(id){try{
       // Parse lines dari notes (disimpan sebagai JSON)
       var lines=[];
       try{lines=JSON.parse(rec.notes||'[]');}catch(e){lines=[];}
-      // Pass setup jika ada (data lama tidak punya field setup, default 0)
-      if(lines.length){lines.forEach(function(l){addKapLine(l.machine_line,l.duration,l.setup||0);});}
+      // Pass setup dan dlfoh — data lama tidak punya keduanya, default 0/[]
+      if(lines.length){lines.forEach(function(l){addKapLine(l.machine_line,l.duration,l.setup||0,l.dlfoh||[]);});}
       else{addKapLine();}
     } else {
       toast('Data tidak ditemukan.','error');
@@ -4044,15 +4082,15 @@ function onMBomMachineLineFilter(){
     msel.innerHTML='<option value="">'+(filtered.length?'— Pilih Machine ID —':'← Pilih Machine Line dulu')+'</option>'
       +filtered.map(m=>'<option value="'+m.machine_id+'">'+m.machine_id+' — '+m.machine_name+'</option>').join('');
   }
-  // Filter Kapasitas dropdown (by proses loose-match)
+  // Filter Kapasitas dropdown — cari kapasitas yang punya line dengan machine_line sesuai
   const ksel=ge('mbom_new_kap_sel');
   if(ksel){
     const filteredK=ml?DB.kap.filter(k=>{
-      const m=DB.mesin.find(x=>x.machine_id===k.machine_id);
-      return m&&m.machine_line===ml;
-    }):[];
+      var kl=[];try{kl=JSON.parse(k.notes||'[]');}catch(e){kl=[];}
+      return kl.some(function(l){return l.machine_line===ml;});
+    }):DB.kap;
     ksel.innerHTML='<option value="">— Opsional —</option>'
-      +(filteredK.length?filteredK:DB.kap).map(k=>'<option value="'+k.kapid+'">'+k.kapid+' | '+k.item_name+' | '+k.proses+' | Kec:'+k.kecepatan+'</option>').join('');
+      +filteredK.map(k=>'<option value="'+k.kapid+'">'+k.kapid+' | '+k.item_name+'</option>').join('');
   }
   // reset machine id and kap
   if(msel) msel.value='';
@@ -4084,7 +4122,15 @@ function addMBomGroup(){
     mbProsesTime=parseFloat(mbMatchLine.duration)||0;
     mbSetupTime=parseFloat(mbMatchLine.setup)||0;
   }
-  mbomGroups.push({machine_line:ml,machine_id,kap_id:kapId,lines:[],dlfohLines:[],prosesTime:mbProsesTime,setupTime:mbSetupTime,lengthQty:1,dlLot:1,fohLot:1});
+  // Auto-fill dlfohLines dari kategori DL-FOH yang sudah diisi di kapasitas line
+  var mbDlfohLines=[];
+  if(mbMatchLine&&mbMatchLine.dlfoh&&mbMatchLine.dlfoh.length){
+    mbDlfohLines=mbMatchLine.dlfoh.filter(function(d){return d.cat;}).map(function(d){
+      var rec=DB.dlfoh.find(function(x){return x.catid===d.cat;});
+      return {cat:d.cat,type:rec?rec.type:'',index:mbProsesTime,setup:mbSetupTime,factor:1,total_hour:0,index_manual:false,setup_manual:false,factor_manual:false};
+    });
+  }
+  mbomGroups.push({machine_line:ml,machine_id,kap_id:kapId,lines:[],dlfohLines:mbDlfohLines,prosesTime:mbProsesTime,setupTime:mbSetupTime,lengthQty:1,dlLot:1,fohLot:1});
   if(sel) sel.value='';
   const msel=ge('mbom_new_mid_sel');if(msel)msel.innerHTML='<option value="">← Pilih Machine Line dulu</option>';
   const ksel=ge('mbom_new_kap_sel');if(ksel)ksel.value='';
