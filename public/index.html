@@ -2183,9 +2183,6 @@ function renderItems(){try{
         <button class="btn btn-primary btn-xs" onclick="geSaveItem('${i.id}')">💾 Simpan</button>
         ${GE.item!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('item')">✕ Batal</button>`:''}
       </div></td>`:`<td><div style="display:flex;gap:.3rem">
-        ${i.in_use
-          ? `<button class="btn btn-ghost btn-xs" disabled title="Item sudah digunakan dalam transaksi, tidak dapat diubah" style="opacity:.45;cursor:not-allowed">✏️ Edit</button>`
-          : `<button class="btn btn-amber btn-xs" onclick="openItemForm('${i.id}')">✏️ Edit</button>`}
         ${i.in_use?'':`<button class="btn btn-ghost btn-xs" onclick="geStart('item','${i.id}')" title="Edit langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button>`}
         <button class="btn btn-ghost btn-xs" onclick="showHistory('item','${i.id}')">📜 Riwayat</button>
         ${i.in_use
@@ -2354,7 +2351,7 @@ function renderPrices(){try{
     ${col('price','id')?`<td><span class="run-num">${p.id}</span></td>`:''}
     ${col('price','created')?`<td class="muted mono" style="font-size:.72rem">${p.created_dt||p.created||'—'}</td>`:''}
     ${col('price','lines')?`<td><span class="badge badge-amber">${p.lines.length} lines</span></td>`:''}
-    ${col('price','action')?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewPriceDetail('${p.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openPriceForm('${p.id}')">✏️ Edit</button><button class="btn btn-danger btn-xs" onclick="deletePrice('${p.id}')">🗑</button></div></td>`:''}
+    ${col('price','action')?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewPriceDetail('${p.id}')">👁</button><button class="btn btn-danger btn-xs" onclick="deletePrice('${p.id}')">🗑</button></div></td>`:''}
   </tr>`).join('');
 }catch(e){console.warn("renderPrices:",e);}}
 
@@ -2473,7 +2470,7 @@ function renderExrates(){try{
     ${col('exrate','cid')?`<td><span class="badge badge-green">${e.currency_id}</span></td>`:''}
     ${col('exrate','rate')?(_ge?`<td style="white-space:nowrap"><input class="ge-input" type="number" id="ge_er_rate_${e.id}" value="${_lr}" step="any" style="width:110px;display:inline-block"> <input class="ge-input" type="date" id="ge_er_date_${e.id}" value="${_erToday}" style="width:130px;display:inline-block"></td>`:`<td class="mono">${_lr}</td>`):''}
     ${col('exrate','updated')?`<td class="muted mono" style="font-size:.72rem">${e.updated_dt||e.updated||'—'}</td>`:''}
-    ${col('exrate','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveExrate('${e.id}')">💾 Simpan</button>${GE.exrate!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('exrate')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewExrateDetail('${e.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openExrateForm('${e.id}')">✏️ Edit</button><button class="btn btn-ghost btn-xs" onclick="geStart('exrate','${e.id}')" title="Tambah/update rate langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button><button class="btn btn-danger btn-xs" onclick="deleteExrate('${e.id}')">🗑</button></div></td>`):''}
+    ${col('exrate','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveExrate('${e.id}')">💾 Simpan</button>${GE.exrate!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('exrate')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewExrateDetail('${e.id}')">👁</button><button class="btn btn-ghost btn-xs" onclick="geStart('exrate','${e.id}')" title="Tambah/update rate langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button><button class="btn btn-danger btn-xs" onclick="deleteExrate('${e.id}')">🗑</button></div></td>`):''}
   </tr>`}).join('');
 }catch(e){console.warn("renderExrates:",e);}}
 
@@ -2563,7 +2560,6 @@ function renderDlfoh(){try{
         <button class="btn btn-primary btn-xs" onclick="geSaveDlfoh('${d.id}')">💾 Simpan</button>
         ${GE.dlfoh!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('dlfoh')">✕ Batal</button>`:''}
       </div></td>`:`<td><div style="display:flex;gap:.3rem">
-        <button class="btn btn-amber btn-xs" onclick="openDlfohForm('${d.id}')">✏️ Edit</button>
         <button class="btn btn-ghost btn-xs" onclick="geStart('dlfoh','${d.id}')" title="Edit langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button>
         <button class="btn btn-ghost btn-xs" onclick="showHistory('dlfoh','${d.id}')">📜</button>
         <button class="btn btn-danger btn-xs" onclick="deleteDlfoh('${d.id}')">🗑</button>
@@ -2720,7 +2716,7 @@ function renderKap(){try{
     ${col('kap','icode')?(_ge?`<td><input class="ge-input" id="ge_kap_code_${k.id}" value="${geEsc(k.item_code)}" style="width:110px" oninput="const _it=DB.items.find(i=>i.code===this.value.toUpperCase().trim());const _n=document.getElementById('ge_kap_name_${k.id}');if(_n)_n.value=_it?_it.name:''"></td>`:`<td class="mono">${k.item_code}</td>`):''}
     ${col('kap','iname')?(_ge?`<td><input class="ge-input" id="ge_kap_name_${k.id}" value="${geEsc(k.item_name)}" readonly style="color:var(--t3)"></td>`:`<td style="white-space:nowrap">${k.item_name}</td>`):''}
     ${col('kap','lines')?`<td style="font-size:.72rem">${linesSummary}</td>`:''}
-    ${col('kap','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveKap('${k.id}')">💾 Simpan</button>${GE.kap!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('kap')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openKapForm('${k.id}')">✏️ Edit</button><button class="btn btn-ghost btn-xs" onclick="geStart('kap','${k.id}')" title="Edit item code di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`):''}
+    ${col('kap','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveKap('${k.id}')">💾 Simpan</button>${GE.kap!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('kap')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-ghost btn-xs" onclick="geStart('kap','${k.id}')" title="Edit item code di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`):''}
   </tr>`;}).join('');
 }catch(e){console.warn("renderKap:",e);}}
 
@@ -3545,7 +3541,6 @@ function renderBom(){try{
         ${GE.bom!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('bom')">✕ Batal</button>`:''}
       </div></td>`:`<td><div style="display:flex;gap:.25rem;flex-wrap:wrap">
         <button class="btn btn-ghost btn-xs" onclick="viewBomDetail('${b.id}','bom')">👁</button>
-        ${canEditBom?`<button class="btn btn-amber btn-xs" onclick="openBomForm('${b.id}')">✏️</button>`:''}
         ${canEditBom?`<button class="btn btn-ghost btn-xs" onclick="geStart('bom','${b.id}')" title="Edit product/customer di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button>`:''}
         ${canSubmit?`<button class="btn btn-success btn-xs" onclick="submitBom('${b.id}')">📤 Submit</button>`:''}
         ${approveLevel?`<button class="btn btn-primary btn-xs" onclick="openApprovalModal('${b.id}')">✅ Approve</button>`:''}
@@ -3643,7 +3638,7 @@ function renderMesin(){try{
     ${col('mesin','mline')?(_ge?`<td><select class="ge-select" id="ge_m_line_${m.id}" style="width:130px">${_mlOpts.map(o=>`<option value="${o}" ${m.machine_line===o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td><span style="color:var(--muted);margin-right:5px;font-size:.85rem">|</span><span class="badge badge-violet">${m.machine_line||'—'}</span></td>`):''}
     ${col('mesin','created')?`<td class="muted mono" style="font-size:.72rem">${m.created_dt||m.created||'—'}</td>`:''}
     ${col('mesin','updated')?`<td class="muted mono" style="font-size:.72rem">${m.modified_dt||m.updated||'—'}</td>`:''}
-    ${col('mesin','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveMesin('${m.id}')">💾 Simpan</button>${GE.mesin!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('mesin')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-amber btn-xs" onclick="openMesinForm('${m.id}')">✏️ Edit</button><button class="btn btn-ghost btn-xs" onclick="geStart('mesin','${m.id}')" title="Edit langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button><button class="btn btn-ghost btn-xs" onclick="showHistory('mesin','${m.id}')">📜 Riwayat</button><button class="btn btn-danger btn-xs" onclick="deleteMesin('${m.id}')">🗑</button></div></td>`):''}
+    ${col('mesin','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveMesin('${m.id}')">💾 Simpan</button>${GE.mesin!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('mesin')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="geStart('mesin','${m.id}')" title="Edit langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button><button class="btn btn-ghost btn-xs" onclick="showHistory('mesin','${m.id}')">📜 Riwayat</button><button class="btn btn-danger btn-xs" onclick="deleteMesin('${m.id}')">🗑</button></div></td>`):''}
   </tr>`}).join('');
 }catch(e){console.warn("renderMesin:",e);}}
 
@@ -4385,7 +4380,6 @@ function renderMBom(){try{
            +'</div></td>'
            :'<td><div style="display:flex;gap:.3rem;flex-wrap:wrap">'
            +'<button class="btn btn-ghost btn-xs" onclick="viewMBomDetail(\''+b.id+'\')">&#128065; Detail</button>'
-           +'<button class="btn btn-amber btn-xs" onclick="openMBomForm(\''+b.id+'\')">&#9999;&#65039; Edit</button>'
            +'<button class="btn btn-ghost btn-xs" onclick="geStart(\'mbom\',\''+b.id+'\')" title="Edit header di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">&#9998;</button>'
            +'<button class="btn btn-danger btn-xs" onclick="deleteMBom(\''+b.id+'\')">&#128465;</button>'
            +'</div></td>')
@@ -5272,7 +5266,6 @@ function renderRoles(){try{
       <td><span class="badge ${u.role==='admin'?'badge-cyan':u.role==='approver'?'badge-amber':u.role==='editor'?'badge-green':'badge-violet'}">${rc.label||'Custom'}</span></td>
       <td style="max-width:200px">${pages.map(p=>'<span class="badge badge-violet" style="margin:1px;font-size:.55rem">'+( pageLabels[p]||p)+'</span>').join('')}</td>
       <td><div style="display:flex;gap:.3rem">
-        <button class="btn btn-amber btn-xs" onclick="openAddUserForm('${u.id}')">✏️</button>
         <button class="btn btn-danger btn-xs" onclick="deleteUser('${u.id}')">🗑</button>
       </div></td>
     </tr>`;
@@ -6718,7 +6711,6 @@ function renderCogsList(){
     +'<td class="muted" style="font-size:.72rem">'+(d.note||'—')+'</td>'
     +'<td><div style="display:flex;gap:.3rem">'
     +'<button class="btn btn-ghost btn-xs" onclick="viewCogsDoc(\''+d.id+'\')">👁 Detail</button>'
-    +'<button class="btn btn-amber btn-xs" onclick="openCogsForm(\''+d.id+'\')">✏️ Edit</button>'
     +'<button class="btn btn-danger btn-xs" onclick="delCogsDoc(\''+d.id+'\')">🗑</button>'
     +'</div></td></tr>';
   }).join('');
@@ -7076,7 +7068,6 @@ function renderItemPrices(){
            +'</div></td>'
            :'<td><div style="display:flex;gap:.3rem">'
            +'<button class="btn btn-ghost btn-xs" onclick="viewItemPriceHistory(\''+p.item_code+'\')" title="History Harga">📜 Log</button>'
-           +'<button class="btn btn-amber btn-xs" onclick="openItemPriceForm(\''+p.item_code+'\')">✏️ Edit</button>'
            +'<button class="btn btn-ghost btn-xs" onclick="geStart(\'itemprice\',\''+p.item_code+'\')" title="Edit langsung di tabel" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">✎</button>'
            +'<button class="btn btn-danger btn-xs" onclick="deleteItemPrice(\''+p.item_code+'\')">🗑</button>'
            +'</div></td>')
