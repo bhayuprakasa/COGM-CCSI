@@ -443,6 +443,24 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <div class="flabel req">UOM (Satuan)</div>
           <input class="finput" id="item_uom" placeholder="Contoh: KG, PCS, MTR">
         </div>
+        <div class="form-group">
+          <!-- Finish Good flag: marks item as a finished product -->
+          <div class="flabel">Finish Good</div>
+          <select class="finput" id="item_is_fg">
+            <option value="0">Tidak (Raw Material)</option>
+            <option value="1">Ya (Finish Good)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <!-- Loose tube qty per cable unit, used in fiber cable BOM calculation -->
+          <div class="flabel">Loose Tube Qty</div>
+          <input class="finput" type="number" id="item_loose_tube_qty" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <!-- Fiber count per loose tube, used for total_fiber_qty = loose_tube_qty × fiber_qty -->
+          <div class="flabel">Fiber per Tube</div>
+          <input class="finput" type="number" id="item_fiber_qty" placeholder="0" min="0">
+        </div>
       </div>
     </div>
   </div>
@@ -960,7 +978,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="card-body" style="padding:0">
       <div class="tbl-wrap">
         <table class="tbl">
-          <thead><tr><th>BOM ID</th><th>Product</th><th>Customer</th><th>Project</th><th>Machine Line</th><th>Jumlah Item</th><th>Created</th><th>Aksi</th></tr></thead>
+          <thead><tr><th style="width:32px"></th><th>BOM ID</th><th>Product</th><th>Customer</th><th>Project</th><th>Machine Line</th><th>Jumlah Item</th><th>Created</th><th>Aksi</th></tr></thead>
           <tbody id="mbom_tbody"></tbody>
         </table>
       </div>
@@ -1435,6 +1453,9 @@ function openItemForm(id){try{
   setVal('item_code','');
   setVal('item_name','');
   setVal('item_uom','');
+  setVal('item_is_fg','0');
+  setVal('item_loose_tube_qty','');
+  setVal('item_fiber_qty','');
   (function(){const _e=ge('item_code');if(_e)_e.disabled=false;})();
   if(id){
     const rec=DB.items.find(i=>i.id===id);
@@ -1445,6 +1466,9 @@ function openItemForm(id){try{
     (function(){const _e=ge('item_code');if(_e)_e.disabled=true;})();
     (function(){const _e=ge('item_name');if(_e)_e.value=rec.name;})()
     (function(){const _e=ge('item_uom');if(_e)_e.value=rec.uom;})()
+    setVal('item_is_fg', rec.is_fg?'1':'0');
+    setVal('item_loose_tube_qty', rec.loose_tube_qty||'');
+    setVal('item_fiber_qty', rec.fiber_qty||'');
   } else {
     setText('item_form_title','Tambah Item');
   }
@@ -1458,6 +1482,12 @@ function saveItem(){try{
   const uom=document.getElementById('item_uom').value.trim();
   if(!code||!name||!uom){toast('Item Code, Name, dan UOM wajib diisi.','error');return;}
 
+  // Fiber cable fields — optional, default 0
+  const is_fg=document.getElementById('item_is_fg').value==='1';
+  const loose_tube_qty=parseInt(document.getElementById('item_loose_tube_qty').value)||0;
+  const fiber_qty=parseInt(document.getElementById('item_fiber_qty').value)||0;
+  const total_fiber_qty=loose_tube_qty*fiber_qty; // derived: tubes × fibers per tube
+
   const who=currentUser?currentUser.nama:'System';
   const now=nowStr();
   if(editId){
@@ -1465,13 +1495,17 @@ function saveItem(){try{
     if(rec){
       if(rec.name!==name) recordHistory('item',editId,'Item Name',rec.name,name);
       if(rec.uom!==uom) recordHistory('item',editId,'UOM',rec.uom,uom);
-      rec.name=name; rec.uom=uom; rec.updated=now; rec.modified_by=who; rec.modified_dt=now;
+      if(!!rec.is_fg!==is_fg) recordHistory('item',editId,'Finish Good',rec.is_fg?'Ya':'Tidak',is_fg?'Ya':'Tidak');
+      rec.name=name; rec.uom=uom; rec.is_fg=is_fg;
+      rec.loose_tube_qty=loose_tube_qty; rec.fiber_qty=fiber_qty; rec.total_fiber_qty=total_fiber_qty;
+      rec.updated=now; rec.modified_by=who; rec.modified_dt=now;
     }
     toast('Item berhasil diupdate.','success');
   } else {
     if(DB.items.find(i=>i.code===code)){toast('Item Code sudah ada!','error');return;}
     const id='ITM-'+(++itemSeq).toString().padStart(4,'0');
-    DB.items.push({id,code,name,uom,created:now,created_by:who,created_dt:now,updated:now,modified_by:who,modified_dt:now});
+    DB.items.push({id,code,name,uom,is_fg,loose_tube_qty,fiber_qty,total_fiber_qty,
+      created:now,created_by:who,created_dt:now,updated:now,modified_by:who,modified_dt:now});
     toast('Item berhasil ditambahkan.','success');
   }
   closeItemForm(); renderItems(); updateCounts();
@@ -1494,6 +1528,10 @@ function renderItems(){try{
       col('item','code')&&'<th>Item Code</th>',
       col('item','name')&&'<th>Item Name</th>',
       col('item','uom')&&'<th>UOM</th>',
+      col('item','is_fg')&&'<th>Finish Good</th>',
+      col('item','loose_tube_qty')&&'<th>Loose Tube</th>',
+      col('item','fiber_qty')&&'<th>Fiber/Tube</th>',
+      col('item','total_fiber_qty')&&'<th>Total Fiber</th>',
       col('item','cby')&&'<th>Created By</th>',
       col('item','cdt')&&'<th>Created</th>',
       col('item','mby')&&'<th>Modified By</th>',
@@ -1513,6 +1551,10 @@ function renderItems(){try{
       ${col('item','code')?`<td><span class="run-num">${i.code}</span></td>`:''}
       ${col('item','name')?`<td>${i.name}</td>`:''}
       ${col('item','uom')?`<td><span class="badge badge-cyan">${i.uom}</span></td>`:''}
+      ${col('item','is_fg')?`<td>${i.is_fg?'<span class="badge badge-green">FG</span>':'<span class="badge">RM</span>'}</td>`:''}
+      ${col('item','loose_tube_qty')?`<td class="num-cell">${i.loose_tube_qty||0}</td>`:''}
+      ${col('item','fiber_qty')?`<td class="num-cell">${i.fiber_qty||0}</td>`:''}
+      ${col('item','total_fiber_qty')?`<td class="num-cell">${i.total_fiber_qty||0}</td>`:''}
       ${col('item','cby')?`<td class="audit-cell">${i.created_by||'—'}</td>`:''}
       ${col('item','cdt')?`<td class="audit-cell">${i.created_dt||i.created||'—'}</td>`:''}
       ${col('item','mby')?`<td class="audit-cell">${i.modified_by||'—'}</td>`:''}
@@ -3943,14 +3985,18 @@ const colState = {};
 // Column definitions per table
 const COL_DEFS = {
   item: [
-    {key:'code',    label:'Item Code',    always:true},
-    {key:'name',    label:'Item Name',    always:true},
-    {key:'uom',     label:'UOM'},
-    {key:'cby',     label:'Created By'},
-    {key:'cdt',     label:'Created Date'},
-    {key:'mby',     label:'Modified By'},
-    {key:'mdt',     label:'Modified Date'},
-    {key:'action',  label:'Aksi',         always:true},
+    {key:'code',           label:'Item Code',      always:true},
+    {key:'name',           label:'Item Name',      always:true},
+    {key:'uom',            label:'UOM'},
+    {key:'is_fg',          label:'Finish Good'},
+    {key:'loose_tube_qty', label:'Loose Tube'},
+    {key:'fiber_qty',      label:'Fiber/Tube'},
+    {key:'total_fiber_qty',label:'Total Fiber'},
+    {key:'cby',            label:'Created By'},
+    {key:'cdt',            label:'Created Date'},
+    {key:'mby',            label:'Modified By'},
+    {key:'mdt',            label:'Modified Date'},
+    {key:'action',         label:'Aksi',           always:true},
   ],
   price: [
     {key:'id',      label:'Price ID',     always:true},
