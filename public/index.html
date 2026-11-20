@@ -573,7 +573,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     </div>
     <div class="card-body">
       <input type="hidden" id="ip_edit_code">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;margin-bottom:.75rem">
         <div class="form-group">
           <div class="flabel req">Item Code</div>
           <div class="search-field-wrap">
@@ -586,6 +586,11 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <input class="finput" id="ip_item_name" readonly placeholder="Auto dari Item Code">
         </div>
         <div class="form-group">
+          <div class="flabel">UOM</div>
+          <!-- readonly: UOM dari item master, tidak bisa diubah dari sini -->
+          <input class="finput" id="ip_item_uom" readonly placeholder="Auto dari Item">
+        </div>
+        <div class="form-group">
           <div class="flabel req">Effective Date</div>
           <input class="finput" type="date" id="ip_effective_date">
         </div>
@@ -593,7 +598,8 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;margin-bottom:.75rem">
         <div class="form-group">
           <div class="flabel req">Currency</div>
-          <select class="fselect" id="ip_currency">
+          <!-- onchange: auto-set default hedging & landed sesuai currency -->
+          <select class="fselect" id="ip_currency" onchange="onIpCurrencyChange(this.value)">
             <option value="USD">USD</option>
             <option value="IDR">IDR</option>
             <option value="EUR">EUR</option>
@@ -608,11 +614,12 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         </div>
         <div class="form-group">
           <div class="flabel">Hedging (%)</div>
-          <input class="finput" type="number" id="ip_hedging" placeholder="0.00" step="0.01" value="0">
+          <input class="finput" type="number" id="ip_hedging" placeholder="0.00" step="0.01">
         </div>
         <div class="form-group">
-          <div class="flabel">Landed (%)</div>
-          <input class="finput" type="number" id="ip_landed" placeholder="0.00" step="0.01" value="0">
+          <!-- Landed wajib diisi kecuali IDR (default 0) -->
+          <div class="flabel req">Landed (%)</div>
+          <input class="finput" type="number" id="ip_landed" placeholder="Wajib diisi" step="0.01">
         </div>
       </div>
       <div class="form-group">
@@ -634,6 +641,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <thead><tr>
             <th>Item Code</th>
             <th>Item Name</th>
+            <th>UOM</th>
             <th>Currency</th>
             <th style="text-align:right">Price / Unit</th>
             <th style="text-align:right">Hedging (%)</th>
@@ -6847,16 +6855,45 @@ var _origGoPagePrice=null;
 })();
 
 // ── Open form ──
+// Helper: set default hedging & landed berdasarkan currency yang dipilih
+// Aturan: IDR → hedging=0, landed=0 | CNY → hedging=2, landed="" | lainnya → hedging=3, landed=""
+function ipSetDefaultsByCurrency(currency){
+  if(currency==='IDR'){
+    setVal('ip_hedging','0');
+    setVal('ip_landed','0');
+  } else if(currency==='CNY'){
+    setVal('ip_hedging','2');
+    setVal('ip_landed','');
+  } else {
+    setVal('ip_hedging','3');
+    setVal('ip_landed','');
+  }
+}
+
+// Handler onchange currency select di form item price
+function onIpCurrencyChange(currency){
+  // Jangan timpa nilai yang sudah diisi user jika sedang edit existing
+  var editCode=(ge('ip_edit_code')||{value:''}).value;
+  if(editCode){
+    // Mode edit: hanya update jika nilai belum pernah diubah (masih sama dengan default lama)
+    // Tetap set default agar konsisten saat currency berubah
+  }
+  ipSetDefaultsByCurrency(currency);
+}
+
 function openItemPriceForm(itemCode){
   setDisp('item_price_form_card','');
   setDisp('item_price_list_card','none');
   setVal('ip_edit_code','');
   setVal('ip_item_code','');
   setVal('ip_item_name','');
+  setVal('ip_item_uom','');
   setVal('ip_currency','USD');
   setVal('ip_price','');
-  setVal('ip_hedging','0');
-  setVal('ip_landed','0');
+  // Default hedging 3 untuk currency USD (bukan IDR/CNY)
+  setVal('ip_hedging','3');
+  // Landed blank = mandatory (harus diisi)
+  setVal('ip_landed','');
   setVal('ip_note','');
   setVal('ip_effective_date',new Date().toISOString().slice(0,10));
 
@@ -6864,19 +6901,22 @@ function openItemPriceForm(itemCode){
     setText('item_price_form_title','Edit Harga: '+itemCode);
     setVal('ip_edit_code',itemCode);
     setVal('ip_item_code',itemCode);
-    // Load existing price
     var existing=DB_itemPrices.find(function(p){return p.item_code===itemCode;});
     if(existing){
       setVal('ip_item_name',existing.item_name||'');
+      setVal('ip_item_uom',existing.item_uom||'');
       setVal('ip_currency',existing.currency||'USD');
       setVal('ip_price',existing.price||'');
-      setVal('ip_hedging',existing.hedging||'0');
-      setVal('ip_landed',existing.landed||'0');
+      setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
+      setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
       setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
     }
-    // Also try autofill item name from DB.items
+    // UOM selalu dari item master (tidak bisa diubah dari item price)
     var item=DB.items.find(function(i){return i.code===itemCode;});
-    if(item) setVal('ip_item_name',item.name||'');
+    if(item){
+      setVal('ip_item_name',item.name||'');
+      setVal('ip_item_uom',item.uom||'');
+    }
   } else {
     setText('item_price_form_title','Set Harga Item');
   }
@@ -6901,20 +6941,26 @@ function closeItemPriceForm(){
   }
 })();
 
-// Autofill item name when ip_item_code changes
+// Autofill item name & UOM when ip_item_code changes
 function onIpItemCodeChange(code){
   setVal('ip_item_code',code);
   var item=DB.items.find(function(i){return i.code===code;});
-  if(item) setVal('ip_item_name',item.name||'');
-  // Load existing price if any
+  if(item){
+    setVal('ip_item_name',item.name||'');
+    setVal('ip_item_uom',item.uom||''); // UOM selalu dari item master
+  }
   var existing=DB_itemPrices.find(function(p){return p.item_code===code;});
   if(existing){
     setVal('ip_currency',existing.currency||'USD');
     setVal('ip_price',existing.price||'');
-    setVal('ip_hedging',existing.hedging||'0');
-    setVal('ip_landed',existing.landed||'0');
+    setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
+    setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
     setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
     toast('Harga lama dimuat — ubah nilai dan simpan untuk update.','info');
+  } else {
+    // Item baru: set default berdasarkan currency saat ini
+    var cur=(ge('ip_currency')||{value:'USD'}).value;
+    ipSetDefaultsByCurrency(cur);
   }
 }
 
@@ -6924,12 +6970,17 @@ function saveItemPrice(){
   var currency=(ge('ip_currency')||{value:'USD'}).value;
   var price=parseFloat((ge('ip_price')||{value:'0'}).value)||0;
   var hedging=parseFloat((ge('ip_hedging')||{value:'0'}).value)||0;
-  var landed=parseFloat((ge('ip_landed')||{value:'0'}).value)||0;
+  // Landed: ambil raw string untuk cek mandatory
+  var landedRaw=(ge('ip_landed')||{value:''}).value;
+  var landed=landedRaw===''?null:parseFloat(landedRaw);
   var effective_date=(ge('ip_effective_date')||{value:''}).value;
   var note=(ge('ip_note')||{value:''}).value;
 
   if(!itemCode){toast('Item Code wajib dipilih.','error');return;}
   if(!price){toast('Price/Unit wajib diisi.','error');return;}
+  // Landed wajib diisi (kecuali IDR sudah default 0)
+  if(landed===null||isNaN(landed)){toast('Landed (%) wajib diisi.','error');return;}
+  landed=parseFloat(landed)||0;
 
   var payload={item_code:itemCode,currency:currency,price:price,
     hedging:hedging,landed:landed,effective_date:effective_date,note:note};
@@ -7034,7 +7085,7 @@ function renderItemPrices(){
   });
   if(countEl) countEl.textContent=DB_itemPrices.length;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:2rem">'
+    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:2rem">'
       +(DB_itemPrices.length?'Tidak ada item yang cocok pencarian.':'Belum ada harga item. Klik "+ Set Harga Item".')
       +'</td></tr>';
     return;
@@ -7046,6 +7097,7 @@ function renderItemPrices(){
     return (_ge?'<tr class="ge-row">':'<tr>')
       +'<td><span class="run-num" style="font-size:.75rem">'+p.item_code+'</span></td>'
       +'<td>'+(p.item_name||'—')+'</td>'
+      +'<td><span class="badge badge-cyan">'+(p.item_uom||'—')+'</span></td>'
       +(_ge?'<td><select class="ge-select" id="ge_ip_curr_'+p.item_code+'" style="width:75px">'+_currOpts+'</select></td>'
            :'<td><span class="badge badge-cyan">'+p.currency+'</span></td>')
       +(_ge?'<td><input class="ge-input" type="number" id="ge_ip_price_'+p.item_code+'" value="'+p.price+'" step="0.000001" style="width:120px;text-align:right"></td>'
@@ -7080,26 +7132,28 @@ function renderItemPrices(){
 })();
 
 // Override: when user picks from search modal with sm_field=ip_item_code
-// This hooks into the existing search modal system
 var _origSmSelect=window.onSmSelect||null;
 function handleIpItemSelect(code){
   setVal('ip_item_code',code);
   var item=DB.items.find(function(i){return i.code===code;});
-  if(item) setVal('ip_item_name',item.name||'');
+  if(item){
+    setVal('ip_item_name',item.name||'');
+    setVal('ip_item_uom',item.uom||''); // UOM dari item master
+  }
   var existing=DB_itemPrices.find(function(p){return p.item_code===code;});
   if(existing){
     setVal('ip_currency',existing.currency||'USD');
     setVal('ip_price',existing.price||'');
-    setVal('ip_hedging',existing.hedging||'0');
-    setVal('ip_landed',existing.landed||'0');
+    setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
+    setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
     setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
     toast('Harga lama dimuat. Ubah nilai lalu klik Simpan.','info');
   } else {
     setVal('ip_currency','USD');
     setVal('ip_price','');
-    setVal('ip_hedging','0');
-    setVal('ip_landed','0');
     setVal('ip_effective_date',new Date().toISOString().slice(0,10));
+    // Set default hedging & landed untuk currency USD
+    ipSetDefaultsByCurrency('USD');
   }
 }
 
@@ -7191,7 +7245,8 @@ function geSaveItemPrice(code) {
   var eff_date = (document.getElementById('ge_ip_edate_'+code)||{}).value||new Date().toISOString().slice(0,10);
   apiSave(API.itemPrice.update(code,{currency,price,hedging,landed,effective_date:eff_date}), function(){
     if(GE.itemprice!=='__all__') GE.itemprice=null;
-    var rec=DB.prices.find(function(r){return r.item_code==code||r.item_code===code;});
+    // Update local cache DB_itemPrices (bukan DB.prices)
+    var rec=DB_itemPrices.find(function(r){return r.item_code==code||r.item_code===code;});
     if(rec){rec.currency=currency;rec.price=price;rec.hedging=hedging;rec.landed=landed;rec.effective_date=eff_date;}
     renderItemPrices();
     toast('Harga berhasil disimpan','success');
