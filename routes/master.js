@@ -101,16 +101,19 @@ router.get('/items', requireAuth, async (req,res) => {
 
 router.post('/items', requireEdit, async (req,res) => {
   try {
-    const {code,name,uom,is_fg} = req.body;
+    const {code,name,uom,is_fg,loose_tube_qty,fiber_qty} = req.body;
     if(!code||!name||!uom) return res.status(400).json({error:'Code, name, UOM wajib.'});
     const exists = await query(`SELECT id FROM items WHERE code=?`,[code]);
     if(exists.length) return res.status(400).json({error:'Item Code sudah ada.'});
     const seq = await nextSeq('item');
     const id = 'ITM-'+String(seq).padStart(4,'0');
     const fgVal = is_fg ? 1 : 0; // 1=Finish Good, 0=Raw Material/komponen
-    await query(`INSERT INTO items (id,code,name,uom,is_fg,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?)`,
-      [id,code,name,uom,fgVal,who(req),now(),who(req),now()]);
-    res.json({id,code,name,uom,is_fg:fgVal});
+    const ltQty  = parseInt(loose_tube_qty) || 0;
+    const fQty   = parseInt(fiber_qty)      || 0;
+    const totFib = ltQty * fQty; // total_fiber_qty = loose_tube_qty × fiber_qty
+    await query(`INSERT INTO items (id,code,name,uom,is_fg,loose_tube_qty,fiber_qty,total_fiber_qty,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [id,code,name,uom,fgVal,ltQty,fQty,totFib,who(req),now(),who(req),now()]);
+    res.json({id,code,name,uom,is_fg:fgVal,loose_tube_qty:ltQty,fiber_qty:fQty,total_fiber_qty:totFib});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
@@ -124,10 +127,13 @@ router.put('/items/:id', requireEdit, async (req,res) => {
     if (await isItemUsed(item.code))
       return res.status(400).json({error:'Item sudah digunakan dalam transaksi, data tidak dapat diubah.'});
 
-    const {name,uom,is_fg} = req.body;
-    const fgVal = is_fg ? 1 : 0;
-    await query(`UPDATE items SET name=?,uom=?,is_fg=?,modified_by=?,modified_dt=? WHERE id=?`,
-      [name,uom,fgVal,who(req),now(),req.params.id]);
+    const {name,uom,is_fg,loose_tube_qty,fiber_qty} = req.body;
+    const fgVal  = is_fg ? 1 : 0;
+    const ltQty  = parseInt(loose_tube_qty) || 0;
+    const fQty   = parseInt(fiber_qty)      || 0;
+    const totFib = ltQty * fQty; // auto-compute total_fiber_qty
+    await query(`UPDATE items SET name=?,uom=?,is_fg=?,loose_tube_qty=?,fiber_qty=?,total_fiber_qty=?,modified_by=?,modified_dt=? WHERE id=?`,
+      [name,uom,fgVal,ltQty,fQty,totFib,who(req),now(),req.params.id]);
     res.json({ok:true});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
