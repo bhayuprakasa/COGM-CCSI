@@ -995,18 +995,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               <option>Pipe Line</option>
             </select>
           </div>
-          <div style="display:flex;flex-direction:column;gap:.3rem">
-            <span style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)">Machine ID <span style="font-size:.58rem;color:var(--cyan);font-style:italic;letter-spacing:0">(terfilter by Machine Line)</span></span>
-            <select class="fselect" id="mbom_new_mid_sel" style="width:200px">
-              <option value="">← Pilih Machine Line dulu</option>
-            </select>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:.3rem">
-            <span style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)">Kapasitas ID <span style="font-size:.58rem;color:var(--amber);font-style:italic;letter-spacing:0">(auto-fill speed &amp; kap%)</span></span>
-            <select class="fselect" id="mbom_new_kap_sel" style="width:200px" onchange="onMBomKapChange()">
-              <option value="">— Opsional —</option>
-            </select>
-          </div>
           <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="addMBomGroup()">+ Tambah Group</button>
         </div>
         <div id="mbom_groups_container"></div>
@@ -3965,8 +3953,6 @@ function openMBomForm(id){try{
   ['mbom_product','mbom_product_code','mbom_customer','mbom_project'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['mbom_fiber_cnt','mbom_buffer_qty','mbom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   setVal('mbom_new_ml_sel','');
-  const _mmid=ge('mbom_new_mid_sel');if(_mmid)_mmid.innerHTML='<option value="">← Pilih Machine Line dulu</option>';
-  const _mkap=ge('mbom_new_kap_sel');if(_mkap)_mkap.value='';
 
   if(id){
     // Show form with loading state
@@ -4048,36 +4034,7 @@ function calcMBomTotalFiber(){
 
 // ── Group management ──
 function onMBomMachineLineFilter(){
-  const ml=(ge('mbom_new_ml_sel')||{value:''}).value;
-  // Filter Machine ID dropdown
-  const msel=ge('mbom_new_mid_sel');
-  if(msel){
-    const filtered=ml?DB.mesin.filter(m=>m.machine_line===ml):[];
-    msel.innerHTML='<option value="">'+(filtered.length?'— Pilih Machine ID —':'← Pilih Machine Line dulu')+'</option>'
-      +filtered.map(m=>'<option value="'+m.machine_id+'">'+m.machine_id+' — '+m.machine_name+'</option>').join('');
-  }
-  // Filter Kapasitas dropdown (by proses loose-match)
-  const ksel=ge('mbom_new_kap_sel');
-  if(ksel){
-    const filteredK=ml?DB.kap.filter(k=>{
-      const m=DB.mesin.find(x=>x.machine_id===k.machine_id);
-      return m&&m.machine_line===ml;
-    }):[];
-    ksel.innerHTML='<option value="">— Opsional —</option>'
-      +(filteredK.length?filteredK:DB.kap).map(k=>'<option value="'+k.kapid+'">'+k.kapid+' | '+k.item_name+' | '+k.proses+' | Kec:'+k.kecepatan+'</option>').join('');
-  }
-  // reset machine id and kap
-  if(msel) msel.value='';
-  if(ksel) ksel.value='';
-}
-
-function onMBomKapChange(){
-  const kapId=(ge('mbom_new_kap_sel')||{value:''}).value;
-  const rec=DB.kap.find(k=>k.kapid===kapId);
-  if(rec&&rec.machine_id){
-    const msel=ge('mbom_new_mid_sel');
-    if(msel) msel.value=rec.machine_id;
-  }
+  // Machine Line dipilih — tidak ada filter tambahan untuk Machine ID / Kapasitas ID (sudah dihapus dari form)
 }
 
 function addMBomGroup(){
@@ -4085,21 +4042,9 @@ function addMBomGroup(){
   const ml=sel?sel.value:'';
   if(!ml){toast('Pilih Machine Line terlebih dahulu.','error');return;}
   if(mbomGroups.find(g=>g.machine_line===ml)){toast('Machine Line "'+ml+'" sudah ditambahkan.','error');return;}
-  const machine_id=(ge('mbom_new_mid_sel')||{value:''}).value;
-  const kapId=(ge('mbom_new_kap_sel')||{value:''}).value;
-  const kapRec=DB.kap.find(k=>k.kapid===kapId);
-  // Auto-fill prosesTime and setupTime from kapasitas notes line matching machine_line
-  var mbProsesTime=0,mbSetupTime=0;
-  if(kapRec){
-    var mbKlines=[];try{mbKlines=JSON.parse(kapRec.notes||'[]');}catch(e){mbKlines=[];}
-    var mbMatchLine=mbKlines.find(function(l){return l.machine_line===ml;})||mbKlines[0]||{};
-    mbProsesTime=parseFloat(mbMatchLine.duration)||0;
-    mbSetupTime=parseFloat(mbMatchLine.setup)||0;
-  }
-  mbomGroups.push({machine_line:ml,machine_id,kap_id:kapId,lines:[],dlfohLines:[],prosesTime:mbProsesTime,setupTime:mbSetupTime,lengthQty:1,dlLot:1,fohLot:1});
+  // machine_id dan kap_id dihapus dari Master BOM
+  mbomGroups.push({machine_line:ml,machine_id:'',kap_id:'',lines:[],dlfohLines:[],prosesTime:0,setupTime:0,lengthQty:1,dlLot:1,fohLot:1});
   if(sel) sel.value='';
-  const msel=ge('mbom_new_mid_sel');if(msel)msel.innerHTML='<option value="">← Pilih Machine Line dulu</option>';
-  const ksel=ge('mbom_new_kap_sel');if(ksel)ksel.value='';
   renderMBomGroups();
 }
 
@@ -4122,8 +4067,6 @@ function renderMBomGroups(){
       <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;background:var(--s2);border-bottom:1px solid var(--b1)">
         <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
           <span class="badge badge-violet">&#9881; ${g.machine_line}</span>
-          ${g.machine_id?`<span class="badge badge-cyan" style="font-size:.6rem">🔧 ${g.machine_id}</span>`:''}
-          ${g.kap_id?`<span class="badge" style="background:var(--blue-d);color:var(--blue);border:1px solid rgba(96,165,250,.2);font-size:.6rem">⚡ ${g.kap_id}</span>`:''}
           <span style="font-size:.7rem;color:var(--t3)">${g.lines.length} item</span>
         </div>
         <button class="btn btn-danger btn-xs" onclick="removeMBomGroup(${gIdx})">&#10005; Hapus</button>
@@ -4375,8 +4318,6 @@ function viewMBomDetail(id){try{
       grpsHtml+='<div style="background:var(--surface2,#1e293b);border-radius:8px;padding:.75rem;margin-bottom:.75rem">';
       grpsHtml+='<div style="font-weight:700;color:var(--cyan);margin-bottom:.5rem;font-size:.85rem">📦 '+(g.machine_line||'Machine Line '+(gi+1))+'</div>';
       grpsHtml+='<div style="display:flex;gap:1.5rem;font-size:.75rem;margin-bottom:.5rem">';
-      grpsHtml+='<span>Machine ID: <b>'+(g.machine_id||'—')+'</b></span>';
-      grpsHtml+='<span>Kap ID: <b>'+(g.kap_id||'—')+'</b></span>';
       grpsHtml+='<span>Proses Time: <b>'+(g.prosesTime||0)+' jam</b></span>';
       grpsHtml+='<span>Setup Time: <b>'+(g.setupTime||0)+' jam</b></span>';
       grpsHtml+='<span>Length Qty: <b>'+(g.lengthQty||1)+'</b></span></div>';
