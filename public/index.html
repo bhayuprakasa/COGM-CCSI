@@ -432,8 +432,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     <div class="logo-text"><div class="logo-text">MFG System</div><div class="logo-sub">Manufacturing BOM</div></div>
   </div>
   <div class="nav-section">Master Data</div>
-  <div class="nav-item active" onclick="goPage('item')"><span class="ni">📦</span> Master Item</div>
-  <div class="nav-item" onclick="goPage('price')"><span class="ni">💲</span> Item Price</div>
+  <div class="nav-item active" onclick="goPage('price')"><span class="ni">💲</span> Item Price</div>
   <div class="nav-item" onclick="goPage('exrate')"><span class="ni">💱</span> Exchange Rate</div>
   <div class="nav-item" onclick="goPage('dlfoh')"><span class="ni">🏭</span> DL-FOH</div>
   <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master Route</div>
@@ -470,88 +469,8 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div class="content">
 
 <!-- ══════════ PAGE: MASTER ITEM ══════════ -->
-<div class="page active" id="page_item">
-  <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total Item</span><span class="sp-val" id="item_count">0</span></div>
-    </div>
-      <div class="sa-wrap" id="sa_wrap_item" style="margin-left:.5rem">
-        <input type="checkbox" class="sa-cb" id="sa_cb_item" onchange="toggleSelectAll('item',this.checked)" title="Pilih Semua">
-        <label class="sa-lbl" for="sa_cb_item">Pilih Semua</label>
-        <button class="btn btn-danger btn-xs sa-del" id="sa_del_item" onclick="deleteSelected('item',deleteSelectedItems)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_item">0</span>)</button>
-      </div>
-    <button class="btn btn-primary" onclick="openItemForm()">+ Tambah Item</button>
-    <button class="btn btn-ghost" id="ge_toggle_item" onclick="geToggleAll('item')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
-    <button class="btn btn-primary" id="ge_saveall_item" onclick="geSaveAll('item')" style="display:none">💾 Simpan Semua</button>
-    <button class="btn btn-ghost" onclick="openUploadModal('item')">⬆ Upload CSV</button>
-  </div>
-
-  <div class="card" id="item_form_card" style="display:none">
-    <div class="card-head">
-      <div class="card-title"><span class="card-title-icon">📦</span><span id="item_form_title">Tambah Item</span></div>
-      <div style="display:flex;gap:.4rem">
-        <button class="btn btn-secondary btn-sm" onclick="closeItemForm()">Batal</button>
-        <button class="btn btn-primary btn-sm" onclick="saveItem()">Simpan</button>
-      </div>
-    </div>
-    <div class="card-body">
-      <input type="hidden" id="item_edit_id">
-      <div class="form-grid fg-3">
-        <div class="form-group">
-          <div class="flabel req">Item Code</div>
-          <input class="finput" id="item_code" placeholder="Contoh: RM-001">
-        </div>
-        <div class="form-group">
-          <div class="flabel req">Item Name</div>
-          <input class="finput" id="item_name" placeholder="Nama item">
-        </div>
-        <div class="form-group">
-          <div class="flabel req">UOM (Satuan)</div>
-          <input class="finput" id="item_uom" placeholder="Contoh: KG, PCS, MTR">
-        </div>
-        <div class="form-group" style="display:flex;align-items:center;gap:.5rem;padding-top:1.4rem">
-          <input type="checkbox" id="item_is_fg" style="accent-color:var(--cyan);cursor:pointer;width:16px;height:16px">
-          <label for="item_is_fg" style="cursor:pointer;font-size:.82rem;color:var(--t1);font-weight:500">Barang Jadi (Finish Good)</label>
-        </div>
-        <!-- Fiber spec: hanya relevan untuk kabel fiber optic -->
-        <div class="form-group">
-          <div class="flabel">Loose Tube Qty</div>
-          <input class="finput" type="number" id="item_loose_tube_qty" placeholder="0" min="0" oninput="calcItemTotalFiber()">
-        </div>
-        <div class="form-group">
-          <div class="flabel">Fiber Qty</div>
-          <input class="finput" type="number" id="item_fiber_qty" placeholder="0" min="0" oninput="calcItemTotalFiber()">
-        </div>
-        <div class="form-group">
-          <div class="flabel">Total Fiber Qty</div>
-          <!-- Readonly: dihitung otomatis = Loose Tube Qty × Fiber Qty -->
-          <input class="finput" id="item_total_fiber_qty" placeholder="0" readonly style="background:var(--s2);color:var(--t2);cursor:default">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <div class="card-title"><span class="card-title-icon">📋</span> Daftar Item</div>
-      <div style="display:flex;align-items:center;gap:.5rem">
-        <input class="finput" style="width:200px" placeholder="🔍 Cari item..." oninput="filterItems(this.value)">
-        <div id="coltoggle_item"></div>
-      </div>
-    </div>
-    <div class="card-body" style="padding:0">
-      <div class="tbl-wrap">
-        <table class="tbl" id="item_tbl">
-          <thead id="item_thead"><tr></tr></thead>
-          <tbody id="item_tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ══════════ PAGE: PURCHASE PRICE ══════════ -->
-<div class="page" id="page_price">
+<div class="page active" id="page_price">
   <div class="actions-bar">
     <div class="stat-row" style="margin-bottom:0">
       <div class="stat-pill"><span class="sp-label">Total Item Price</span><span class="sp-val" id="price_count">0</span></div>
@@ -576,19 +495,18 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;margin-bottom:.75rem">
         <div class="form-group">
           <div class="flabel req">Item Code</div>
-          <div class="search-field-wrap">
-            <input class="finput" id="ip_item_code" placeholder="Pilih Item Code..." readonly>
-            <span class="search-icon clickable" onclick="openSearchModal('item','ip_item_code',null)">🔍</span>
-          </div>
+          <!-- Diisi manual — tidak perlu lookup ke Master Item -->
+          <input class="finput" id="ip_item_code" placeholder="Contoh: RM-001">
         </div>
         <div class="form-group">
-          <div class="flabel">Item Name</div>
-          <input class="finput" id="ip_item_name" readonly placeholder="Auto dari Item Code">
+          <div class="flabel req">Item Name</div>
+          <!-- Diisi manual — tidak perlu lookup ke Master Item -->
+          <input class="finput" id="ip_item_name" placeholder="Nama item">
         </div>
         <div class="form-group">
           <div class="flabel">UOM</div>
-          <!-- readonly: UOM dari item master, tidak bisa diubah dari sini -->
-          <input class="finput" id="ip_item_uom" readonly placeholder="Auto dari Item">
+          <!-- Diisi manual — tidak perlu lookup ke Master Item -->
+          <input class="finput" id="ip_item_uom" placeholder="Contoh: KG, PCS, MTR">
         </div>
         <div class="form-group">
           <div class="flabel req">Effective Date</div>
@@ -1284,9 +1202,9 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <div style="flex-shrink:0;width:148px">
             <div style="text-align:center;font-size:.65rem;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">① Foundation</div>
             <div style="border:1px solid var(--b2);border-radius:var(--r1);overflow:hidden">
-              <div onclick="goPage('item')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer;border-bottom:1px solid var(--b2)" class="guide-flow-item">
-                <div style="font-size:.7rem;font-weight:700">📦 Master Item</div>
-                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Kode & nama material</div>
+              <div onclick="goPage('price')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer;border-bottom:1px solid var(--b2)" class="guide-flow-item">
+                <div style="font-size:.7rem;font-weight:700">💲 Item Price</div>
+                <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Kode, nama & harga material</div>
               </div>
               <div onclick="goPage('exrate')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer;border-bottom:1px solid var(--b2)" class="guide-flow-item">
                 <div style="font-size:.7rem;font-weight:700">💱 Exchange Rate</div>
@@ -1700,8 +1618,8 @@ window.serverLogout = async function() {
 
 // ── Load ALL data from server → fully replace in-memory DB ──
 window.loadAllData = async function() {
-  const [items, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs] = await Promise.all([
-    apiGet('/items'),
+  const [itemPrices, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs] = await Promise.all([
+    apiGet('/item-prices'),  // item_prices sekarang menggantikan items sebagai master data
     apiGet('/prices'),
     apiGet('/exrates'),
     apiGet('/dlfoh'),
@@ -1714,20 +1632,10 @@ window.loadAllData = async function() {
   ]);
 
   // Fully replace — never merge with seed/sample data
-  DB.items      = items      || [];
+  DB_itemPrices = itemPrices || [];  // item_prices sebagai sumber lookup item
+  DB.items      = [];                // tidak lagi digunakan — lookup pakai DB_itemPrices
   DB.prices     = prices     || [];
   DB.exrates    = exrates    || [];
-  // Load item prices in background
-  if(typeof DB_itemPrices!=='undefined'){
-    fetch(window.location.origin+'/api/item-prices',{
-      headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'
-    }).then(function(r){return r.json();}).then(function(list){
-      DB_itemPrices=list;
-      var tb=document.getElementById('item_price_tbody');
-      if(tb) renderItemPrices();
-    }).catch(function(){});
-  }
-  DB.dlfoh      = dlfoh      || [];
   DB.mesin      = mesin      || [];
   DB.kap        = kapasitas  || [];
   DB.masterbom  = masterbom  || [];
@@ -1744,7 +1652,7 @@ window.loadAllData = async function() {
   }
 
   console.log('✅ DB loaded from server:', {
-    items: DB.items.length, prices: DB.prices.length,
+    itemPrices: DB_itemPrices.length, prices: DB.prices.length,
     mesin: DB.mesin.length, bom: DB.bom.length,
   });
   return true;
@@ -1856,7 +1764,6 @@ function fmt_num(n,d=2){return Number(n||0).toFixed(d);}
 // NAVIGATION
 // ═══════════════════════════════════════════
 const pageTitles={
-  item:'📦 Master Data <span>Item</span>',
   price:'💲 Master Data <span>Item Price</span>',
   exrate:'💱 Master Data <span>Exchange Rate</span>',
   dlfoh:'🏭 Master Data <span>DL-FOH</span>',
@@ -1906,18 +1813,12 @@ function openSearchModal(type, codeField, nameField, extra){
 }
 function buildSearchData(type){
   if(type==='fg_item'){
-    // Hanya tampilkan item dengan flag Finish Good (is_fg=1) untuk Product Name di Master BOM
-    sm_data=DB.items.filter(i=>i.is_fg).map(i=>({code:i.code,name:i.name,sub:i.uom+' | FG'}));
+    // Semua item dari DB_itemPrices — Master Item sudah dihapus, lookup dari item_prices
+    sm_data=DB_itemPrices.map(p=>({code:p.item_code,name:p.item_name||p.item_code,sub:p.uom||p.item_uom||''}));
   }
   else if(type==='item'){
-    // kapasitas: hanya Finish Good (is_fg=1); item price: hanya non-FG (is_fg=0); lainnya: semua item
-    if(sm_field==='kap_item_code'){
-      sm_data=DB.items.filter(i=>i.is_fg).map(i=>({code:i.code,name:i.name,sub:i.uom+' | FG'}));
-    } else if(sm_field==='ip_item_code'){
-      sm_data=DB.items.filter(i=>!i.is_fg).map(i=>({code:i.code,name:i.name,sub:i.uom}));
-    } else {
-      sm_data=DB.items.map(i=>({code:i.code,name:i.name,sub:i.uom+(i.is_fg?' | FG':'')}));
-    }
+    // Semua lookup item sekarang dari DB_itemPrices
+    sm_data=DB_itemPrices.map(p=>({code:p.item_code,name:p.item_name||p.item_code,sub:p.uom||p.item_uom||''}));
   }
   else if(type==='price') sm_data=DB.prices.map(p=>({code:p.id,name:p.created_dt||p.created||'',sub:p.lines.length+' lines'}));
   else if(type==='exrate') sm_data=DB.exrates.map(e=>({code:e.currency_id,name:e.currency_id,sub:latestRate(e)}));
@@ -1947,19 +1848,12 @@ function selectSearchResult(code,name){
   const codeEl=document.getElementById(sm_field);
   if(codeEl) codeEl.value=code;
   if(sm_nameField){const nel=document.getElementById(sm_nameField);if(nel) nel.value=name;}
-  // Product Name Master BOM — hanya item FG, simpan name ke mbom_product, code ke mbom_product_code
+  // Product Name Master BOM — simpan name ke mbom_product, code ke mbom_product_code
   if(sm_type==='fg_item'){
     const codeHidden=document.getElementById('mbom_product_code');
     if(codeHidden) codeHidden.value=code;
     const nameEl=document.getElementById('mbom_product');
     if(nameEl) nameEl.value=name;
-    // Auto-fill fiber spec dari master item yang dipilih
-    const selItem=DB.items.find(function(i){return i.code===code;});
-    if(selItem){
-      setVal('mbom_fiber_cnt', selItem.loose_tube_qty||'');
-      setVal('mbom_buffer_qty',selItem.fiber_qty||'');
-      setVal('mbom_fiber_qty', selItem.total_fiber_qty||'');
-    }
     closeSearchModal(); return;
   }
   // Master BOM select for BOM header
@@ -1986,15 +1880,11 @@ function selectSearchResult(code,name){
     sm_extra=null;
     closeSearchModal(); return;
   }
-  // Kapasitas item code auto-fill name
-  // Item Price item code autofill
-  if(sm_type==='item'&&sm_field==='ip_item_code'){
-    handleIpItemSelect(code);
-    sm_extra=null; closeSearchModal(); return;
-  }
+  // ip_item_code tidak lagi menggunakan search modal — diisi manual
   if(sm_type==='item'&&sm_field==='kap_item_code'){
-    const item=DB.items.find(i=>i.code===code);
-    if(item) (function(){const _e=ge('kap_item_name');if(_e)_e.value=item.name;})()
+    // Lookup dari DB_itemPrices — Master Item sudah dihapus
+    const item=DB_itemPrices.find(p=>p.item_code===code);
+    if(item) (function(){const _e=ge('kap_item_name');if(_e)_e.value=item.item_name||name;})()
     closeSearchModal(); return;
   }
   // BOM currency search — sm_extra = {g, l}
@@ -2045,160 +1935,10 @@ function recordHistory(type,id,field,oldv,newv){
 // ═══════════════════════════════════════════
 // MASTER ITEM
 // ═══════════════════════════════════════════
-function openItemForm(id){try{
-  setDisp('item_form_card','');
-  setVal('item_edit_id','');
-  setVal('item_code','');
-  setVal('item_name','');
-  setVal('item_uom','');
-  const fgCb=ge('item_is_fg'); if(fgCb) fgCb.checked=false;
-  // Reset fiber spec fields
-  setVal('item_loose_tube_qty',''); setVal('item_fiber_qty',''); setVal('item_total_fiber_qty','');
-  ge('item_code')&&(ge('item_code').disabled=false);
-  if(id){
-    var populate=function(rec){
-      if(!rec){toast('Data item tidak ditemukan.','error');return;}
-      // Blokir edit jika item sudah dipakai di transaksi
-      if(rec.in_use){toast('Item "'+rec.code+'" sudah digunakan dalam transaksi, data tidak dapat diubah.','error');return;}
-      setText('item_form_title','Edit Item — '+rec.code);
-      setVal('item_edit_id',id);
-      setVal('item_code',rec.code||'');
-      setVal('item_name',rec.name||'');
-      setVal('item_uom',rec.uom||'');
-      const _fgCb=ge('item_is_fg'); if(_fgCb) _fgCb.checked=!!(rec.is_fg);
-      // Populate fiber spec
-      setVal('item_loose_tube_qty', rec.loose_tube_qty||'');
-      setVal('item_fiber_qty',      rec.fiber_qty||'');
-      setVal('item_total_fiber_qty',rec.total_fiber_qty||'');
-      ge('item_code')&&(ge('item_code').disabled=true);
-      document.getElementById('item_form_card').scrollIntoView({behavior:'smooth'});
-    };
-    // Reload fresh from API
-    if(typeof API!=='undefined'){
-      fetch(window.location.origin+'/api/items',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
-        .then(function(r){return r.json();})
-        .then(function(list){DB.items=list;populate(list.find(function(i){return i.id===id;}));})
-        .catch(function(){populate(DB.items.find(function(i){return i.id===id;}));});
-    } else {
-      populate(DB.items.find(function(i){return i.id===id;}));
-    }
-  } else {
-    setText('item_form_title','Tambah Item');
-    document.getElementById('item_form_card').scrollIntoView({behavior:'smooth'});
-  }
-}catch(e){console.warn("openItemForm:",e);}}
-function closeItemForm(){try{setDisp('item_form_card','none');}catch(e){console.warn("closeItemForm:",e);}}
-// Auto-hitung Total Fiber Qty di form item = Loose Tube Qty × Fiber Qty
-function calcItemTotalFiber(){
-  const lt=parseInt((ge('item_loose_tube_qty')||{}).value)||0;
-  const fq=parseInt((ge('item_fiber_qty')||{}).value)||0;
-  const el=ge('item_total_fiber_qty');
-  if(el) el.value=lt*fq||'';
-}
-function saveItem(){try{
-  const editId=document.getElementById('item_edit_id').value;
-  const code=document.getElementById('item_code').value.trim();
-  const name=document.getElementById('item_name').value.trim();
-  const uom=document.getElementById('item_uom').value.trim();
-  const is_fg=document.getElementById('item_is_fg')&&document.getElementById('item_is_fg').checked?1:0;
-  const loose_tube_qty=parseInt((ge('item_loose_tube_qty')||{}).value)||0;
-  const fiber_qty=parseInt((ge('item_fiber_qty')||{}).value)||0;
-  if(!code||!name||!uom){toast('Item Code, Name, dan UOM wajib diisi.','error');return;}
-
-  const who=currentUser?currentUser.nama:'System';
-  const now=nowStr();
-  if(editId){
-    const rec=DB.items.find(i=>i.id===editId);
-    if(rec){
-      if(rec.name!==name) recordHistory('item',editId,'Item Name',rec.name,name);
-      if(rec.uom!==uom) recordHistory('item',editId,'UOM',rec.uom,uom);
-      if(rec.is_fg!==is_fg) recordHistory('item',editId,'Barang Jadi',rec.is_fg?'Ya':'Tidak',is_fg?'Ya':'Tidak');
-      if(typeof API!=='undefined'){
-        apiSave(API.items.update(editId,{name,uom,is_fg,loose_tube_qty,fiber_qty}),function(){
-          rec.name=name; rec.uom=uom; rec.is_fg=is_fg;
-          rec.loose_tube_qty=loose_tube_qty; rec.fiber_qty=fiber_qty; rec.total_fiber_qty=loose_tube_qty*fiber_qty;
-          toast('Item berhasil diupdate.','success');
-          closeItemForm(); loadAllData().then(function(){renderItems();updateCounts();});
-        }); return;
-      }
-      rec.name=name; rec.uom=uom; rec.is_fg=is_fg; rec.updated=now; rec.modified_by=who; rec.modified_dt=now;
-      rec.loose_tube_qty=loose_tube_qty; rec.fiber_qty=fiber_qty; rec.total_fiber_qty=loose_tube_qty*fiber_qty;
-    }
-    toast('Item berhasil diupdate.','success');
-  } else {
-    if(DB.items.find(i=>i.code===code)){toast('Item Code sudah ada!','error');return;}
-    if(typeof API!=='undefined'){
-      apiSave(API.items.create({code,name,uom,is_fg,loose_tube_qty,fiber_qty}),function(res){
-        if(res&&res.id) DB.items.push({id:res.id,code,name,uom,is_fg,loose_tube_qty,fiber_qty,total_fiber_qty:loose_tube_qty*fiber_qty});
-        toast('Item berhasil ditambahkan.','success');
-        closeItemForm(); loadAllData().then(function(){renderItems();updateCounts();});
-      }); return;
-    }
-    const id='ITM-'+(++itemSeq).toString().padStart(4,'0');
-    DB.items.push({id,code,name,uom,is_fg,loose_tube_qty,fiber_qty,total_fiber_qty:loose_tube_qty*fiber_qty,created:now,created_by:who,created_dt:now,updated:now,modified_by:who,modified_dt:now});
-    toast('Item berhasil ditambahkan.','success');
-  }
-  closeItemForm(); renderItems(); updateCounts();
-}catch(e){console.warn("saveItem:",e);}}
-function deleteItem(id){
-  if(!confirm('Hapus item ini?')) return;
-  if(typeof API!=='undefined'){
-    apiSave(API.items.delete(id),function(){DB.items=DB.items.filter(i=>i.id!==id);renderItems();updateCounts();toast('Item dihapus.','info');});
-    return;
-  }
-  DB.items=DB.items.filter(i=>i.id!==id);
-  renderItems(); updateCounts(); toast('Item dihapus.','info');
-}
-let itemFilter='';
-function filterItems(v){itemFilter=v.toLowerCase();renderItems();}
-function renderItems(){try{
-  initColState('item');
-  const wrap=document.getElementById('coltoggle_item');
-  if(wrap&&!wrap.innerHTML) wrap.innerHTML=buildColToggleHTML('item');
-  const thead=document.getElementById('item_thead');
-  if(thead){
-    const cols=[
-      '<th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll(\'item\',this.checked)" title="Pilih Semua"></th>',
-      col('item','code')&&'<th>Item Code</th>',
-      col('item','name')&&'<th>Item Name</th>',
-      col('item','uom')&&'<th>UOM</th>',
-      col('item','fg')&&'<th>Barang Jadi</th>',
-      col('item','cby')&&'<th>Created By</th>',
-      col('item','cdt')&&'<th>Created</th>',
-      col('item','mby')&&'<th>Modified By</th>',
-      col('item','mdt')&&'<th>Modified</th>',
-      col('item','action')&&'<th>Aksi</th>',
-    ].filter(Boolean);
-    thead.innerHTML='<tr>'+cols.join('')+'</tr>';
-  }
-  const tbody=document.getElementById('item_tbody');
-  const rows=DB.items.filter(i=>!itemFilter||(i.code.toLowerCase().includes(itemFilter)||i.name.toLowerCase().includes(itemFilter)));
-  setText('item_count',DB.items.length);
-  const span=COL_DEFS.item.filter(c=>colState.item[c.key]!==false).length;
-  if(!rows.length){tbody.innerHTML=`<tr><td colspan="${span}"><div class="empty-state"><div class="es-icon">📦</div><p>Belum ada data item.</p></div></td></tr>`;return;}
-  tbody.innerHTML=rows.map(i=>{const _ge=GE.item==='__all__'||GE.item===i.id;return`
-    <tr${_ge?' class="ge-row"':''}>
-      <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('item','${i.id}')?' checked':''} onchange="toggleRowSelect('item','${i.id}',this.checked)"></td>
-      ${col('item','code')?`<td><span class="run-num">${i.code}</span></td>`:''}
-      ${col('item','name')?(_ge?`<td><input class="ge-input" id="ge_item_name_${i.id}" value="${geEsc(i.name)}"></td>`:`<td>${i.name}</td>`):''}
-      ${col('item','uom')?(_ge?`<td><input class="ge-input" id="ge_item_uom_${i.id}" value="${geEsc(i.uom)}" style="width:80px"></td>`:`<td><span class="badge badge-cyan">${i.uom}</span></td>`):''}
-      ${col('item','fg')?(_ge?`<td style="text-align:center;white-space:nowrap"><input type="checkbox" class="ge-input" id="ge_item_fg_${i.id}" ${i.is_fg?'checked':''} style="width:16px;height:16px;accent-color:var(--cyan);cursor:pointer"> <label for="ge_item_fg_${i.id}" style="font-size:.72rem;color:var(--t2);cursor:pointer">FG</label></td>`:`<td style="text-align:center">${i.is_fg?'<span class="badge badge-green" title="Finish Good">✔ FG</span>':'<span style="color:var(--t3);font-size:.72rem">—</span>'}${i.in_use?'&nbsp;<span class="badge" style="background:var(--acc2,#e57a00);color:#fff;font-size:.65rem" title="Item ini sudah digunakan dalam transaksi">Dipakai</span>':''}</td>`):''}
-      ${col('item','cby')?`<td class="audit-cell">${i.created_by||'—'}</td>`:''}
-      ${col('item','cdt')?`<td class="audit-cell">${i.created_dt||i.created||'—'}</td>`:''}
-      ${col('item','mby')?`<td class="audit-cell">${i.modified_by||'—'}</td>`:''}
-      ${col('item','mdt')?`<td class="audit-cell">${i.modified_dt||i.updated||'—'}</td>`:''}
-      ${col('item','action')?(_ge?`<td><div style="display:flex;gap:.3rem">
-        <button class="btn btn-primary btn-xs" onclick="geSaveItem('${i.id}')">💾 Simpan</button>
-        ${GE.item!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('item')">✕ Batal</button>`:''}
-      </div></td>`:`<td><div style="display:flex;gap:.3rem">
-        <button class="btn btn-ghost btn-xs" onclick="showHistory('item','${i.id}')">📜 Riwayat</button>
-        ${i.in_use
-          ? `<button class="btn btn-ghost btn-xs" disabled title="Item sudah digunakan dalam transaksi, tidak dapat dihapus" style="opacity:.45;cursor:not-allowed">🗑</button>`
-          : `<button class="btn btn-danger btn-xs" onclick="deleteItem('${i.id}')">🗑</button>`}
-      </div></td>`):''}
-    </tr>
-  `}).join('');
-}catch(e){console.warn("renderItems:",e);}}
+// openItemForm, saveItem, deleteItem, renderItems — dihapus (Master Item sudah dihapus)
+// Semua data item dikelola melalui halaman Item Price
+function openItemForm(){toast('Master Item sudah dihapus. Kelola item melalui menu Item Price.','info');}
+function renderItems(){} // stub agar tidak error jika dipanggil dari tempat lain
 
 // ═══════════════════════════════════════════
 // PURCHASE PRICE
@@ -2304,11 +2044,12 @@ function updateExrateConv(i){
 }
 function autofillPriceItem(i, forcedCode, forcedName){
   const code=forcedCode||priceLines[i].item_code;
-  const item=DB.items.find(it=>it.code===code);
+  // Lookup dari DB_itemPrices — Master Item sudah dihapus
+  const item=DB_itemPrices.find(p=>p.item_code===code);
   if(item){
-    priceLines[i].item_name=item.name;
+    priceLines[i].item_name=item.item_name||'';
     const nm=document.getElementById('pl_nm_'+i);
-    if(nm) nm.value=item.name;
+    if(nm) nm.value=item.item_name||'';
   }
   if(forcedName){priceLines[i].item_name=forcedName;const nm=document.getElementById('pl_nm_'+i);if(nm)nm.value=forcedName;}
 }
@@ -2657,8 +2398,9 @@ function openKapForm(id){try{
   // wire item code search
   const codeEl=document.getElementById('kap_item_code');
   codeEl.oninput=function(){
-    const item=DB.items.find(i=>i.code===this.value);
-    if(item)(function(){const _e=ge('kap_item_name');if(_e)_e.value=item.name;})();
+    // Lookup dari DB_itemPrices — Master Item sudah dihapus
+    const item=DB_itemPrices.find(p=>p.item_code===this.value);
+    if(item)(function(){const _e=ge('kap_item_name');if(_e)_e.value=item.item_name||'';})();
   };
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openKapForm:",e);}}
@@ -2719,7 +2461,7 @@ function renderKap(){try{
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('kap',k.id)?' checked':''} onchange="toggleRowSelect('kap','${k.id}',this.checked)"></td>
     ${col('kap','kapid')?`<td><span class="run-num">${k.kapid}</span></td>`:''}
     ${col('kap','created')?`<td class="muted mono" style="font-size:.7rem;white-space:nowrap">${k.created_dt||k.created||'—'}</td>`:''}
-    ${col('kap','icode')?(_ge?`<td><input class="ge-input" id="ge_kap_code_${k.id}" value="${geEsc(k.item_code)}" style="width:110px" oninput="const _it=DB.items.find(i=>i.code===this.value.toUpperCase().trim());const _n=document.getElementById('ge_kap_name_${k.id}');if(_n)_n.value=_it?_it.name:''"></td>`:`<td class="mono">${k.item_code}</td>`):''}
+    ${col('kap','icode')?(_ge?`<td><input class="ge-input" id="ge_kap_code_${k.id}" value="${geEsc(k.item_code)}" style="width:110px" oninput="const _it=DB_itemPrices.find(p=>p.item_code===this.value.toUpperCase().trim());const _n=document.getElementById('ge_kap_name_${k.id}');if(_n)_n.value=_it?(_it.item_name||''):''"></td>`:`<td class="mono">${k.item_code}</td>`):''}
     ${col('kap','iname')?(_ge?`<td><input class="ge-input" id="ge_kap_name_${k.id}" value="${geEsc(k.item_name)}" readonly style="color:var(--t3)"></td>`:`<td style="white-space:nowrap">${k.item_name}</td>`):''}
     ${col('kap','lines')?`<td style="font-size:.72rem">${linesSummary}</td>`:''}
     ${col('kap','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveKap('${k.id}')">💾 Simpan</button>${GE.kap!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('kap')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`):''}
@@ -3267,15 +3009,16 @@ function onBomLineItemCode(gIdx,lIdx,code,forcedName){
       bline.landed=parseFloat(ip.landed)||0;
     }
   }
-  const item=DB.items.find(it=>it.code===code);
+  // Lookup dari DB_itemPrices — Master Item sudah dihapus
+  const item=DB_itemPrices.find(p=>p.item_code===code);
   const row=document.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
   if(!row) return;
   const l=bomGroups[gIdx].lines[lIdx];
   l.item_code=code;
   if(item){
-    row.querySelector('.bom-line-name').value=item.name;
-    row.querySelector('.bom-line-uom').value=item.uom;
-    l.item_name=item.name; l.uom=item.uom;
+    row.querySelector('.bom-line-name').value=item.item_name||'';
+    row.querySelector('.bom-line-uom').value=item.uom||item.item_uom||'';
+    l.item_name=item.item_name||''; l.uom=item.uom||item.item_uom||'';
   }
   if(forcedName){row.querySelector('.bom-line-name').value=forcedName;l.item_name=forcedName;}
   autoFillPrice(gIdx,lIdx,row,l);
@@ -3656,7 +3399,7 @@ function setVal(id,v){const e=ge(id);if(e)e.value=v;}
 function setHTML(id,v){const e=ge(id);if(e)e.innerHTML=v;}
 function setDisp(id,v){const e=ge(id);if(e)e.style.display=v;}
 function updateCounts(){try{
-  setText('item_count',DB.items.length);
+  // item_count dihapus — Master Item sudah tidak ada
   setText('price_count',DB.prices.length);
   setText('exrate_count',DB.exrates.length);
   setText('dlfoh_count',DB.dlfoh.length);
@@ -4099,15 +3842,16 @@ function deleteMBomLine(gIdx,lIdx){
 }
 
 function onMBomItemCode(gIdx,lIdx,code,forcedName){
-  const item=DB.items.find(it=>it.code===code);
+  // Lookup dari DB_itemPrices — Master Item sudah dihapus
+  const item=DB_itemPrices.find(p=>p.item_code===code);
   const row=document.querySelector('tr[data-mg="'+gIdx+'"][data-ml="'+lIdx+'"]');
   if(!row) return;
   const l=mbomGroups[gIdx].lines[lIdx];
   l.item_code=code;
   if(item){
-    row.querySelector('.mbom-line-name').value=item.name;
-    row.querySelector('.mbom-line-uom').value=item.uom;
-    l.item_name=item.name; l.uom=item.uom;
+    row.querySelector('.mbom-line-name').value=item.item_name||'';
+    row.querySelector('.mbom-line-uom').value=item.uom||item.item_uom||'';
+    l.item_name=item.item_name||''; l.uom=item.uom||item.item_uom||'';
   }
   if(forcedName){row.querySelector('.mbom-line-name').value=forcedName;l.item_name=forcedName;}
   recalcMBomLine(gIdx,lIdx);
@@ -4424,8 +4168,8 @@ function onMasterBomSelect(mbomId){
       dlLot:dlLot, fohLot:fohLot,
       lines:(g.lines||[]).map(l=>({
         item_code:l.item_code, item_name:l.item_name,
-        // UOM: use stored value, fallback to DB.items lookup
-        uom:l.uom||(DB.items.find(it=>it.code===l.item_code)||{}).uom||'',
+        // UOM: use stored value, fallback ke DB_itemPrices
+        uom:l.uom||(DB_itemPrices.find(p=>p.item_code===l.item_code)||{}).uom||'',
         qty:parseFloat(l.qty)||0, scrap:parseFloat(l.scrap)||0, factor:parseFloat(l.factor)||1, total_qty:parseFloat(l.total_qty)||0,
         currency:'USD', price:0, landed:0, hedging:0, total_amt:0, total_idr:0,
       })),
@@ -4447,7 +4191,7 @@ function onMasterBomSelect(mbomId){
         speed:1, kapPct:100, dlLot:1, fohLot:1,
         lines:(rec.lines||[]).map(l=>({
           item_code:l.item_code, item_name:l.item_name,
-          uom:l.uom||(DB.items.find(it=>it.code===l.item_code)||{}).uom||'',
+          uom:l.uom||(DB_itemPrices.find(p=>p.item_code===l.item_code)||{}).uom||'',
           qty:l.qty, scrap:l.scrap, factor:l.factor, total_qty:l.total_qty,
           currency:'USD', price:0, landed:0, hedging:0, total_amt:0, total_idr:0,
         })),
@@ -4703,25 +4447,22 @@ function confirmUpload(){
   const useAPI = typeof API!=='undefined' && typeof loadAllData!=='undefined';
 
   if(uploadType==='item'){
+    // Upload item dialihkan ke item_prices (Master Item sudah dihapus)
+    // CSV format tetap sama: ItemCode, ItemName, UOM — disimpan ke item_prices
     if(useAPI){
-      // Send each row to API
       const promises=[];
       uploadParsedData.forEach(r=>{
         const code=(r['ItemCode']||'').trim();
         const name=(r['ItemName']||'').trim();
         const uom=(r['UOM']||'').trim();
-        if(!code||!name||!uom){skipped++;return;}
-        const existing=DB.items.find(i=>i.code===code);
-        if(existing){
-          promises.push(API.items.update(existing.id,{name,uom}).then(()=>{updated++;}).catch(()=>{skipped++;}));
-        } else {
-          promises.push(API.items.create({code,name,uom}).then(res=>{added++;}).catch(()=>{skipped++;}));
-        }
+        if(!code||!name){skipped++;return;}
+        // Upsert ke item_prices menggunakan POST (endpoint sudah handle upsert)
+        promises.push(API.itemPrice.save({item_code:code,item_name:name,uom:uom,currency:'USD',price:0,hedging:0,landed:0}).then(()=>{added++;}).catch(()=>{skipped++;}));
       });
       closeUploadModal();
       Promise.allSettled(promises).then(()=>{
-        loadAllData().then(()=>{renderItems();updateCounts();
-          showUploadResult('Import selesai: '+added+' ditambah, '+updated+' diupdate'+(skipped?', '+skipped+' dilewati':''),added,updated,skipped);
+        loadItemPrices().then(()=>{
+          showUploadResult('Import selesai: '+added+' ditambah/diupdate'+(skipped?', '+skipped+' dilewati':''),added,updated,skipped);
         });
       });
       return;
@@ -4729,11 +4470,11 @@ function confirmUpload(){
     uploadParsedData.forEach(r=>{
       const code=r['ItemCode'];
       if(!code){skipped++;return;}
-      const existing=DB.items.find(i=>i.code===code);
-      if(existing){existing.name=r['ItemName']||existing.name;existing.uom=r['UOM']||existing.uom;existing.updated=nowStr();updated++;}
-      else{const id='ITM-'+(++itemSeq).toString().padStart(4,'0');DB.items.push({id,code,name:r['ItemName']||'',uom:r['UOM']||'',created:nowStr(),updated:nowStr()});added++;}
+      const existing=DB_itemPrices.find(p=>p.item_code===code);
+      if(existing){existing.item_name=r['ItemName']||existing.item_name;existing.uom=r['UOM']||existing.uom;updated++;}
+      else{DB_itemPrices.push({item_code:code,item_name:r['ItemName']||'',uom:r['UOM']||'',currency:'USD',price:0,hedging:0,landed:0});added++;}
     });
-    renderItems(); updateCounts();
+    renderItemPrices(); updateCounts();
   }
   else if(uploadType==='price'){
     if(!uploadParsedData.length){toast('Tidak ada data untuk diimport.','error');return;}
@@ -5058,16 +4799,16 @@ function showUploadResult(msg, added, updated, skipped){
 // AUTH & ROLES
 // ═══════════════════════════════════════════
 const ROLES_CONFIG = {
-  admin:             {label:'Administrator',          pages:['item','price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
-  editor:            {label:'Editor',                 pages:['item','price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
-  finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
-  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
-  vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
-  approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
-  viewer:            {label:'Viewer',                  pages:['item','price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
+  admin:             {label:'Administrator',          pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
+  editor:            {label:'Editor',                 pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
+  finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                canApprove:true,  canEdit:false},
+  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                canApprove:true,  canEdit:false},
+  vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                canApprove:true,  canEdit:false},
+  approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                canApprove:true,  canEdit:false},
+  viewer:            {label:'Viewer',                  pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
 };
 
-const ALL_PAGES = ['item','price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles'];
+const ALL_PAGES = ['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles'];
 
 let USERS = [
   {id:'u1', username:'admin',    password:'admin123',  nama:'Administrator',       role:'admin',            customPages:[]},
@@ -5109,11 +4850,11 @@ function doLogin(){
         try{renderMBom();}catch(e){}
         try{renderBom();}catch(e){}
         updateCounts();
-        goPage('item');
+        goPage('price');  // halaman default setelah login — Master Item sudah dihapus
         toast('Login berhasil. Data dimuat dari MySQL.','success');
       }).catch(function(e){
         toast('Gagal memuat data: '+e.message,'error');
-        goPage('item');
+        goPage('price');
       });
     }).catch(function(e){
       if(errEl){ errEl.textContent=e.message||'Username atau password salah.'; errEl.style.display=''; }
@@ -5134,7 +4875,7 @@ function doLogin(){
   setText('topbar_urole',(ROLES_CONFIG[currentUser.role]||{label:'Custom'}).label);
   var av2=ge('topbar_avatar'); if(av2) av2.textContent=currentUser.nama[0].toUpperCase();
   applyRoleNav();
-  goPage('item');
+  goPage('price');  // halaman default — Master Item sudah dihapus
 }
 
 function doLogout(){
@@ -5978,7 +5719,7 @@ function updateSaUI(tbl){
 
 function getAllIds(tbl){
   const maps={
-    item:DB.items.map(x=>x.id),
+    item:[],
     price:DB.prices.map(x=>x.id),
     exrate:DB.exrates.map(x=>x.id),
     dlfoh:DB.dlfoh.map(x=>x.id),
@@ -6026,11 +5767,7 @@ function _bulkDeleteAPI(ids, apiFn, onDone, onErr) {
     .catch(e => { toast('Gagal hapus: ' + e.message, 'error'); if(onErr) onErr(); });
 }
 
-function deleteSelectedItems(sel){
-  _bulkDeleteAPI([...sel], API.items.delete.bind(API.items),
-    function(){ DB.items=DB.items.filter(x=>!sel.has(x.id)); renderItems(); updateCounts(); toast(sel.size+' item dihapus.','info'); },
-    function(){ loadAllData().then(function(){ renderItems(); updateCounts(); }); });
-}
+// deleteSelectedItems dihapus — Master Item sudah tidak ada
 function deleteSelectedPrices(sel){
   _bulkDeleteAPI([...sel], API.prices.delete.bind(API.prices),
     function(){ DB.prices=DB.prices.filter(x=>!sel.has(x.id)); renderPrices(); updateCounts(); toast(sel.size+' price dihapus.','info'); },
@@ -6082,13 +5819,8 @@ function seedData(){
     return;
   }
   // ── Offline/standalone seed data below ──
-  DB.items=[
-    {id:'ITM-0001',code:'RM-001',name:'Baja Lembaran 1.2mm',uom:'KG',created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
-    {id:'ITM-0002',code:'RM-002',name:'Kawat Tembaga 2mm',uom:'MTR',created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
-    {id:'ITM-0003',code:'RM-003',name:'Serat Optik SM',uom:'MTR',created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
-    {id:'ITM-0004',code:'RM-004',name:'HDPE Compound',uom:'KG',created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
-    {id:'ITM-0005',code:'RM-005',name:'Jelly Filling',uom:'KG',created:'01/01/2025 08:00',updated:'01/01/2025 08:00'},
-  ];itemSeq=5;
+  // DB.items seed dihapus — master item sudah digantikan oleh item_prices
+  DB.items=[];
   DB.exrates=[
     {id:'EXR-USD',currency_id:'USD',created:'01/01/2025 08:00',updated:'01/07/2025 09:00',
      lines:[{tanggal:'2025-07-01',rate:16050},{tanggal:'2025-06-01',rate:15980}]},
@@ -6172,11 +5904,11 @@ function seedData(){
           try{renderMBom();}catch(e){}
           try{renderBom();}catch(e){}
           updateCounts();
-          goPage('item');
+          goPage('price');  // halaman default — Master Item sudah dihapus
           toast('Data berhasil dimuat dari server.','success');
         }).catch(function(e){
           toast('Gagal memuat data: '+e.message,'error');
-          goPage('item');
+          goPage('price');
         });
       }).catch(function(){
         // Session expired — clear and show login
@@ -6275,7 +6007,7 @@ function updateDbInfoPanel() {
 
   // Count records
   const counts = [
-    'Item: '      + (DB.items     || []).length,
+    'ItemPrice: ' + (DB_itemPrices || []).length,
     'Price: '     + (DB.prices    || []).length,
     'Mesin: '     + (DB.mesin     || []).length,
     'BOM: '       + (DB.bom       || []).length,
@@ -6901,21 +6633,16 @@ function openItemPriceForm(itemCode){
     setText('item_price_form_title','Edit Harga: '+itemCode);
     setVal('ip_edit_code',itemCode);
     setVal('ip_item_code',itemCode);
+    // Ambil data dari DB_itemPrices — item_name dan uom tersimpan di item_prices
     var existing=DB_itemPrices.find(function(p){return p.item_code===itemCode;});
     if(existing){
       setVal('ip_item_name',existing.item_name||'');
-      setVal('ip_item_uom',existing.item_uom||'');
+      setVal('ip_item_uom',existing.uom||existing.item_uom||'');
       setVal('ip_currency',existing.currency||'USD');
       setVal('ip_price',existing.price||'');
       setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
       setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
       setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
-    }
-    // UOM selalu dari item master (tidak bisa diubah dari item price)
-    var item=DB.items.find(function(i){return i.code===itemCode;});
-    if(item){
-      setVal('ip_item_name',item.name||'');
-      setVal('ip_item_uom',item.uom||'');
     }
   } else {
     setText('item_price_form_title','Set Harga Item');
@@ -6941,16 +6668,15 @@ function closeItemPriceForm(){
   }
 })();
 
-// Autofill item name & UOM when ip_item_code changes
+// onIpItemCodeChange — ip_item_code diisi manual, tidak ada autofill dari master item
+// Fungsi ini dipanggil bila ada kode yang sudah ada di DB_itemPrices untuk memuat harga lama
 function onIpItemCodeChange(code){
   setVal('ip_item_code',code);
-  var item=DB.items.find(function(i){return i.code===code;});
-  if(item){
-    setVal('ip_item_name',item.name||'');
-    setVal('ip_item_uom',item.uom||''); // UOM selalu dari item master
-  }
   var existing=DB_itemPrices.find(function(p){return p.item_code===code;});
   if(existing){
+    // Jika item sudah ada di DB_itemPrices, autofill item_name, uom, dan harga lama
+    setVal('ip_item_name',existing.item_name||'');
+    setVal('ip_item_uom',existing.uom||existing.item_uom||'');
     setVal('ip_currency',existing.currency||'USD');
     setVal('ip_price',existing.price||'');
     setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
@@ -6958,7 +6684,6 @@ function onIpItemCodeChange(code){
     setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
     toast('Harga lama dimuat — ubah nilai dan simpan untuk update.','info');
   } else {
-    // Item baru: set default berdasarkan currency saat ini
     var cur=(ge('ip_currency')||{value:'USD'}).value;
     ipSetDefaultsByCurrency(cur);
   }
@@ -6967,6 +6692,8 @@ function onIpItemCodeChange(code){
 // ── Save item price ──
 function saveItemPrice(){
   var itemCode=(ge('ip_item_code')||{value:''}).value.trim();
+  var itemName=(ge('ip_item_name')||{value:''}).value.trim();
+  var uom=(ge('ip_item_uom')||{value:''}).value.trim();
   var currency=(ge('ip_currency')||{value:'USD'}).value;
   var price=parseFloat((ge('ip_price')||{value:'0'}).value)||0;
   var hedging=parseFloat((ge('ip_hedging')||{value:'0'}).value)||0;
@@ -6976,13 +6703,15 @@ function saveItemPrice(){
   var effective_date=(ge('ip_effective_date')||{value:''}).value;
   var note=(ge('ip_note')||{value:''}).value;
 
-  if(!itemCode){toast('Item Code wajib dipilih.','error');return;}
+  if(!itemCode){toast('Item Code wajib diisi.','error');return;}
+  if(!itemName){toast('Item Name wajib diisi.','error');return;}
   if(!price){toast('Price/Unit wajib diisi.','error');return;}
   // Landed wajib diisi (kecuali IDR sudah default 0)
   if(landed===null||isNaN(landed)){toast('Landed (%) wajib diisi.','error');return;}
   landed=parseFloat(landed)||0;
 
-  var payload={item_code:itemCode,currency:currency,price:price,
+  // Payload termasuk item_name dan uom — tidak lagi JOIN ke items master
+  var payload={item_code:itemCode,item_name:itemName,uom:uom,currency:currency,price:price,
     hedging:hedging,landed:landed,effective_date:effective_date,note:note};
 
   if(typeof API!=='undefined'){
@@ -6996,8 +6725,7 @@ function saveItemPrice(){
   } else {
     // Offline fallback
     var idx=DB_itemPrices.findIndex(function(p){return p.item_code===itemCode;});
-    var item=DB.items.find(function(i){return i.code===itemCode;});
-    var rec=Object.assign({},payload,{item_name:item?item.name:'',modified_by:'System',modified_dt:nowStr()});
+    var rec=Object.assign({},payload,{item_name:itemName,modified_by:'System',modified_dt:nowStr()});
     if(idx>-1){DB_itemPrices[idx]=Object.assign(DB_itemPrices[idx],rec);}
     else{DB_itemPrices.push(rec);}
     toast('Harga item disimpan (offline).','info');
@@ -7131,39 +6859,18 @@ function renderItemPrices(){
   }
 })();
 
-// Override: when user picks from search modal with sm_field=ip_item_code
-var _origSmSelect=window.onSmSelect||null;
+// handleIpItemSelect tidak lagi digunakan — ip_item_code sekarang diisi manual
 function handleIpItemSelect(code){
-  setVal('ip_item_code',code);
-  var item=DB.items.find(function(i){return i.code===code;});
-  if(item){
-    setVal('ip_item_name',item.name||'');
-    setVal('ip_item_uom',item.uom||''); // UOM dari item master
-  }
-  var existing=DB_itemPrices.find(function(p){return p.item_code===code;});
-  if(existing){
-    setVal('ip_currency',existing.currency||'USD');
-    setVal('ip_price',existing.price||'');
-    setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
-    setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
-    setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
-    toast('Harga lama dimuat. Ubah nilai lalu klik Simpan.','info');
-  } else {
-    setVal('ip_currency','USD');
-    setVal('ip_price','');
-    setVal('ip_effective_date',new Date().toISOString().slice(0,10));
-    // Set default hedging & landed untuk currency USD
-    ipSetDefaultsByCurrency('USD');
-  }
+  // Legacy stub — tidak melakukan apa-apa karena ip_item_code sudah manual
 }
 
 // ══════════════════════════════════════════════════════════════════
 // GRID EDIT (GE) — state, helpers, dan save functions untuk semua menu
 // ══════════════════════════════════════════════════════════════════
 
-// State per-page: GE.item = id record yang sedang di-edit, null = tidak ada
+// State per-page: id record yang sedang di-edit, null = tidak ada
 var GE = {
-  item: null, itemprice: null, exrate: null, dlfoh: null,
+  itemprice: null, exrate: null, dlfoh: null,
   kap: null, mesin: null, mbom: null, bom: null
 };
 
@@ -7174,8 +6881,7 @@ function geEsc(v) {
 
 // Helper: re-render page yang sesuai
 function geRender(page){
-  if(page==='item')           renderItems();
-  else if(page==='itemprice') renderItemPrices();
+  if(page==='itemprice') renderItemPrices();
   else if(page==='exrate')    renderExrates();
   else if(page==='dlfoh')     renderDlfoh();
   else if(page==='kap')       renderKap();
@@ -7220,19 +6926,7 @@ function geCancel(page) {
 
 // ── Save: Items ──────────────────────────────────────────────────
 // PUT /items/:id  →  { name, uom, is_fg }
-function geSaveItem(id) {
-  var name  = (document.getElementById('ge_item_name_'+id)||{}).value||'';
-  var uom   = (document.getElementById('ge_item_uom_'+id)||{}).value||'';
-  var is_fg = (document.getElementById('ge_item_fg_'+id)||{}).checked ? 1 : 0;
-  if(!name.trim()){toast('Nama item tidak boleh kosong','error');return;}
-  apiSave(API.items.update(id,{name:name.trim(),uom:uom.trim(),is_fg:is_fg}), function(){
-    if(GE.item!=='__all__') GE.item=null;
-    var rec=DB.items.find(function(r){return r.id==id||r.id===id;});
-    if(rec){rec.name=name.trim();rec.uom=uom.trim();rec.is_fg=is_fg;rec.item_name=name.trim();}
-    renderItems();
-    toast('Item berhasil disimpan','success');
-  });
-}
+// geSaveItem dihapus — Master Item sudah tidak ada
 
 // ── Save: Item Prices ────────────────────────────────────────────
 // PUT /item-prices/:code  →  { currency, price, hedging, landed, effective_date }

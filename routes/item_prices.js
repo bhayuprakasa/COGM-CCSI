@@ -8,11 +8,10 @@ const { requireAuth, requireEdit } = require('../db/auth');
 const now = () => new Date().toLocaleString('id-ID',{hour12:false}).replace(',','');
 const who = req => req.user ? req.user.nama : 'System';
 
-// ── GET all item prices (with latest price per item) ──
+// ── GET all item prices — item_name & uom tersimpan langsung di item_prices ──
 router.get('/item-prices', requireAuth, async (req,res) => {
   try {
-    const prices = await query(`SELECT ip.*, i.name as item_name, i.uom as item_uom FROM item_prices ip
-      LEFT JOIN items i ON i.code = ip.item_code
+    const prices = await query(`SELECT ip.*, ip.uom as item_uom FROM item_prices ip
       ORDER BY ip.item_code`);
     res.json(prices);
   } catch(e) { res.status(500).json({error:e.message}); }
@@ -21,8 +20,7 @@ router.get('/item-prices', requireAuth, async (req,res) => {
 // ── GET price for specific item ──
 router.get('/item-prices/:itemCode', requireAuth, async (req,res) => {
   try {
-    const [price] = await query(`SELECT ip.*, i.name as item_name, i.uom as item_uom FROM item_prices ip
-      LEFT JOIN items i ON i.code = ip.item_code
+    const [price] = await query(`SELECT ip.*, ip.uom as item_uom FROM item_prices ip
       WHERE ip.item_code=?`, [req.params.itemCode]);
     if(!price) return res.json(null);
     // Also get price history
@@ -44,7 +42,7 @@ router.get('/item-prices/:itemCode/logs', requireAuth, async (req,res) => {
 // ── POST create/update item price (upsert) ──
 router.post('/item-prices', requireEdit, async (req,res) => {
   try {
-    const {item_code, currency, price, hedging, landed, effective_date, note} = req.body;
+    const {item_code, item_name, uom, currency, price, hedging, landed, effective_date, note} = req.body;
     if(!item_code) return res.status(400).json({error:'Item Code wajib.'});
 
     // Check existing price
@@ -64,20 +62,20 @@ router.post('/item-prices', requireEdit, async (req,res) => {
          existing.effective_date, effective_date||'',
          who(req), now(), note||'']);
 
-      // Update price
+      // Update price — termasuk item_name dan uom
       await query(`UPDATE item_prices SET
-        currency=?, price=?, hedging=?, landed=?, effective_date=?,
+        item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?, effective_date=?,
         modified_by=?, modified_dt=? WHERE item_code=?`,
-        [currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
+        [item_name||'', uom||'', currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
          parseFloat(landed)||0, effective_date||'', who(req), now(), item_code]);
 
       res.json({ok:true, action:'updated'});
     } else {
-      // Insert new price
+      // Insert new price — termasuk item_name dan uom
       await query(`INSERT INTO item_prices
-        (item_code,currency,price,hedging,landed,effective_date,created_by,created_dt,modified_by,modified_dt)
-        VALUES (?,?,?,?,?,?,?,?,?,?)`,
-        [item_code, currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
+        (item_code,item_name,uom,currency,price,hedging,landed,effective_date,created_by,created_dt,modified_by,modified_dt)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [item_code, item_name||'', uom||'', currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
          parseFloat(landed)||0, effective_date||now(), who(req), now(), who(req), now()]);
 
       // Log first entry
@@ -96,7 +94,7 @@ router.post('/item-prices', requireEdit, async (req,res) => {
 // ── PUT update item price ──
 router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
   try {
-    const {currency, price, hedging, landed, effective_date, note} = req.body;
+    const {item_name, uom, currency, price, hedging, landed, effective_date, note} = req.body;
     const item_code = req.params.itemCode;
 
     const [existing] = await query(`SELECT * FROM item_prices WHERE item_code=?`, [item_code]);
@@ -115,11 +113,12 @@ router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
        existing.effective_date, effective_date||'',
        who(req), now(), note||'']);
 
-    // Update
+    // Update — termasuk item_name dan uom
     await query(`UPDATE item_prices SET
-      currency=?, price=?, hedging=?, landed=?, effective_date=?,
+      item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?, effective_date=?,
       modified_by=?, modified_dt=? WHERE item_code=?`,
-      [currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
+      [item_name||existing.item_name||'', uom||existing.uom||'',
+       currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
        parseFloat(landed)||0, effective_date||'', who(req), now(), item_code]);
 
     res.json({ok:true});
@@ -134,11 +133,11 @@ router.delete('/item-prices/:itemCode', requireEdit, async (req,res) => {
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-// ── GET all price logs ──
+// ── GET all price logs — item_name diambil dari item_prices ──
 router.get('/price-logs', requireAuth, async (req,res) => {
   try {
-    const logs = await query(`SELECT pl.*, i.name as item_name FROM item_price_logs pl
-      LEFT JOIN items i ON i.code = pl.item_code
+    const logs = await query(`SELECT pl.*, ip.item_name FROM item_price_logs pl
+      LEFT JOIN item_prices ip ON ip.item_code = pl.item_code
       ORDER BY pl.id DESC LIMIT 500`);
     res.json(logs);
   } catch(e) { res.status(500).json({error:e.message}); }
