@@ -100,26 +100,36 @@ router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
     const [existing] = await query(`SELECT * FROM item_prices WHERE item_code=?`, [item_code]);
     if(!existing) return res.status(404).json({error:'Harga item tidak ditemukan.'});
 
-    // Log change
-    await query(`INSERT INTO item_price_logs
-      (item_code,old_price,new_price,old_currency,new_currency,old_hedging,new_hedging,
-       old_landed,new_landed,old_effective_date,new_effective_date,changed_by,changed_dt,note)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [item_code,
-       existing.price, parseFloat(price)||0,
-       existing.currency, currency||'USD',
-       existing.hedging, parseFloat(hedging)||0,
-       existing.landed, parseFloat(landed)||0,
-       existing.effective_date, effective_date||'',
-       who(req), now(), note||'']);
+    // Hanya log jika ada perubahan harga/currency (bukan sekadar update nama/uom)
+    const newPrice    = price!=null    ? parseFloat(price)||0    : existing.price;
+    const newCurrency = currency||existing.currency||'USD';
+    const newHedging  = hedging!=null  ? parseFloat(hedging)||0  : existing.hedging;
+    const newLanded   = landed!=null   ? parseFloat(landed)||0   : existing.landed;
+    const newEffDate  = effective_date!=null ? effective_date     : existing.effective_date||'';
+    const priceChanged = newPrice!==existing.price || newCurrency!==existing.currency ||
+                         newHedging!==existing.hedging || newLanded!==existing.landed;
+    if(priceChanged) {
+      await query(`INSERT INTO item_price_logs
+        (item_code,old_price,new_price,old_currency,new_currency,old_hedging,new_hedging,
+         old_landed,new_landed,old_effective_date,new_effective_date,changed_by,changed_dt,note)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [item_code,
+         existing.price, newPrice,
+         existing.currency, newCurrency,
+         existing.hedging, newHedging,
+         existing.landed, newLanded,
+         existing.effective_date, newEffDate,
+         who(req), now(), note||'']);
+    }
 
-    // Update — termasuk item_name dan uom
+    // Update — pakai variabel yang sudah dihitung di atas (partial update aman)
     await query(`UPDATE item_prices SET
       item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?, effective_date=?,
       modified_by=?, modified_dt=? WHERE item_code=?`,
-      [item_name||existing.item_name||'', uom||existing.uom||'',
-       currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
-       parseFloat(landed)||0, effective_date||'', who(req), now(), item_code]);
+      [item_name!=null ? item_name : existing.item_name||'',
+       uom!=null       ? uom       : existing.uom||'',
+       newCurrency, newPrice, newHedging, newLanded, newEffDate,
+       who(req), now(), item_code]);
 
     res.json({ok:true});
   } catch(e) { res.status(500).json({error:e.message}); }

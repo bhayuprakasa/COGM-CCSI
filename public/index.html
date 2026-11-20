@@ -7040,18 +7040,17 @@ function geSaveItemPriceGE(code) {
   var name = nameEl ? nameEl.value.trim() : '';
   var uom  = uomEl  ? uomEl.value.trim()  : '';
 
-  // Cari data item berdasarkan item_code
-  var item = DB.items.find(function(i){ return i.code===code; });
-  if(!item){ toast('Item tidak ditemukan di master','error'); return; }
   if(!name){ toast('Nama item tidak boleh kosong','error'); return; }
 
-  // Panggil API items — server akan cek in_use sebelum update
-  apiSave(API.items.update(item.id, {name:name, uom:uom||item.uom, is_fg:item.is_fg||0}), function(){
+  // Cari data dari DB_itemPrices (DB.items sudah tidak dipakai)
+  var priceRec = DB_itemPrices.find(function(r){ return r.item_code===code; });
+  var finalUom = uom || (priceRec ? priceRec.item_uom : '');
+
+  // Panggil API item-prices — update item_name dan uom langsung di tabel item_prices
+  apiSave(API.itemPrice.update(code, {item_name:name, uom:finalUom}), function(){
     if(GE.itemprice!=='__all__') GE.itemprice=null;
-    // Update cache DB.items dan DB_itemPrices agar tampilan sinkron
-    item.name=name; item.uom=uom||item.uom;
-    var priceRec=DB_itemPrices.find(function(r){ return r.item_code===code; });
-    if(priceRec){ priceRec.item_name=name; priceRec.item_uom=uom||item.uom; }
+    // Update cache DB_itemPrices agar tampilan sinkron
+    if(priceRec){ priceRec.item_name=name; priceRec.item_uom=finalUom; }
     renderItemPrices();
     toast('Item berhasil disimpan','success');
   });
@@ -7227,11 +7226,11 @@ function geSaveAll(page) {
       if(nameEl==null) return; // baris tidak dalam edit mode, skip
       var name=nameEl.value.trim()||rec.item_name||'';
       var uom=((document.getElementById('ge_ip_uom_'+code)||{}).value||'').trim()||rec.item_uom||'';
-      var item=DB.items.find(function(i){return i.code===code;});
-      if(!item||item.in_use){saved++;return;} // skip jika item tidak ditemukan atau dipakai
+      // DB.items sudah tidak dipakai — langsung update ke item-prices
       if(!name){errors++;return;}
-      p=Promise.resolve(API.items.update(item.id,{name:name,uom:uom,is_fg:item.is_fg||0}))
-        .then(function(){item.name=name;item.uom=uom;rec.item_name=name;rec.item_uom=uom;saved++;})
+      var finalUom=uom||rec.item_uom||'';
+      p=Promise.resolve(API.itemPrice.update(code,{item_name:name,uom:finalUom}))
+        .then(function(){rec.item_name=name;rec.item_uom=finalUom;saved++;})
         .catch(function(){errors++;});
 
     } else if(page==='exrate'){
