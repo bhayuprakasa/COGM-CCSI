@@ -6802,6 +6802,35 @@ function viewItemPriceHistory(itemCode){
 function filterItemPrices(v){ itemPriceFilter=v.toLowerCase(); renderItemPrices(); }
 
 // ── Render list ──
+// Format float → format Indonesia (1.234.567,89) untuk tampilan non-editable
+function fmtIdNum(val, decimals) {
+  var n = parseFloat(val)||0;
+  return n.toLocaleString('id-ID',{minimumFractionDigits:decimals||0,maximumFractionDigits:decimals||8});
+}
+
+// Format float → format Indonesia untuk nilai awal input field (string kosong jika 0)
+function fmtIdInput(val, decimals) {
+  var n = parseFloat(val)||0;
+  if(n===0) return '';
+  return n.toLocaleString('id-ID',{minimumFractionDigits:decimals||0,maximumFractionDigits:decimals||8});
+}
+
+// Parse string format Indonesia (1.234.567,89) atau standar → float
+// Aturan: jika ada koma → koma=desimal, titik=ribuan; jika tidak ada koma → titik=ribuan
+function parseIdNum(s) {
+  if(!s) return 0;
+  s = String(s).trim();
+  if(s.indexOf(',')>=0){
+    // Format Indonesia: 1.234,56 → hapus titik, ganti koma dengan titik
+    return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
+  }
+  // Tanpa koma: anggap titik sebagai ribuan atau desimal terakhir
+  // Jika lebih dari satu titik, titik adalah ribuan
+  var dotCount = (s.match(/\./g)||[]).length;
+  if(dotCount>1) return parseFloat(s.replace(/\./g,'')) || 0;
+  return parseFloat(s) || 0;
+}
+
 function renderItemPrices(){
   var tbody=document.getElementById('item_price_tbody');
   var countEl=ge('price_count');
@@ -6819,34 +6848,104 @@ function renderItemPrices(){
     return;
   }
   tbody.innerHTML=rows.map(function(p){
-    var _ge=GE.itemprice==='__all__'||GE.itemprice===p.item_code;
-    var _currs=['USD','IDR','EUR','CNY','JPY','SGD'];
-    var _currOpts=_currs.map(function(c){return'<option value="'+c+'" '+(p.currency===c?'selected':'')+'>'+c+'</option>';}).join('');
-    return (_ge?'<tr class="ge-row">':'<tr>')
+    var _ge = GE.itemprice==='__all__' || GE.itemprice===p.item_code;
+    var _upd = !!IP_UPDATE[p.item_code]; // mode inline update harga
+    // Cari data item untuk cek in_use dan id
+    var _item = DB.items.find(function(i){ return i.code===p.item_code; });
+    var _inUse = _item && _item.in_use;
+    var _currs = ['USD','IDR','EUR','CNY','JPY','SGD'];
+    var _currOpts = _currs.map(function(c){
+      return '<option value="'+c+'" '+(p.currency===c?'selected':'')+'>'+c+'</option>';
+    }).join('');
+
+    // ── Baris utama ──
+    var mainRow = (_ge?'<tr class="ge-row">':'<tr>')
+      // Item Code — hanya tampil (tidak diedit via GE)
       +'<td><span class="run-num" style="font-size:.75rem">'+p.item_code+'</span></td>'
-      +'<td>'+(p.item_name||'—')+'</td>'
-      +'<td><span class="badge badge-cyan">'+(p.item_uom||'—')+'</span></td>'
-      +(_ge?'<td><select class="ge-select" id="ge_ip_curr_'+p.item_code+'" style="width:75px">'+_currOpts+'</select></td>'
-           :'<td><span class="badge badge-cyan">'+p.currency+'</span></td>')
-      +(_ge?'<td><input class="ge-input" type="number" id="ge_ip_price_'+p.item_code+'" value="'+p.price+'" step="0.000001" style="width:120px;text-align:right"></td>'
-           :'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(p.price,6)+'</td>')
-      +(_ge?'<td><input class="ge-input" type="number" id="ge_ip_hed_'+p.item_code+'" value="'+(p.hedging||0)+'" step="0.01" style="width:70px;text-align:right"></td>'
-           :'<td style="text-align:right;font-family:var(--fm)">'+fmt_num(p.hedging,2)+'%</td>')
-      +(_ge?'<td><input class="ge-input" type="number" id="ge_ip_land_'+p.item_code+'" value="'+(p.landed||0)+'" step="0.01" style="width:70px;text-align:right"></td>'
-           :'<td style="text-align:right;font-family:var(--fm)">'+fmt_num(p.landed,2)+'%</td>')
-      +(_ge?'<td><input class="ge-input" type="date" id="ge_ip_edate_'+p.item_code+'" value="'+(p.effective_date||'')+'" style="width:130px"></td>'
-           :'<td class="muted mono" style="font-size:.75rem">'+(p.effective_date||'—')+'</td>')
+      // Item Name — editable di GE jika item belum dipakai
+      +'<td>'
+      +(_ge && !_inUse
+        ? '<input class="ge-input" id="ge_ip_name_'+p.item_code+'" value="'+geEsc(p.item_name||'')+'" style="min-width:120px">'
+        : '<span>'+(p.item_name||'—')
+          +(_inUse&&_ge?'&nbsp;<span style="color:var(--t3);font-size:.68rem">(dipakai)</span>':'')
+          +'</span>')
+      +'</td>'
+      // UOM — editable di GE
+      +'<td>'
+      +(_ge && !_inUse
+        ? '<input class="ge-input" id="ge_ip_uom_'+p.item_code+'" value="'+geEsc(p.item_uom||'')+'" style="width:60px">'
+        : '<span class="badge badge-cyan">'+(p.item_uom||'—')+'</span>')
+      +'</td>'
+      // Currency — selalu tampil (tidak diedit via GE)
+      +'<td><span class="badge badge-cyan">'+p.currency+'</span></td>'
+      // Price — format Indonesia (titik ribuan, koma desimal)
+      +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmtIdNum(p.price,6)+'</td>'
+      // Hedging — format koma
+      +'<td style="text-align:right;font-family:var(--fm)">'+fmtIdNum(p.hedging,2)+'%</td>'
+      // Landed — format koma
+      +'<td style="text-align:right;font-family:var(--fm)">'+fmtIdNum(p.landed,2)+'%</td>'
+      // Effective Date
+      +'<td class="muted mono" style="font-size:.75rem">'+(p.effective_date||'—')+'</td>'
       +'<td class="muted" style="font-size:.72rem">'+(p.modified_by||'—')+'</td>'
       +'<td class="muted mono" style="font-size:.72rem">'+(p.modified_dt||'—')+'</td>'
-      +(_ge?'<td><div style="display:flex;gap:.3rem">'
-           +'<button class="btn btn-primary btn-xs" onclick="geSaveItemPrice(\''+p.item_code+'\')">💾 Simpan</button>'
-           +(GE.itemprice!=='__all__'?'<button class="btn btn-secondary btn-xs" onclick="geCancel(\'itemprice\')">✕ Batal</button>':'')
-           +'</div></td>'
-           :'<td><div style="display:flex;gap:.3rem">'
-           +'<button class="btn btn-ghost btn-xs" onclick="viewItemPriceHistory(\''+p.item_code+'\')" title="History Harga">📜 Log</button>'
-           +'<button class="btn btn-danger btn-xs" onclick="deleteItemPrice(\''+p.item_code+'\')">🗑</button>'
-           +'</div></td>')
+      // Aksi
+      +'<td><div style="display:flex;gap:.3rem;flex-wrap:wrap">'
+      +(_ge
+        ? (_inUse
+          ? '<span style="color:var(--t3);font-size:.7rem;padding:.2rem .3rem">Item sudah dipakai</span>'
+          : '<button class="btn btn-primary btn-xs" onclick="geSaveItemPriceGE(\''+p.item_code+'\')">💾 Simpan</button>'
+            +(GE.itemprice!=='__all__'?'<button class="btn btn-secondary btn-xs" onclick="geCancel(\'itemprice\')">✕ Batal</button>':''))
+        : '<button class="btn btn-ghost btn-xs" onclick="viewItemPriceHistory(\''+p.item_code+'\')" title="History Harga">📜 Log</button>'
+          +'<button class="btn btn-amber btn-xs" onclick="ipToggleUpdate(\''+p.item_code+'\')" title="Update harga, currency, hedging, landed">✏ Update</button>'
+          +'<button class="btn btn-danger btn-xs" onclick="deleteItemPrice(\''+p.item_code+'\')">🗑</button>')
+      +'</div></td>'
       +'</tr>';
+
+    // ── Baris inline update (muncul di bawah baris utama saat tombol Update diklik) ──
+    var updateRow = '';
+    if(_upd && !_ge){
+      updateRow = '<tr style="background:rgba(34,211,238,.04);border-top:1px dashed rgba(34,211,238,.2)">'
+        +'<td colspan="11" style="padding:.7rem 1rem">'
+        +'<div style="display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap">'
+        // Currency
+        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Currency</label>'
+        +'<select class="ge-select" id="ipu_curr_'+p.item_code+'" style="width:82px">'+_currOpts+'</select>'
+        +'</div>'
+        // Price — format Indonesia: titik ribuan, koma desimal
+        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Price / Unit</label>'
+        +'<input class="ge-input" id="ipu_price_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.price,6))+'"'
+        +' style="width:148px;text-align:right" placeholder="0" title="Format: 1.234.567,890000">'
+        +'</div>'
+        // Hedging — format koma sebagai desimal
+        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Hedging (%)</label>'
+        +'<input class="ge-input" id="ipu_hed_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.hedging,2))+'"'
+        +' style="width:80px;text-align:right" placeholder="0,00" title="Gunakan koma sebagai desimal (cth: 3,00)">'
+        +'</div>'
+        // Landed — format koma sebagai desimal
+        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Landed (%)</label>'
+        +'<input class="ge-input" id="ipu_land_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.landed,2))+'"'
+        +' style="width:80px;text-align:right" placeholder="0,00" title="Gunakan koma sebagai desimal (cth: 9,00)">'
+        +'</div>'
+        // Effective Date
+        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Effective Date</label>'
+        +'<input class="ge-input" type="date" id="ipu_edate_'+p.item_code+'" value="'+(p.effective_date||'')+'" style="width:138px">'
+        +'</div>'
+        // Tombol
+        +'<div style="display:flex;gap:.35rem;padding-bottom:.05rem">'
+        +'<button class="btn btn-primary btn-xs" onclick="ipSaveUpdate(\''+p.item_code+'\')">💾 Simpan</button>'
+        +'<button class="btn btn-secondary btn-xs" onclick="ipToggleUpdate(\''+p.item_code+'\')">✕ Batal</button>'
+        +'</div>'
+        +'</div>'
+        +'</td>'
+        +'</tr>';
+    }
+
+    return mainRow + updateRow;
   }).join('');
 }
 
@@ -6873,6 +6972,9 @@ var GE = {
   itemprice: null, exrate: null, dlfoh: null,
   kap: null, mesin: null, mbom: null, bom: null
 };
+
+// State inline update form per item_code (untuk update currency/price/hedging/landed)
+var IP_UPDATE = {};
 
 // Escape HTML untuk value di dalam attribute (mencegah XSS di inline edit)
 function geEsc(v) {
@@ -6928,22 +7030,65 @@ function geCancel(page) {
 // PUT /items/:id  →  { name, uom, is_fg }
 // geSaveItem dihapus — Master Item sudah tidak ada
 
-// ── Save: Item Prices ────────────────────────────────────────────
-// PUT /item-prices/:code  →  { currency, price, hedging, landed, effective_date }
-// ID input: ge_ip_curr, ge_ip_price, ge_ip_hed, ge_ip_land, ge_ip_edate (sesuai renderItemPrices)
-function geSaveItemPrice(code) {
-  var currency = (document.getElementById('ge_ip_curr_'+code)||{}).value||'USD';
-  var price    = parseFloat((document.getElementById('ge_ip_price_'+code)||{}).value)||0;
-  var hedging  = parseFloat((document.getElementById('ge_ip_hed_'+code)||{}).value)||0;
-  var landed   = parseFloat((document.getElementById('ge_ip_land_'+code)||{}).value)||0;
-  var eff_date = (document.getElementById('ge_ip_edate_'+code)||{}).value||new Date().toISOString().slice(0,10);
-  apiSave(API.itemPrice.update(code,{currency,price,hedging,landed,effective_date:eff_date}), function(){
+// ── Save Edit Grid: Item Prices (hanya item name & uom → update tabel items) ──
+// PUT /items/:id  →  { name, uom, is_fg }
+// Edit Grid item price hanya boleh ubah nama dan UOM item (bukan currency/price/hedging)
+function geSaveItemPriceGE(code) {
+  var nameEl = document.getElementById('ge_ip_name_'+code);
+  var uomEl  = document.getElementById('ge_ip_uom_'+code);
+  if(!nameEl && !uomEl){ toast('Input tidak ditemukan','error'); return; }
+  var name = nameEl ? nameEl.value.trim() : '';
+  var uom  = uomEl  ? uomEl.value.trim()  : '';
+
+  // Cari data item berdasarkan item_code
+  var item = DB.items.find(function(i){ return i.code===code; });
+  if(!item){ toast('Item tidak ditemukan di master','error'); return; }
+  if(!name){ toast('Nama item tidak boleh kosong','error'); return; }
+
+  // Panggil API items — server akan cek in_use sebelum update
+  apiSave(API.items.update(item.id, {name:name, uom:uom||item.uom, is_fg:item.is_fg||0}), function(){
     if(GE.itemprice!=='__all__') GE.itemprice=null;
-    // Update local cache DB_itemPrices (bukan DB.prices)
-    var rec=DB_itemPrices.find(function(r){return r.item_code==code||r.item_code===code;});
-    if(rec){rec.currency=currency;rec.price=price;rec.hedging=hedging;rec.landed=landed;rec.effective_date=eff_date;}
+    // Update cache DB.items dan DB_itemPrices agar tampilan sinkron
+    item.name=name; item.uom=uom||item.uom;
+    var priceRec=DB_itemPrices.find(function(r){ return r.item_code===code; });
+    if(priceRec){ priceRec.item_name=name; priceRec.item_uom=uom||item.uom; }
     renderItemPrices();
-    toast('Harga berhasil disimpan','success');
+    toast('Item berhasil disimpan','success');
+  });
+}
+
+// ── Toggle inline update form per baris item price ──
+function ipToggleUpdate(code) {
+  IP_UPDATE[code] = !IP_UPDATE[code];
+  renderItemPrices();
+}
+
+// ── Save inline update: currency, price, hedging, landed, effective_date ──
+// PUT /item-prices/:code  →  { currency, price, hedging, landed, effective_date }
+// Input price/hedging/landed menggunakan format Indonesia (titik ribuan, koma desimal)
+function ipSaveUpdate(code) {
+  var currency = (document.getElementById('ipu_curr_'+code)||{}).value||'USD';
+  var priceRaw = (document.getElementById('ipu_price_'+code)||{}).value||'0';
+  var hedgRaw  = (document.getElementById('ipu_hed_'+code)||{}).value||'0';
+  var landRaw  = (document.getElementById('ipu_land_'+code)||{}).value||'0';
+  var effDate  = (document.getElementById('ipu_edate_'+code)||{}).value||new Date().toISOString().slice(0,10);
+
+  // Parse format Indonesia → float
+  var price   = parseIdNum(priceRaw);
+  var hedging = parseIdNum(hedgRaw);
+  var landed  = parseIdNum(landRaw);
+
+  if(price<0){ toast('Harga tidak boleh negatif','error'); return; }
+
+  apiSave(API.itemPrice.update(code, {currency:currency, price:price, hedging:hedging,
+    landed:landed, effective_date:effDate}), function(){
+    IP_UPDATE[code] = false;
+    // Update cache lokal DB_itemPrices
+    var rec = DB_itemPrices.find(function(r){ return r.item_code===code; });
+    if(rec){ rec.currency=currency; rec.price=price; rec.hedging=hedging;
+             rec.landed=landed; rec.effective_date=effDate; }
+    renderItemPrices();
+    toast('Harga berhasil diupdate','success');
   });
 }
 
@@ -7050,10 +7195,11 @@ function geSaveMBom(id) {
 // Membaca nilai dari semua input GE di DOM, fire Promise.all, lalu render sekali
 function geSaveAll(page) {
   var dbMap = {
-    item:'items', itemprice:'prices', exrate:'exrates',
+    item:'items', exrate:'exrates',
     dlfoh:'dlfoh', kap:'kap', mesin:'mesin', mbom:'masterbom', bom:'bom'
   };
-  var list = DB[dbMap[page]] || [];
+  // itemprice menggunakan DB_itemPrices (bukan DB.prices yang merupakan price document)
+  var list = page==='itemprice' ? (DB_itemPrices||[]) : (DB[dbMap[page]]||[]);
   if(!list.length){ toast('Tidak ada data','error'); return; }
 
   var promises = [];
@@ -7075,16 +7221,17 @@ function geSaveAll(page) {
         .catch(function(){errors++;});
 
     } else if(page==='itemprice'){
+      // Edit Grid item price: hanya update nama & UOM item (bukan currency/price/hedging)
       var code=rec.item_code;
-      var currency=(document.getElementById('ge_ip_curr_'+code)||{}).value;
-      if(currency==null) return;
-      var price   =parseFloat((document.getElementById('ge_ip_price_'+code)||{}).value)||rec.price||0;
-      var hedging =parseFloat((document.getElementById('ge_ip_hed_'+code)||{}).value)||rec.hedging||0;
-      var landed  =parseFloat((document.getElementById('ge_ip_land_'+code)||{}).value)||rec.landed||0;
-      var eff_date=(document.getElementById('ge_ip_edate_'+code)||{}).value||rec.effective_date||new Date().toISOString().slice(0,10);
-      currency=currency||rec.currency||'USD';
-      p=Promise.resolve(API.itemPrice.update(code,{currency,price,hedging,landed,effective_date:eff_date}))
-        .then(function(){rec.currency=currency;rec.price=price;rec.hedging=hedging;rec.landed=landed;rec.effective_date=eff_date;saved++;})
+      var nameEl=document.getElementById('ge_ip_name_'+code);
+      if(nameEl==null) return; // baris tidak dalam edit mode, skip
+      var name=nameEl.value.trim()||rec.item_name||'';
+      var uom=((document.getElementById('ge_ip_uom_'+code)||{}).value||'').trim()||rec.item_uom||'';
+      var item=DB.items.find(function(i){return i.code===code;});
+      if(!item||item.in_use){saved++;return;} // skip jika item tidak ditemukan atau dipakai
+      if(!name){errors++;return;}
+      p=Promise.resolve(API.items.update(item.id,{name:name,uom:uom,is_fg:item.is_fg||0}))
+        .then(function(){item.name=name;item.uom=uom;rec.item_name=name;rec.item_uom=uom;saved++;})
         .catch(function(){errors++;});
 
     } else if(page==='exrate'){
