@@ -436,7 +436,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div class="nav-item" onclick="goPage('price')"><span class="ni">💲</span> Item Price</div>
   <div class="nav-item" onclick="goPage('exrate')"><span class="ni">💱</span> Exchange Rate</div>
   <div class="nav-item" onclick="goPage('dlfoh')"><span class="ni">🏭</span> DL-FOH</div>
-  <div class="nav-item" onclick="goPage('mesin')"><span class="ni">🔧</span> Master Mesin</div>
   <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master Route</div>
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
@@ -849,74 +848,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         <table class="tbl">
           <thead id="kap_thead"><tr></tr></thead>
           <tbody id="kap_tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ PAGE: MASTER MESIN ══════════ -->
-<div class="page" id="page_mesin">
-  <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total Mesin</span><span class="sp-val" id="mesin_count">0</span></div>
-    </div>
-      <div class="sa-wrap" id="sa_wrap_mesin" style="margin-left:.5rem">
-        <input type="checkbox" class="sa-cb" id="sa_cb_mesin" onchange="toggleSelectAll('mesin',this.checked)" title="Pilih Semua">
-        <label class="sa-lbl" for="sa_cb_mesin">Pilih Semua</label>
-        <button class="btn btn-danger btn-xs sa-del" id="sa_del_mesin" onclick="deleteSelected('mesin',deleteSelectedMesin)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_mesin">0</span>)</button>
-      </div>
-    <button class="btn btn-primary" onclick="openMesinForm()">+ Tambah Mesin</button>
-    <button class="btn btn-ghost" id="ge_toggle_mesin" onclick="geToggleAll('mesin')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
-    <button class="btn btn-primary" id="ge_saveall_mesin" onclick="geSaveAll('mesin')" style="display:none">💾 Simpan Semua</button>
-    <button class="btn btn-ghost" onclick="openUploadModal('mesin')">⬆ Upload CSV</button>
-  </div>
-
-  <div class="card" id="mesin_form_card" style="display:none">
-    <div class="card-head">
-      <div class="card-title"><span class="card-title-icon">🔧</span><span id="mesin_form_title">Tambah Mesin</span></div>
-      <div style="display:flex;gap:.4rem">
-        <button class="btn btn-secondary btn-sm" onclick="closeMesinForm()">Batal</button>
-        <button class="btn btn-primary btn-sm" onclick="saveMesin()">Simpan</button>
-      </div>
-    </div>
-    <div class="card-body">
-      <input type="hidden" id="mesin_edit_id">
-      <div class="form-grid fg-3">
-        <div class="form-group">
-          <div class="flabel req">Machine ID</div>
-          <input class="finput" id="mesin_id" placeholder="Contoh: MCH-001">
-        </div>
-        <div class="form-group">
-          <div class="flabel req">Machine Name</div>
-          <input class="finput" id="mesin_name" placeholder="Nama mesin">
-        </div>
-        <div class="form-group">
-          <div class="flabel req">Machine Line</div>
-          <select class="fselect" id="mesin_machine_line">
-            <option value="">— Pilih Machine Line —</option>
-            <option>Colouring</option>
-            <option>Buffering</option>
-            <option>Stranding</option>
-            <option>Jacketing</option>
-            <option>Armouring</option>
-            <option>Pipe Line</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card" id="mesin_list_card">
-    <div class="card-head">
-      <div class="card-title"><span class="card-title-icon">🔧</span> Daftar Mesin</div>
-      <div style="display:flex;align-items:center;gap:.5rem"><input class="finput" style="width:200px" placeholder="🔍 Cari mesin..." oninput="filterMesin(this.value)"><div id="coltoggle_mesin"></div></div>
-    </div>
-    <div class="card-body" style="padding:0">
-      <div class="tbl-wrap">
-        <table class="tbl">
-          <thead id="mesin_thead"><tr></tr></thead>
-          <tbody id="mesin_tbody"></tbody>
         </table>
       </div>
     </div>
@@ -5188,16 +5119,16 @@ function showUploadResult(msg, added, updated, skipped){
 // AUTH & ROLES
 // ═══════════════════════════════════════════
 const ROLES_CONFIG = {
-  admin:             {label:'Administrator',          pages:['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
-  editor:            {label:'Editor',                 pages:['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
+  admin:             {label:'Administrator',          pages:['item','price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
+  editor:            {label:'Editor',                 pages:['item','price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
   finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
   sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
   vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
   approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                        canApprove:true,  canEdit:false},
-  viewer:            {label:'Viewer',                  pages:['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
+  viewer:            {label:'Viewer',                  pages:['item','price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
 };
 
-const ALL_PAGES = ['item','price','exrate','dlfoh','mesin','kapasitas','masterbom','bom','history','cogs','roles'];
+const ALL_PAGES = ['item','price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles'];
 
 let USERS = [
   {id:'u1', username:'admin',    password:'admin123',  nama:'Administrator',       role:'admin',            customPages:[]},
@@ -5353,7 +5284,7 @@ function closeAddUserForm(){ setDisp('add_user_card','none'); }
 
 function buildCustomAccessChecks(selected){
   const wrap = document.getElementById('custom_access_checks');
-  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',mesin:'Master Mesin',kapasitas:'Master Route',bom:'Bill of Material',history:'History BOM',cogs:'COGS Summary',roles:'Access Role'};
+  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',kapasitas:'Master Route',bom:'Bill of Material',history:'History BOM',cogs:'COGS Summary',roles:'Access Role'};
   wrap.innerHTML = ALL_PAGES.map(p=>`
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;padding:.3rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--b1)">
       <input type="checkbox" id="chk_${p}" ${selected.includes(p)?'checked':''} style="accent-color:var(--cyan)"> ${pageLabels[p]||p}
@@ -5390,7 +5321,7 @@ function deleteUser(id){
 function renderRoles(){try{
   const tbody = document.getElementById('roles_tbody');
   if(!tbody) return;
-  const pageLabels={item:'Item',price:'Price',exrate:'ExRate',dlfoh:'DL-FOH',mesin:'Mesin',kapasitas:'Kap',bom:'BOM',history:'History',roles:'Roles'};
+  const pageLabels={item:'Item',price:'Price',exrate:'ExRate',dlfoh:'DL-FOH',kapasitas:'Kap',bom:'BOM',history:'History',roles:'Roles'};
   tbody.innerHTML = USERS.map(u=>{
     const rc = ROLES_CONFIG[u.role]||{label:'Custom',pages:[]};
     const pages = u.role==='custom'?u.customPages:rc.pages;
@@ -5930,7 +5861,7 @@ function setColVisible(tbl, key, vis){
   // update dropdown counter
   const btn=document.querySelector('#col_dd_'+tbl+' ~ .col-toggle-btn, .col-toggle-btn[onclick*="'+tbl+'"]');
   // re-render the table
-  const renders={item:renderItems,price:renderPrices,exrate:renderExrates,mesin:renderMesin,kap:renderKap,bom:renderBom,history:renderHistory};
+  const renders={item:renderItems,price:renderPrices,exrate:renderExrates,kap:renderKap,bom:renderBom,history:renderHistory};
   if(renders[tbl]) renders[tbl]();
   // rebuild dropdown to update counter
   const wrap=document.getElementById('coltoggle_'+tbl);
@@ -6127,7 +6058,7 @@ function toggleSelectAll(tbl,checked){
   if(checked){ getAllIds(tbl).forEach(id=>sel.add(id)); }
   else { sel.clear(); }
   // re-render to sync row checkboxes
-  const renders={item:renderItems,price:renderPrices,exrate:renderExrates,dlfoh:renderDlfoh,mesin:renderMesin,kap:renderKap,masterbom:renderMBom,bom:renderBom,history:renderHistory};
+  const renders={item:renderItems,price:renderPrices,exrate:renderExrates,dlfoh:renderDlfoh,kap:renderKap,masterbom:renderMBom,bom:renderBom,history:renderHistory};
   if(renders[tbl]) renders[tbl]();
   updateSaUI(tbl);
 }
@@ -6983,7 +6914,6 @@ var _origGoPagePrice=null;
     if(pageId==='exrate')    reload('exrates',   function(l){DB.exrates=l;renderExrates&&renderExrates();});
     if(pageId==='dlfoh')     reload('dlfoh',     function(l){DB.dlfoh=l;  renderDlfoh&&renderDlfoh();});
     if(pageId==='kapasitas') reload('kapasitas', function(l){DB.kap=l;    renderKap&&renderKap();});
-    if(pageId==='mesin')     reload('mesin',     function(l){DB.mesin=l;  renderMesin&&renderMesin();});
   };
 })();
 
@@ -7268,7 +7198,6 @@ function geRender(page){
   else if(page==='exrate')    renderExrates();
   else if(page==='dlfoh')     renderDlfoh();
   else if(page==='kap')       renderKap();
-  else if(page==='mesin')     renderMesin();
   else if(page==='mbom')      renderMBom();
   else if(page==='bom')       renderBom();
 }
@@ -7517,15 +7446,6 @@ function geSaveAll(page) {
         dl:rec.dl,efisiensi:rec.efisiensi,notes:rec.notes};
       p=Promise.resolve(API.kapasitas.update(id,payload))
         .then(function(){rec.item_code=item_code;rec.item_name=item_name.trim();saved++;})
-        .catch(function(){errors++;});
-
-    } else if(page==='mesin'){
-      var nameEl=document.getElementById('ge_m_name_'+id);
-      if(!nameEl) return;
-      var machine_name=nameEl.value.trim()||rec.machine_name||'';
-      var machine_line=(document.getElementById('ge_m_line_'+id)||{}).value||rec.machine_line||'';
-      p=Promise.resolve(API.mesin.update(id,{machine_name,machine_line}))
-        .then(function(){rec.machine_name=machine_name;rec.machine_line=machine_line;saved++;})
         .catch(function(){errors++;});
 
     } else if(page==='mbom'){
