@@ -11,7 +11,7 @@ const who = req => req.user ? req.user.nama : 'System';
 // ── GET all item prices (with latest price per item) ──
 router.get('/item-prices', requireAuth, async (req,res) => {
   try {
-    const prices = await query(`SELECT ip.*, i.name as item_name FROM item_prices ip
+    const prices = await query(`SELECT ip.*, i.name as item_name, i.uom as item_uom FROM item_prices ip
       LEFT JOIN items i ON i.code = ip.item_code
       ORDER BY ip.item_code`);
     res.json(prices);
@@ -21,7 +21,7 @@ router.get('/item-prices', requireAuth, async (req,res) => {
 // ── GET price for specific item ──
 router.get('/item-prices/:itemCode', requireAuth, async (req,res) => {
   try {
-    const [price] = await query(`SELECT ip.*, i.name as item_name FROM item_prices ip
+    const [price] = await query(`SELECT ip.*, i.name as item_name, i.uom as item_uom FROM item_prices ip
       LEFT JOIN items i ON i.code = ip.item_code
       WHERE ip.item_code=?`, [req.params.itemCode]);
     if(!price) return res.json(null);
