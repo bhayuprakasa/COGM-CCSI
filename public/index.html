@@ -6936,20 +6936,52 @@ function renderItemPrices(){
         ? '<input class="ge-input" id="ge_ip_uom_'+p.item_code+'" value="'+geEsc(p.item_uom||'')+'" style="width:60px">'
         : '<span class="badge badge-cyan">'+(p.item_uom||'—')+'</span>')
       +'</td>'
-      // Currency — selalu tampil (tidak diedit via GE)
-      +'<td><span class="badge badge-cyan">'+p.currency+'</span></td>'
-      // Price — format Indonesia (titik ribuan, koma desimal)
-      +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmtIdNum(p.price,6)+'</td>'
-      // Hedging — format koma
-      +'<td style="text-align:right;font-family:var(--fm)">'+fmtIdNum(p.hedging,2)+'%</td>'
-      // Landed — format koma
-      +'<td style="text-align:right;font-family:var(--fm)">'+fmtIdNum(p.landed,2)+'%</td>'
+      // Currency — editable di GE via select
+      +'<td>'
+      +(_ge
+        ? '<select class="ge-select" id="ge_ip_curr_'+p.item_code+'" style="width:76px">'+_currOpts+'</select>'
+        : '<span class="badge badge-cyan">'+p.currency+'</span>')
+      +'</td>'
+      // Price — editable di GE, format Indonesia
+      +'<td style="text-align:right">'
+      +(_ge
+        ? '<input class="ge-input" id="ge_ip_price_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.price,6))+'" style="width:130px;text-align:right" title="Format: 1.234.567,890000">'
+        : '<span style="font-family:var(--fm);color:var(--cyan)">'+fmtIdNum(p.price,6)+'</span>')
+      +'</td>'
+      // Hedging — editable di GE
+      +'<td style="text-align:right">'
+      +(_ge
+        ? '<input class="ge-input" id="ge_ip_hed_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.hedging,2))+'" style="width:72px;text-align:right" placeholder="0,00">%'
+        : '<span style="font-family:var(--fm)">'+fmtIdNum(p.hedging,2)+'%</span>')
+      +'</td>'
+      // Landed — editable di GE
+      +'<td style="text-align:right">'
+      +(_ge
+        ? '<input class="ge-input" id="ge_ip_land_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.landed,2))+'" style="width:72px;text-align:right" placeholder="0,00">%'
+        : '<span style="font-family:var(--fm)">'+fmtIdNum(p.landed,2)+'%</span>')
+      +'</td>'
       // Effective Date
       +'<td class="muted mono" style="font-size:.75rem">'+(p.effective_date||'—')+'</td>'
-      // Fiber spec — tampil sebagai angka, 0 ditampilkan sebagai —
-      +'<td style="text-align:right;font-family:var(--fm)">'+(p.loose_tube_qty||0)+'</td>'
-      +'<td style="text-align:right;font-family:var(--fm)">'+(p.fiber_per_tube_qty||0)+'</td>'
-      +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+(p.total_fiber_qty||0)+'</td>'
+      // Loose Tube — editable di GE; oninput auto-hitung total fiber
+      +'<td style="text-align:right">'
+      +(_ge
+        ? '<input class="ge-input" type="number" id="ge_ip_ltq_'+p.item_code+'" value="'+(p.loose_tube_qty||0)+'" min="0" step="1" style="width:70px;text-align:right"'
+          +' oninput="var t=document.getElementById(\'ge_ip_tfq_'+p.item_code+'\');if(t)t.value=(parseInt(this.value)||0)*(parseInt((document.getElementById(\'ge_ip_ftq_'+p.item_code+'\')||{}).value)||0)">'
+        : '<span style="font-family:var(--fm)">'+(p.loose_tube_qty||0)+'</span>')
+      +'</td>'
+      // Fiber/Tube — editable di GE; oninput auto-hitung total fiber
+      +'<td style="text-align:right">'
+      +(_ge
+        ? '<input class="ge-input" type="number" id="ge_ip_ftq_'+p.item_code+'" value="'+(p.fiber_per_tube_qty||0)+'" min="0" step="1" style="width:70px;text-align:right"'
+          +' oninput="var t=document.getElementById(\'ge_ip_tfq_'+p.item_code+'\');if(t)t.value=(parseInt(this.value)||0)*(parseInt((document.getElementById(\'ge_ip_ltq_'+p.item_code+'\')||{}).value)||0)">'
+        : '<span style="font-family:var(--fm)">'+(p.fiber_per_tube_qty||0)+'</span>')
+      +'</td>'
+      // Total Fiber — dihitung otomatis, readonly di GE
+      +'<td style="text-align:right">'
+      +(_ge
+        ? '<input class="ge-input" type="number" id="ge_ip_tfq_'+p.item_code+'" value="'+((p.loose_tube_qty||0)*(p.fiber_per_tube_qty||0))+'" style="width:70px;text-align:right;background:var(--bg2);color:var(--t3);cursor:not-allowed" disabled>'
+        : '<span style="font-family:var(--fm);color:var(--cyan)">'+(p.total_fiber_qty||0)+'</span>')
+      +'</td>'
       +'<td class="muted" style="font-size:.72rem">'+(p.modified_by||'—')+'</td>'
       +'<td class="muted mono" style="font-size:.72rem">'+(p.modified_dt||'—')+'</td>'
       // Aksi
@@ -6968,9 +7000,8 @@ function renderItemPrices(){
     // ── Baris inline update (muncul di bawah baris utama saat tombol Update diklik) ──
     var updateRow = '';
     if(_upd && !_ge){
-      var _ltq = p.loose_tube_qty||0;
-      var _ftq = p.fiber_per_tube_qty||0;
-      var _tfq = _ltq * _ftq; // total fiber qty dihitung client-side untuk tampilan
+      // Update form hanya untuk price, currency, hedging, landed
+      // Loose Tube & Fiber diedit via Edit Grid
       updateRow = '<tr style="background:rgba(34,211,238,.04);border-top:1px dashed rgba(34,211,238,.2)">'
         +'<td colspan="14" style="padding:.7rem 1rem">'
         +'<div style="display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap">'
@@ -7002,26 +7033,7 @@ function renderItemPrices(){
         +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Effective Date</label>'
         +'<input class="ge-input" type="date" id="ipu_edate_'+p.item_code+'" value="'+(p.effective_date||'')+'" style="width:138px">'
         +'</div>'
-        // Loose Tube Qty
-        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
-        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Loose Tube Qty</label>'
-        +'<input class="ge-input" type="number" id="ipu_ltq_'+p.item_code+'" value="'+_ltq+'"'
-        +' style="width:80px;text-align:right" min="0" step="1"'
-        +' oninput="var t=document.getElementById(\'ipu_tfq_'+p.item_code+'\');if(t)t.value=(parseInt(this.value)||0)*(parseInt((document.getElementById(\'ipu_ftq_'+p.item_code+'\')||{}).value)||0)">'
-        +'</div>'
-        // Fiber/Tube Qty
-        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
-        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Fiber/Tube Qty</label>'
-        +'<input class="ge-input" type="number" id="ipu_ftq_'+p.item_code+'" value="'+_ftq+'"'
-        +' style="width:80px;text-align:right" min="0" step="1"'
-        +' oninput="var t=document.getElementById(\'ipu_tfq_'+p.item_code+'\');if(t)t.value=(parseInt(this.value)||0)*(parseInt((document.getElementById(\'ipu_ltq_'+p.item_code+'\')||{}).value)||0)">'
-        +'</div>'
-        // Total Fiber Qty — disabled, dihitung otomatis
-        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
-        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Total Fiber</label>'
-        +'<input class="ge-input" type="number" id="ipu_tfq_'+p.item_code+'" value="'+_tfq+'"'
-        +' style="width:80px;text-align:right;background:var(--bg2);color:var(--t3);cursor:not-allowed" disabled>'
-        +'</div>'
+        // Loose Tube & Fiber diedit via Edit Grid, bukan di sini
         // Tombol
         +'<div style="display:flex;gap:.35rem;padding-bottom:.05rem">'
         +'<button class="btn btn-primary btn-xs" onclick="ipSaveUpdate(\''+p.item_code+'\')">💾 Simpan</button>'
@@ -7117,27 +7129,46 @@ function geCancel(page) {
 // PUT /items/:id  →  { name, uom, is_fg }
 // geSaveItem dihapus — Master Item sudah tidak ada
 
-// ── Save Edit Grid: Item Prices (hanya item name & uom → update tabel items) ──
-// PUT /items/:id  →  { name, uom, is_fg }
-// Edit Grid item price hanya boleh ubah nama dan UOM item (bukan currency/price/hedging)
+// ── Save Edit Grid: Item Prices ──
+// PUT /item-prices/:code → { item_name, uom, currency, price, hedging, landed, loose_tube_qty, fiber_per_tube_qty }
+// Edit Grid item price: update nama, UOM, price, currency, hedging, landed, loose tube, dan fiber per tube
 function geSaveItemPriceGE(code) {
-  var nameEl = document.getElementById('ge_ip_name_'+code);
-  var uomEl  = document.getElementById('ge_ip_uom_'+code);
-  if(!nameEl && !uomEl){ toast('Input tidak ditemukan','error'); return; }
-  var name = nameEl ? nameEl.value.trim() : '';
-  var uom  = uomEl  ? uomEl.value.trim()  : '';
+  var nameEl  = document.getElementById('ge_ip_name_'+code);
+  var uomEl   = document.getElementById('ge_ip_uom_'+code);
+  var currEl  = document.getElementById('ge_ip_curr_'+code);
+  var priceEl = document.getElementById('ge_ip_price_'+code);
+  var hedEl   = document.getElementById('ge_ip_hed_'+code);
+  var landEl  = document.getElementById('ge_ip_land_'+code);
+  var ltqEl   = document.getElementById('ge_ip_ltq_'+code);
+  var ftqEl   = document.getElementById('ge_ip_ftq_'+code);
 
+  if(!nameEl){ toast('Input tidak ditemukan','error'); return; }
+  var name = nameEl.value.trim();
   if(!name){ toast('Nama item tidak boleh kosong','error'); return; }
 
-  // Cari data dari DB_itemPrices (DB.items sudah tidak dipakai)
   var priceRec = DB_itemPrices.find(function(r){ return r.item_code===code; });
-  var finalUom = uom || (priceRec ? priceRec.item_uom : '');
+  var finalUom      = uomEl   ? uomEl.value.trim()  : (priceRec ? priceRec.item_uom : '');
+  var finalCurr     = currEl  ? currEl.value         : (priceRec ? priceRec.currency : 'USD');
+  var finalPrice    = priceEl ? parseIdNum(priceEl.value) : (priceRec ? priceRec.price : 0);
+  var finalHedging  = hedEl   ? parseIdNum(hedEl.value)   : (priceRec ? priceRec.hedging : 0);
+  var finalLanded   = landEl  ? parseIdNum(landEl.value)  : (priceRec ? priceRec.landed : 0);
+  var finalLtq      = ltqEl   ? (parseInt(ltqEl.value)||0) : (priceRec ? priceRec.loose_tube_qty : 0);
+  var finalFtq      = ftqEl   ? (parseInt(ftqEl.value)||0) : (priceRec ? priceRec.fiber_per_tube_qty : 0);
 
-  // Panggil API item-prices — update item_name dan uom langsung di tabel item_prices
-  apiSave(API.itemPrice.update(code, {item_name:name, uom:finalUom}), function(){
+  apiSave(API.itemPrice.update(code, {
+    item_name: name, uom: finalUom,
+    currency: finalCurr, price: finalPrice, hedging: finalHedging, landed: finalLanded,
+    loose_tube_qty: finalLtq, fiber_per_tube_qty: finalFtq
+  }), function(){
     if(GE.itemprice!=='__all__') GE.itemprice=null;
-    // Update cache DB_itemPrices agar tampilan sinkron
-    if(priceRec){ priceRec.item_name=name; priceRec.item_uom=finalUom; }
+    // Sinkronkan cache lokal DB_itemPrices
+    if(priceRec){
+      priceRec.item_name=name; priceRec.item_uom=finalUom;
+      priceRec.currency=finalCurr; priceRec.price=finalPrice;
+      priceRec.hedging=finalHedging; priceRec.landed=finalLanded;
+      priceRec.loose_tube_qty=finalLtq; priceRec.fiber_per_tube_qty=finalFtq;
+      priceRec.total_fiber_qty=finalLtq*finalFtq;
+    }
     renderItemPrices();
     toast('Item berhasil disimpan','success');
   });
@@ -7149,17 +7180,15 @@ function ipToggleUpdate(code) {
   renderItemPrices();
 }
 
-// ── Save inline update: currency, price, hedging, landed, effective_date ──
+// ── Save inline update: hanya currency, price, hedging, landed, effective_date ──
 // PUT /item-prices/:code  →  { currency, price, hedging, landed, effective_date }
-// Input price/hedging/landed menggunakan format Indonesia (titik ribuan, koma desimal)
+// Loose Tube & Fiber tidak diupdate di sini — gunakan Edit Grid untuk field tersebut
 function ipSaveUpdate(code) {
   var currency = (document.getElementById('ipu_curr_'+code)||{}).value||'USD';
   var priceRaw = (document.getElementById('ipu_price_'+code)||{}).value||'0';
   var hedgRaw  = (document.getElementById('ipu_hed_'+code)||{}).value||'0';
   var landRaw  = (document.getElementById('ipu_land_'+code)||{}).value||'0';
   var effDate  = (document.getElementById('ipu_edate_'+code)||{}).value||new Date().toISOString().slice(0,10);
-  var looseTube    = parseInt((document.getElementById('ipu_ltq_'+code)||{}).value)||0;
-  var fiberPerTube = parseInt((document.getElementById('ipu_ftq_'+code)||{}).value)||0;
 
   // Parse format Indonesia → float
   var price   = parseIdNum(priceRaw);
@@ -7168,16 +7197,13 @@ function ipSaveUpdate(code) {
 
   if(price<0){ toast('Harga tidak boleh negatif','error'); return; }
 
-  apiSave(API.itemPrice.update(code, {currency:currency, price:price, hedging:hedging,
-    landed:landed, effective_date:effDate,
-    loose_tube_qty:looseTube, fiber_per_tube_qty:fiberPerTube}), function(){
+  apiSave(API.itemPrice.update(code, {currency:currency, price:price,
+    hedging:hedging, landed:landed, effective_date:effDate}), function(){
     IP_UPDATE[code] = false;
-    // Update cache lokal DB_itemPrices
+    // Sinkronkan cache lokal DB_itemPrices
     var rec = DB_itemPrices.find(function(r){ return r.item_code===code; });
     if(rec){ rec.currency=currency; rec.price=price; rec.hedging=hedging;
-             rec.landed=landed; rec.effective_date=effDate;
-             rec.loose_tube_qty=looseTube; rec.fiber_per_tube_qty=fiberPerTube;
-             rec.total_fiber_qty=looseTube*fiberPerTube; }
+             rec.landed=landed; rec.effective_date=effDate; }
     renderItemPrices();
     toast('Harga berhasil diupdate','success');
   });
