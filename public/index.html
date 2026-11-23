@@ -435,6 +435,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div class="nav-item active" onclick="goPage('price')"><span class="ni">💲</span> Item Price</div>
   <div class="nav-item" onclick="goPage('exrate')"><span class="ni">💱</span> Exchange Rate</div>
   <div class="nav-item" onclick="goPage('dlfoh')"><span class="ni">🏭</span> DL-FOH</div>
+  <div class="nav-item" id="nav_fgroute" onclick="goPage('fgroute')"><span class="ni">🔄</span> FG Routing</div>
   <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master FG (Route)</div>
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
@@ -922,6 +923,61 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   </div>
 </div>
 
+<!-- ══════════ PAGE: MASTER FG ROUTING ══════════ -->
+<div class="page" id="page_fgroute">
+  <div class="actions-bar">
+    <div class="stat-row" style="margin-bottom:0">
+      <div class="stat-pill"><span class="sp-label">Total FG Item</span><span class="sp-val" id="fgroute_count">0</span></div>
+    </div>
+    <button class="btn btn-primary" onclick="openFGRouteForm()">+ Tambah Routing FG</button>
+  </div>
+  <div class="card" style="margin-bottom:.75rem">
+    <input type="text" id="fgrouteSearch" class="finput" placeholder="Cari item code / nama..." oninput="filterFGRoute()" style="max-width:300px">
+  </div>
+  <div id="fgrouteList"></div>
+
+  <!-- Form tambah/edit FG Route -->
+  <div id="fgrouteForm" style="display:none;margin-top:.75rem">
+    <div class="card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+        <h3 id="fgrouteFormTitle" style="margin:0">Routing FG</h3>
+        <button onclick="closeFGRouteForm()" class="btn btn-ghost btn-sm">Tutup</button>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <div class="flabel req">Item Code FG</div>
+            <div class="search-field-wrap">
+              <input class="finput" id="fgrItemCode" placeholder="Cari item FG..." readonly>
+              <span class="search-icon clickable" onclick="openSearchModal('fg_item','fgrItemCode','fgrItemName')">🔍</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="flabel">Item Name</div>
+            <input class="finput" id="fgrItemName" readonly placeholder="Auto dari item code">
+          </div>
+        </div>
+        <div style="margin:.5rem 0;display:flex;justify-content:space-between;align-items:center">
+          <strong>Routing Lines</strong>
+          <button type="button" onclick="addFGRouteLine()" class="btn btn-secondary btn-sm">+ Tambah Line</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl" style="min-width:600px;font-size:.82rem">
+            <thead><tr>
+              <th>#</th><th>CAT DL-FOH</th><th>Deskripsi</th><th>Type</th>
+              <th>Process Time</th><th>Setup Time</th><th>Factor</th><th>Aksi</th>
+            </tr></thead>
+            <tbody id="fgrLinesTbody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:.75rem;text-align:right">
+          <button onclick="saveFGRoute()" class="btn btn-primary">Simpan Routing</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════ PAGE: BOM ══════════ -->
 <div class="page" id="page_bom">
   <div class="actions-bar">
@@ -999,6 +1055,17 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               </div>
             </div>
             <div class="form-group">
+              <div class="flabel">Item Code FG <span style="font-size:.6rem;color:var(--cyan)">(untuk Routing DL-FOH)</span></div>
+              <div class="search-field-wrap">
+                <input class="finput" id="bom_item_code" placeholder="Cari item FG..." readonly>
+                <span class="search-icon clickable" onclick="openSearchModal('fgrl','bom_item_code','bom_item_code_name')">🔍</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="flabel">Item Name FG</div>
+              <input class="finput" id="bom_item_code_name" readonly placeholder="Nama item FG (auto)">
+            </div>
+            <div class="form-group">
               <div class="flabel" style="display:flex;align-items:center;gap:.4rem">
                 Rate USD/IDR
                 <span style="font-size:.6rem;color:var(--amber);background:rgba(251,191,36,.12);padding:.1rem .35rem;border-radius:3px;border:1px solid rgba(251,191,36,.25)">🔒 Locked at create</span>
@@ -1033,6 +1100,23 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               <th style="text-align:right">Rate USD</th>
             </tr></thead>
             <tbody id="dlfoh_perhour_body"></tbody>
+          </table>
+        </div>
+
+        <!-- ROUTING DL-FOH (otomatis dari Master FG Route) -->
+        <div class="sec-head" style="margin-top:1.25rem">Routing DL-FOH</div>
+        <div style="padding:.5rem .75rem;background:var(--cyan-g);border:1px solid rgba(34,211,238,.15);border-radius:var(--r);margin-bottom:.5rem;font-size:.8rem;color:var(--t2)">
+          ℹ️ Routing DL-FOH otomatis dari <strong>Master FG Routing</strong> berdasarkan Item Code FG yang dipilih.
+        </div>
+        <div style="overflow-x:auto;margin-bottom:.75rem">
+          <table class="tbl" style="min-width:600px;font-size:.8rem">
+            <thead><tr>
+              <th>#</th><th>CAT</th><th>Deskripsi</th><th>Type</th>
+              <th style="text-align:right">Process Time</th><th style="text-align:right">Setup Time</th>
+              <th style="text-align:right">Factor</th><th style="text-align:right">Total Hour</th>
+              <th style="text-align:right">Total Cost (IDR)</th>
+            </tr></thead>
+            <tbody id="bomRoutingTbody"></tbody>
           </table>
         </div>
 
@@ -1640,7 +1724,7 @@ window.serverLogout = async function() {
 
 // ── Load ALL data from server → fully replace in-memory DB ──
 window.loadAllData = async function() {
-  const [itemPrices, fgItems, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs] = await Promise.all([
+  const [itemPrices, fgItems, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs, cogs, fgRoutes] = await Promise.all([
     apiGet('/item-prices'),  // item_prices sekarang menggantikan items sebagai master data
     apiGet('/items/fg'),     // master FG (is_fg=1) untuk dropdown item code di Master BOM
     apiGet('/prices'),
@@ -1652,6 +1736,8 @@ window.loadAllData = async function() {
     apiGet('/bom'),
     apiGet('/bom/history'),
     apiGet('/sequences'),
+    apiGet('/cogs'),
+    apiGet('/fg-routes'),    // master routing per FG item
   ]);
 
   // Fully replace — never merge with seed/sample data
@@ -1665,6 +1751,8 @@ window.loadAllData = async function() {
   DB.masterbom  = masterbom  || [];
   DB.bom        = bom        || [];
   DB.bomHistory = history    || [];
+  DB.cogs       = cogs       || [];
+  DB.fgRoutes   = fgRoutes   || [];
 
   // Sync sequence counters to avoid ID collisions
   if (seqs) {
@@ -1677,8 +1765,32 @@ window.loadAllData = async function() {
 
   console.log('✅ DB loaded from server:', {
     itemPrices: DB_itemPrices.length, prices: DB.prices.length,
-    mesin: DB.mesin.length, bom: DB.bom.length,
+    mesin: DB.mesin.length, bom: DB.bom.length, cogs: DB.cogs.length,
   });
+
+  // Migrasi satu kali: data COGS dari localStorage → API (jika ada dan DB.cogs masih kosong)
+  if (!DB.cogs.length) {
+    try {
+      var legacy = JSON.parse(localStorage.getItem('cogm_cogs_docs') || '[]');
+      if (legacy.length) {
+        for (var _cd of legacy) {
+          try {
+            await apiPost('/cogs', {
+              name: _cd.name || 'Legacy COGS',
+              date: _cd.date || '',
+              note: _cd.note || '',
+              rows: (_cd.rows || []).map(function(r){ return r; }),
+            });
+          } catch(e) { console.warn('Migration cogs row failed:', e); }
+        }
+        localStorage.removeItem('cogm_cogs_docs');
+        const migratedCogs = await apiGet('/cogs');
+        DB.cogs = migratedCogs || [];
+        console.log('✅ Migrated', legacy.length, 'COGS docs from localStorage to DB');
+      }
+    } catch(e) { console.warn('COGS migration failed:', e); }
+  }
+
   return true;
 };
 
@@ -1706,7 +1818,20 @@ window.API = {
     delete:  id          => apiDelete('/bom/'+id),
     submit:  id          => apiPost('/bom/'+id+'/submit', {}),
     cancel:  id          => apiPost('/bom/'+id+'/cancel',  {}),
-    approve: (id,status,note) => apiPost('/bom/'+id+'/approve', {status, note}),
+    approve:     (id,status,note) => apiPost('/bom/'+id+'/approve', {status, note}),
+    recalculate: id              => apiPost('/bom/'+id+'/recalculate', {}),
+  },
+  cogs: {
+    list:   ()        => apiGet('/cogs'),
+    create: d         => apiPost('/cogs', d),
+    update: (id, d)   => apiPut('/cogs/' + id, d),
+    delete: id        => apiDelete('/cogs/' + id),
+  },
+  fgRoutes: {
+    list:    ()     => apiGet('/fg-routes'),
+    byItem:  (code) => apiGet('/fg-routes/by-item/' + encodeURIComponent(code)),
+    save:    (data) => apiPost('/fg-routes', data),
+    del:     (code) => apiDelete('/fg-routes/by-item/' + encodeURIComponent(code)),
   },
   users: {
     list:   ()     => apiGet('/users'),
@@ -1759,6 +1884,8 @@ const DB = {
   mesin:    [],
   masterbom:[],
   bomHistory: [],
+  cogs:       [],
+  fgRoutes:   [],  // master routing per FG item (dari fg_routes)
   itemHistory: {},
 };
 
@@ -1791,6 +1918,7 @@ const pageTitles={
   price:'💲 Master Data <span>Item Price</span>',
   exrate:'💱 Master Data <span>Exchange Rate</span>',
   dlfoh:'🏭 Master Data <span>DL-FOH</span>',
+  fgroute:'🔄 Master Data <span>FG Routing</span>',
   mesin:'🔧 Master Data <span>Mesin</span>',
   kapasitas:'⚡ Master Data <span>Master FG (Route)</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
@@ -1817,6 +1945,7 @@ function goPage(id){
   if(id==='history') renderHistory();
   if(id==='cogs') onPageCogs();
   if(id==='roles'){ renderRoles(); renderWorkflowConfig(); }
+  if(id==='fgroute') renderFGRouteList();
 }
 setInterval(()=>{setText('page_time',nowStr());},60000);
 
@@ -1849,6 +1978,12 @@ function buildSearchData(type){
   else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Rp '+Number(d.rate).toLocaleString('id-ID')+'/jam'}));
   else if(type==='kap') sm_data=DB.kap.map(k=>({code:k.id,name:k.item_name,sub:k.proses+' | '+(DB.mesin.find(m=>m.machine_id===k.mesin)||{machine_name:k.mesin}).machine_name}));
   else if(type==='masterbom') sm_data=DB.masterbom.map(b=>({code:b.bomid,name:b.product,sub:b.machine_line+' | '+(b.lines||[]).length+' items'}));
+  else if(type==='fgrl') {
+    // FG items yang punya routing — unique by item_code
+    const seen=new Set();
+    sm_data=DB.fgRoutes.filter(r=>{if(seen.has(r.item_code))return false;seen.add(r.item_code);return true;})
+      .map(r=>({code:r.item_code,name:r.item_name||r.item_code,sub:DB.fgRoutes.filter(x=>x.item_code===r.item_code).length+' routes'}));
+  }
 }
 function latestRate(e){
   if(!e.lines||!e.lines.length) return '-';
@@ -1900,6 +2035,11 @@ function selectSearchResult(code,name){
     onMasterBomSelect(code);
     closeSearchModal(); return;
   }
+  // FG Item untuk Routing DL-FOH di BOM form
+  if(sm_type==='fgrl'){
+    autoLoadBomRouting(code);
+    closeSearchModal(); return;
+  }
   // Master BOM material line item search
   if(sm_type==='item'&&sm_extra&&sm_extra.g==='mbom'){
     onMBomItemCode(sm_extra.gi, sm_extra.l, code);
@@ -1940,6 +2080,21 @@ function selectSearchResult(code,name){
     recalcGroupDlfoh(sm_extra_g);
     sm_extra_g=null;
     closeSearchModal(); return;
+  }
+  // DL-FOH select untuk FG Route lines
+  if(sm_type==='dlfoh'&&sm_extra&&sm_extra.g==='fgr'){
+    const i=sm_extra.l;
+    if(fgrLines[i]){
+      fgrLines[i].cat=code;
+      fgrLines[i].cat_desc=name||'';
+      // Set type dari dlfoh master
+      const dm=DB.dlfoh.find(d=>d.catid===code);
+      fgrLines[i].type=dm?dm.type||'':'';
+      const ci=ge('fgrCat'+i); if(ci) ci.value=code;
+      const di=ge('fgrCatDesc'+i); if(di) di.value=fgrLines[i].cat_desc;
+      const ti=ge('fgrType'+i); if(ti) ti.value=fgrLines[i].type;
+    }
+    sm_extra=null; closeSearchModal(); return;
   }
   // Price ID select for BOM header
   if(sm_type==='price'){
@@ -2527,6 +2682,7 @@ function renderKap(){try{
 // ═══════════════════════════════════════════
 // bomGroups = [{machine_line, lines:[{...}], dlfohLines:[{...}], speed, kapPct, dlLot, fohLot}]
 let bomGroups=[];
+let bomRouting=[];  // routing snapshot dari fg_routes saat BOM dibuat/diedit
 let bomUsdRate=0; // USD rate snapshot at time of BOM creation — fixed for this BOM session
 
 // ── helpers ──
@@ -2553,14 +2709,54 @@ function getLatestConversion(currencyId){
   return currRate/usdRate;
 }
 
+function autoLoadBomRouting(itemCode) {
+  if (!itemCode) { bomRouting = []; renderBomRouting(); return; }
+  const routes = DB.fgRoutes.filter(r => r.item_code === itemCode);
+  if (routes.length) {
+    bomRouting = routes.map(r => ({
+      cat: r.cat||'', cat_desc: r.cat_desc||'', type: r.type||'',
+      process_time: parseFloat(r.process_time)||0,
+      setup_time: parseFloat(r.setup_time)||0,
+      factor: parseFloat(r.factor)||1,
+      total_hour: parseFloat(r.process_time||0)*parseFloat(r.factor||1)+parseFloat(r.setup_time||0),
+      total_cost: parseFloat(r.total_cost)||0,
+    }));
+  } else { bomRouting = []; }
+  renderBomRouting();
+}
+
+function renderBomRouting() {
+  const tbody = document.getElementById('bomRoutingTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  if (!bomRouting.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="9" style="text-align:center;color:#888;font-style:italic">Belum ada routing — pilih Item Code FG</td>';
+    tbody.appendChild(tr); return;
+  }
+  bomRouting.forEach((r, i) => {
+    const totalH = parseFloat(r.process_time||0)*parseFloat(r.factor||1)+parseFloat(r.setup_time||0);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i+1}</td><td>${r.cat||''}</td><td>${r.cat_desc||''}</td><td>${r.type||''}</td>`
+      +`<td class="text-right">${parseFloat(r.process_time||0).toFixed(4)}</td>`
+      +`<td class="text-right">${parseFloat(r.setup_time||0).toFixed(4)}</td>`
+      +`<td class="text-right">${parseFloat(r.factor||1).toFixed(4)}</td>`
+      +`<td class="text-right">${totalH.toFixed(6)}</td>`
+      +`<td class="text-right">${parseFloat(r.total_cost||0).toLocaleString('id-ID',{minimumFractionDigits:2})}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
 function openBomForm(id){try{
   bomGroups=[];
+  bomRouting=[];
   setDisp('bom_form_section','');
   const _blc=ge('bom_list_card');if(_blc)_blc.style.display='none';
   setVal('bom_edit_id','');
   // Reset semua field header form BOM
   ['bom_product','bom_customer','bom_project','bom_product_code'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['bom_fiber_cnt','bom_buffer_qty','bom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['bom_item_code','bom_item_code_name'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   // Machine groups come from Master BOM selection - only reset if opening blank form
   if(!id) bomGroups=[];
 
@@ -2581,6 +2777,17 @@ function openBomForm(id){try{
     // Restore the USD rate snapshot that was locked at BOM creation time
     bomUsdRate=parseFloat(rec.usd_rate_snapshot)||getLatestRate('USD');
     setVal('bom_usd_rate_snap',bomUsdRate);
+    // Restore item_code FG dan routing snapshot
+    setVal('bom_item_code', rec.item_code||'');
+    setVal('bom_item_code_name', rec.item_code ? (DB.fgRoutes.find(r=>r.item_code===rec.item_code)||{item_name:''}).item_name||'' : '');
+    bomRouting = (rec.routing||[]).map(r=>({
+      cat: r.cat||'', cat_desc: r.cat_desc||'', type: r.type||'',
+      process_time: parseFloat(r.process_time)||0,
+      setup_time: parseFloat(r.setup_time)||0,
+      factor: parseFloat(r.factor)||1,
+      total_hour: parseFloat(r.total_hour)||0,
+      total_cost: parseFloat(r.total_cost)||0,
+    }));
     bomGroups=JSON.parse(JSON.stringify(rec.groups||[]));
     bomGroups.forEach(g=>{
       if(!g.dlfohLines) g.dlfohLines=[];
@@ -2644,6 +2851,7 @@ function openBomForm(id){try{
     setVal('bom_usd_rate_snap',bomUsdRate);
   }
   renderBomGroups();
+  renderBomRouting();
   const bfs=ge('bom_form_section');if(bfs)bfs.scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openBomForm:",e);}}
 
@@ -2651,6 +2859,7 @@ function closeBomForm(){try{
   setDisp('bom_form_section','none');
   const blc=ge('bom_list_card');if(blc)blc.style.display='';
   bomGroups=[];
+  bomRouting=[];
 }catch(e){console.warn("closeBomForm:",e);}}
 
 // ── MACHINE LINE GROUPS ──
@@ -3234,8 +3443,10 @@ function saveBom(){try{
     fiber_qty:(ge('bom_fiber_qty')||{value:''}).value,
     // price_id dihapus dari BOM form
     master_bom_id:(ge('bom_master_bom_id')||{value:''}).value,
+    item_code:(ge('bom_item_code')||{value:''}).value,
     usd_rate_snapshot: bomUsdRate||getLatestRate('USD'),
-    groups:JSON.parse(JSON.stringify(validGroups))
+    groups:JSON.parse(JSON.stringify(validGroups)),
+    routing:JSON.parse(JSON.stringify(bomRouting)),
   };
   console.log('saveBom payload:', {editId, product, groupCount:validGroups.length});
   if(typeof API!=='undefined'){
@@ -4871,16 +5082,16 @@ function showUploadResult(msg, added, updated, skipped){
 // AUTH & ROLES
 // ═══════════════════════════════════════════
 const ROLES_CONFIG = {
-  admin:             {label:'Administrator',          pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
-  editor:            {label:'Editor',                 pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
-  finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                canApprove:true,  canEdit:false},
-  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                canApprove:true,  canEdit:false},
-  vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                canApprove:true,  canEdit:false},
-  approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                canApprove:true,  canEdit:false},
-  viewer:            {label:'Viewer',                  pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
+  admin:             {label:'Administrator',          pages:['price','exrate','dlfoh','fgroute','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
+  editor:            {label:'Editor',                 pages:['price','exrate','dlfoh','fgroute','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
+  finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
+  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
+  vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
+  approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
+  viewer:            {label:'Viewer',                  pages:['price','exrate','dlfoh','fgroute','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
 };
 
-const ALL_PAGES = ['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles'];
+const ALL_PAGES = ['price','exrate','dlfoh','fgroute','kapasitas','masterbom','bom','history','cogs','roles'];
 
 let USERS = [
   {id:'u1', username:'admin',    password:'admin123',  nama:'Administrator',       role:'admin',            customPages:[]},
@@ -6363,18 +6574,38 @@ function calcCogsRow(r){
 
 // ── Open / Close form ──
 function openCogsForm(docId){
-  loadCogsDocs();
   cogsRows=[]; cogsEditId=docId||null; cogsRowSeq=0;
   setDisp('cogs_form_card','');
   setDisp('cogs_list_card','none');
   if(docId){
-    var doc=cogsDocs.find(function(d){return d.id===docId;});
+    var allDocs2=(DB&&DB.cogs&&DB.cogs.length)?DB.cogs:cogsDocs;
+    var doc=allDocs2.find(function(d){return d.id===docId;});
     if(!doc){toast('Dokumen tidak ditemukan.','error');return;}
     setText('cogs_form_title','Edit COGS: '+doc.name);
     setVal('cogs_doc_name',doc.name||'');
     setVal('cogs_doc_date',doc.date||'');
     setVal('cogs_doc_note',doc.note||'');
-    cogsRows=JSON.parse(JSON.stringify(doc.rows||[]));
+    // Normalisasi snake_case dari DB → camelCase yang dipakai JS frontend
+    cogsRows=(doc.rows||[]).map(function(r,i){
+      return {
+        _k: i+1,
+        bomId:     r.bomId     || r.bom_id      || '',
+        product:   r.product   || '',
+        project:   r.project   || '',
+        estQty:    parseFloat(r.estQty    || r.est_qty)   || 0,
+        jenisFiber:r.jenisFiber|| r.jenis_fiber || '',
+        fiberUSD:  parseFloat(r.fiberUSD  || r.fiber_usd) || 0,
+        rmOthers:  parseFloat(r.rmOthers  || r.rm_others) || 0,
+        usdRate:   parseFloat(r.usdRate   || r.usd_rate)  || 0,
+        totalIDR:  parseFloat(r.totalIDR  || r.total_idr) || 0,
+        dlIDR:     parseFloat(r.dlIDR     || r.dl_idr)    || 0,
+        fohfIDR:   parseFloat(r.fohfIDR   || r.fohf_idr)  || 0,
+        fohvIDR:   parseFloat(r.fohvIDR   || r.fohv_idr)  || 0,
+        cogsIDR:   parseFloat(r.cogsIDR   || r.cogs_idr)  || 0,
+        cogsUSD:   parseFloat(r.cogsUSD   || r.cogs_usd)  || 0,
+        note:      r.note || '',
+      };
+    });
     cogsRowSeq=cogsRows.length;
   } else {
     setText('cogs_form_title','COGS Summary Baru');
@@ -6513,53 +6744,58 @@ function saveCogsDoc(){
   var name=(ge('cogs_doc_name')||{value:''}).value.trim();
   if(!name){toast('Nama COGS Summary wajib diisi.','error');return;}
   if(!cogsRows.length){toast('Tambahkan minimal 1 baris BOM.','error');return;}
-  loadCogsDocs();
-  var now=nowStr();
-  var doc={
-    id:cogsEditId||('COGS-'+Date.now()),
+  var payload={
     name:name,
     date:(ge('cogs_doc_date')||{value:''}).value,
     note:(ge('cogs_doc_note')||{value:''}).value,
     rows:JSON.parse(JSON.stringify(cogsRows)),
-    totalCogsIDR:cogsRows.reduce(function(s,r){return s+(r.cogsIDR||0);},0),
-    totalCogsUSD:cogsRows.reduce(function(s,r){return s+(r.cogsUSD||0);},0),
-    createdAt:cogsEditId?(cogsDocs.find(function(d){return d.id===cogsEditId;})||{}).createdAt||now:now,
-    updatedAt:now,
   };
-  if(cogsEditId){
-    var idx=cogsDocs.findIndex(function(d){return d.id===cogsEditId;});
-    if(idx>-1) cogsDocs[idx]=doc; else cogsDocs.push(doc);
-  } else {
-    cogsDocs.push(doc);
+  var onDone=function(){
+    toast('COGS Summary berhasil disimpan.','success');
+    closeCogsForm();
+    loadAllData().then(function(){renderCogsList();updateCounts();});
+  };
+  if(typeof API!=='undefined'){
+    if(cogsEditId){
+      apiSave(API.cogs.update(cogsEditId,payload),onDone);
+    } else {
+      apiSave(API.cogs.create(payload),onDone);
+    }
+    return;
   }
-  saveCogsDocs();
-  toast('COGS Summary berhasil disimpan.','success');
-  closeCogsForm();
-  renderCogsList();
+  // Fallback localStorage (tidak digunakan jika API tersedia)
+  loadCogsDocs();
+  var doc=Object.assign({id:'COGS-'+Date.now(),createdAt:nowStr(),updatedAt:nowStr()},payload,
+    {totalCogsIDR:cogsRows.reduce(function(s,r){return s+(r.cogsIDR||0);},0),
+     totalCogsUSD:cogsRows.reduce(function(s,r){return s+(r.cogsUSD||0);},0)});
+  if(cogsEditId){var idx=cogsDocs.findIndex(function(d){return d.id===cogsEditId;});if(idx>-1)cogsDocs[idx]=doc;else cogsDocs.push(doc);}
+  else cogsDocs.push(doc);
+  saveCogsDocs(); toast('COGS Summary berhasil disimpan.','success'); closeCogsForm(); renderCogsList();
 }
 
 // ── List ──
 function filterCogsList(v){ cogsFilter=v.toLowerCase(); renderCogsList(); }
 
 function renderCogsList(){
-  loadCogsDocs();
   var tbody=document.getElementById('cogs_list_tbody');
   if(!tbody) return;
   var idFmt=function(v){return Number((v||0).toFixed(0)).toLocaleString('id-ID');};
-  var rows=cogsDocs.filter(function(d){
+  // Gunakan DB.cogs (dari API) jika tersedia, fallback ke localStorage
+  var allDocs=(DB&&DB.cogs&&DB.cogs.length)?DB.cogs:cogsDocs;
+  var rows=allDocs.filter(function(d){
     return !cogsFilter||(d.name||'').toLowerCase().includes(cogsFilter)||(d.date||'').includes(cogsFilter);
-  }).sort(function(a,b){return (b.createdAt||'')>(a.createdAt||'')?1:-1;});
-  var c=ge('cogs_count'); if(c) c.textContent=cogsDocs.length;
+  }).sort(function(a,b){return (b.created_dt||b.createdAt||'')>(a.created_dt||a.createdAt||'')?1:-1;});
+  var c=ge('cogs_count'); if(c) c.textContent=allDocs.length;
   if(!rows.length){
     tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">Belum ada COGS Summary. Klik "+ Buat COGS Summary".</td></tr>';
     return;
   }
   tbody.innerHTML=rows.map(function(d){return '<tr>'
-    +'<td><strong>'+escHtml(d.name)+'</strong><br><span style="font-size:.68rem;color:var(--muted)">'+(d.updatedAt||'')+'</span></td>'
+    +'<td><strong>'+escHtml(d.name)+'</strong><br><span style="font-size:.68rem;color:var(--muted)">'+(d.modified_dt||d.updatedAt||'')+'</span></td>'
     +'<td class="mono">'+(d.date||'—')+'</td>'
     +'<td style="text-align:center"><span class="badge badge-violet">'+((d.rows||[]).length)+' BOM</span></td>'
-    +'<td style="text-align:right;font-family:var(--fm);color:var(--green)">'+idFmt(d.totalCogsIDR)+'</td>'
-    +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(d.totalCogsUSD,4)+'</td>'
+    +'<td style="text-align:right;font-family:var(--fm);color:var(--green)">'+idFmt(d.total_cogs_idr||d.totalCogsIDR||0)+'</td>'
+    +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(d.total_cogs_usd||d.totalCogsUSD||0,4)+'</td>'
     +'<td class="muted" style="font-size:.72rem">'+(d.note||'—')+'</td>'
     +'<td><div style="display:flex;gap:.3rem">'
     +'<button class="btn btn-ghost btn-xs" onclick="viewCogsDoc(\''+d.id+'\')">👁 Detail</button>'
@@ -6570,17 +6806,22 @@ function renderCogsList(){
 
 function delCogsDoc(id){
   if(!confirm('Hapus COGS Summary ini?')) return;
+  if(typeof API!=='undefined'){
+    apiSave(API.cogs.delete(id),function(){
+      DB.cogs=DB.cogs.filter(function(d){return d.id!==id;});
+      renderCogsList(); updateCounts(); toast('COGS Summary dihapus.','info');
+    });
+    return;
+  }
   loadCogsDocs();
   cogsDocs=cogsDocs.filter(function(d){return d.id!==id;});
-  saveCogsDocs();
-  renderCogsList();
-  toast('COGS Summary dihapus.','info');
+  saveCogsDocs(); renderCogsList(); toast('COGS Summary dihapus.','info');
 }
 
 // ── View Detail ──
 function viewCogsDoc(id){
-  loadCogsDocs();
-  var doc=cogsDocs.find(function(d){return d.id===id;});
+  var allDocs3=(DB&&DB.cogs&&DB.cogs.length)?DB.cogs:cogsDocs;
+  var doc=allDocs3.find(function(d){return d.id===id;});
   if(!doc){toast('Dokumen tidak ditemukan.','error');return;}
   var modal=ge('detail_modal');
   var title=ge('detail_modal_title');
@@ -6588,7 +6829,24 @@ function viewCogsDoc(id){
   if(!modal||!body) return;
   if(title) title.textContent='Detail COGS — '+doc.name;
   var idFmt=function(v){return Number((v||0).toFixed(0)).toLocaleString('id-ID');};
-  var rows=doc.rows||[];
+  // Normalisasi snake_case dari DB → camelCase untuk display
+  var rows=(doc.rows||[]).map(function(r){return{
+    bomId:     r.bomId     ||r.bom_id     ||'',
+    product:   r.product   ||'',
+    project:   r.project   ||'',
+    estQty:    parseFloat(r.estQty    ||r.est_qty)  ||0,
+    jenisFiber:r.jenisFiber||r.jenis_fiber||'',
+    fiberUSD:  parseFloat(r.fiberUSD  ||r.fiber_usd)||0,
+    rmOthers:  parseFloat(r.rmOthers  ||r.rm_others)||0,
+    usdRate:   parseFloat(r.usdRate   ||r.usd_rate) ||0,
+    totalIDR:  parseFloat(r.totalIDR  ||r.total_idr)||0,
+    dlIDR:     parseFloat(r.dlIDR     ||r.dl_idr)   ||0,
+    fohfIDR:   parseFloat(r.fohfIDR   ||r.fohf_idr) ||0,
+    fohvIDR:   parseFloat(r.fohvIDR   ||r.fohv_idr) ||0,
+    cogsIDR:   parseFloat(r.cogsIDR   ||r.cogs_idr) ||0,
+    cogsUSD:   parseFloat(r.cogsUSD   ||r.cogs_usd) ||0,
+    note:      r.note||'',
+  };});
   var trs=rows.map(function(r,i){return '<tr style="border-bottom:1px solid rgba(255,255,255,.06)">'
     +'<td style="padding:.4rem .5rem;text-align:center;color:var(--muted)">'+(i+1)+'</td>'
     +'<td style="padding:.4rem .5rem"><span class="run-num" style="font-size:.7rem">'+(r.bomId||'—')+'</span></td>'
@@ -6617,8 +6875,8 @@ function viewCogsDoc(id){
     +'<td style="padding:.4rem .5rem;text-align:right">'+idFmt(rows.reduce(function(s,r){return s+(r.dlIDR||0);},0))+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right">'+idFmt(rows.reduce(function(s,r){return s+(r.fohfIDR||0);},0))+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right">'+idFmt(rows.reduce(function(s,r){return s+(r.fohvIDR||0);},0))+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--green);font-size:.85rem">'+idFmt(doc.totalCogsIDR||0)+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan);font-size:.85rem">'+fmt_num(doc.totalCogsUSD||0,4)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--green);font-size:.85rem">'+idFmt(doc.total_cogs_idr||doc.totalCogsIDR||0)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan);font-size:.85rem">'+fmt_num(doc.total_cogs_usd||doc.totalCogsUSD||0,4)+'</td>'
     +'<td></td></tr>';
   body.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:1rem;padding:.75rem;background:var(--s2);border-radius:var(--r)">'
     +'<div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase">Nama</div><div style="font-weight:700">'+escHtml(doc.name)+'</div></div>'
@@ -6645,8 +6903,144 @@ function viewCogsDoc(id){
 }
 
 function onPageCogs(){
-  loadCogsDocs();
   renderCogsList();
+}
+
+// ═══════════════════════════════════════════
+// MASTER FG ROUTING
+// ═══════════════════════════════════════════
+let fgrLines=[];     // lines untuk FG route yang sedang diedit
+let fgrEditCode=null; // item_code yang sedang diedit (null = baru)
+
+function openFGRouteForm(itemCode){
+  fgrEditCode=itemCode||null;
+  fgrLines=[];
+  setVal('fgrItemCode',''); setVal('fgrItemName','');
+  if(itemCode){
+    setVal('fgrItemCode',itemCode);
+    const routes=DB.fgRoutes.filter(r=>r.item_code===itemCode);
+    if(routes.length){
+      setVal('fgrItemName',routes[0].item_name||'');
+      fgrLines=routes.map(r=>({
+        cat:r.cat||'',cat_desc:r.cat_desc||'',type:r.type||'',
+        process_time:parseFloat(r.process_time)||0,
+        setup_time:parseFloat(r.setup_time)||0,
+        factor:parseFloat(r.factor)||1,
+      }));
+    }
+  }
+  renderFGRLines();
+  setDisp('fgrouteForm','');
+  setText('fgrouteFormTitle',itemCode?'Edit Routing: '+itemCode:'Tambah Routing FG');
+  ge('fgrouteForm')&&ge('fgrouteForm').scrollIntoView({behavior:'smooth'});
+}
+
+function closeFGRouteForm(){ setDisp('fgrouteForm','none'); }
+
+function addFGRouteLine(){
+  fgrLines.push({cat:'',cat_desc:'',type:'',process_time:0,setup_time:0,factor:1});
+  renderFGRLines();
+}
+
+function renderFGRLines(){
+  const tbody=ge('fgrLinesTbody'); if(!tbody) return;
+  tbody.innerHTML='';
+  if(!fgrLines.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#888;font-style:italic">Belum ada routing line</td></tr>';
+    return;
+  }
+  fgrLines.forEach(function(r,i){
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+(i+1)+'</td>'
+      +'<td><div style="display:flex;gap:2px">'
+      +'<input type="text" value="'+escHtml(r.cat||'')+'" id="fgrCat'+i+'" style="width:80px" readonly>'
+      +'<span class="search-icon clickable" title="Cari DL-FOH" onclick="openSearchModal(\'dlfoh\',\'fgrCat'+i+'\',\'fgrCatDesc'+i+'\',{g:\'fgr\',l:'+i+'})">🔍</span>'
+      +'</div></td>'
+      +'<td><input type="text" id="fgrCatDesc'+i+'" value="'+escHtml(r.cat_desc||'')+'" style="width:120px" readonly></td>'
+      +'<td><input type="text" id="fgrType'+i+'" value="'+escHtml(r.type||'')+'" style="width:60px" readonly></td>'
+      +'<td><input type="number" id="fgrPT'+i+'" value="'+(r.process_time||0)+'" step="0.0001" style="width:90px" oninput="syncFGRLine('+i+')"></td>'
+      +'<td><input type="number" id="fgrST'+i+'" value="'+(r.setup_time||0)+'" step="0.0001" style="width:80px" oninput="syncFGRLine('+i+')"></td>'
+      +'<td><input type="number" id="fgrFactor'+i+'" value="'+(r.factor||1)+'" step="0.0001" style="width:70px" oninput="syncFGRLine('+i+')"></td>'
+      +'<td><button type="button" onclick="removeFGRLine('+i+')" class="btn btn-danger btn-xs">✕</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function syncFGRLine(i){
+  if(!fgrLines[i]) return;
+  fgrLines[i].process_time=parseFloat(ge('fgrPT'+i)?.value||0);
+  fgrLines[i].setup_time=parseFloat(ge('fgrST'+i)?.value||0);
+  fgrLines[i].factor=parseFloat(ge('fgrFactor'+i)?.value||1);
+}
+
+function removeFGRLine(i){ fgrLines.splice(i,1); renderFGRLines(); }
+
+function saveFGRoute(){
+  const itemCode=(ge('fgrItemCode')||{value:''}).value.trim();
+  const itemName=(ge('fgrItemName')||{value:''}).value.trim();
+  if(!itemCode){toast('Item Code FG wajib.','error');return;}
+  if(!fgrLines.length){toast('Minimal 1 routing line.','error');return;}
+  // Sync all lines from DOM
+  fgrLines.forEach(function(_,i){
+    syncFGRLine(i);
+    fgrLines[i].cat=(ge('fgrCat'+i)||{value:fgrLines[i].cat}).value||fgrLines[i].cat;
+    fgrLines[i].cat_desc=(ge('fgrCatDesc'+i)||{value:fgrLines[i].cat_desc}).value||fgrLines[i].cat_desc;
+    fgrLines[i].type=(ge('fgrType'+i)||{value:fgrLines[i].type}).value||fgrLines[i].type;
+  });
+  apiSave(API.fgRoutes.save({item_code:itemCode,item_name:itemName,routes:fgrLines}),function(){
+    toast('FG Routing disimpan.','success');
+    loadAllData().then(function(){renderFGRouteList();updateCounts();});
+    closeFGRouteForm();
+  });
+}
+
+function deleteFGRoute(itemCode){
+  if(!confirm('Hapus semua routing untuk item '+itemCode+'?')) return;
+  apiSave(API.fgRoutes.del(itemCode),function(){
+    DB.fgRoutes=DB.fgRoutes.filter(r=>r.item_code!==itemCode);
+    renderFGRouteList(); updateCounts();
+    toast('FG Routing dihapus.','info');
+  });
+}
+
+function filterFGRoute(){ renderFGRouteList(); }
+
+function renderFGRouteList(){
+  const q=(ge('fgrouteSearch')?.value||'').toLowerCase();
+  // Group by item_code
+  const grouped={};
+  for(const r of DB.fgRoutes){
+    if(!grouped[r.item_code]) grouped[r.item_code]={item_code:r.item_code,item_name:r.item_name||'',routes:[]};
+    grouped[r.item_code].routes.push(r);
+  }
+  let items=Object.values(grouped);
+  if(q) items=items.filter(it=>it.item_code.toLowerCase().includes(q)||it.item_name.toLowerCase().includes(q));
+  setText('fgroute_count',Object.keys(grouped).length);
+  const container=ge('fgrouteList'); if(!container) return;
+  if(!items.length){container.innerHTML='<div class="empty-state">Belum ada data FG Routing.</div>';return;}
+  container.innerHTML=items.map(function(it){
+    const rows=it.routes.map(function(r,i){
+      return '<tr><td>'+(i+1)+'</td><td>'+escHtml(r.cat||'')+'</td><td>'+escHtml(r.cat_desc||'')+'</td>'
+        +'<td>'+escHtml(r.type||'')+'</td>'
+        +'<td style="text-align:right">'+parseFloat(r.process_time||0).toFixed(4)+'</td>'
+        +'<td style="text-align:right">'+parseFloat(r.setup_time||0).toFixed(4)+'</td>'
+        +'<td style="text-align:right">'+parseFloat(r.factor||1).toFixed(4)+'</td></tr>';
+    }).join('');
+    return '<div class="card" style="margin-bottom:.5rem">'
+      +'<div class="card-header" style="display:flex;justify-content:space-between;align-items:center">'
+      +'<div><strong>'+escHtml(it.item_code)+'</strong>'
+      +'<span style="color:#888;margin-left:.5rem">'+escHtml(it.item_name)+'</span>'
+      +'<span style="font-size:.7rem;background:rgba(34,211,238,.12);padding:.1rem .35rem;border-radius:3px;margin-left:.5rem">'+it.routes.length+' routes</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:.25rem">'
+      +'<button onclick="openFGRouteForm(\''+escHtml(it.item_code)+'\')" class="btn btn-secondary btn-xs">Edit</button>'
+      +'<button onclick="deleteFGRoute(\''+escHtml(it.item_code)+'\')" class="btn btn-danger btn-xs">Hapus</button>'
+      +'</div></div>'
+      +'<div style="overflow-x:auto"><table class="tbl" style="font-size:.78rem;min-width:500px">'
+      +'<thead><tr><th>#</th><th>CAT</th><th>Deskripsi</th><th>Type</th>'
+      +'<th>Process Time</th><th>Setup Time</th><th>Factor</th></tr></thead>'
+      +'<tbody>'+rows+'</tbody></table></div></div>';
+  }).join('');
 }
 </script>
 <script>

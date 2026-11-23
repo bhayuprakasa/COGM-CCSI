@@ -240,6 +240,86 @@ async function initSchema() {
       `CREATE TABLE IF NOT EXISTS sequences (
         name VARCHAR(50) PRIMARY KEY, value INT DEFAULT 0
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+      // Snapshot exchange rate saat BOM dibuat/diupdate — multi-currency support
+      `CREATE TABLE IF NOT EXISTS bom_rate_snapshots (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        bom_id VARCHAR(100) NOT NULL,
+        currency VARCHAR(20) NOT NULL,
+        rate DECIMAL(20,6) DEFAULT 0,
+        snapped_dt VARCHAR(50),
+        UNIQUE KEY uk_bom_currency (bom_id, currency),
+        FOREIGN KEY (bom_id) REFERENCES bom(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+      // Master routing tenaga kerja/overhead per FG item (terpisah dari BOM)
+      `CREATE TABLE IF NOT EXISTS fg_routes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        item_code VARCHAR(100) NOT NULL,
+        item_name VARCHAR(255) DEFAULT '',
+        cat VARCHAR(100) NOT NULL,
+        cat_desc VARCHAR(255) DEFAULT '',
+        type VARCHAR(50) DEFAULT '',
+        process_time DECIMAL(15,6) DEFAULT 0,
+        setup_time DECIMAL(10,4) DEFAULT 0,
+        factor DECIMAL(10,4) DEFAULT 1,
+        sort_order INT DEFAULT 0,
+        created_by VARCHAR(100), created_dt VARCHAR(50),
+        modified_by VARCHAR(100), modified_dt VARCHAR(50),
+        INDEX idx_fg_routes_item (item_code)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+      // Routing DL-FOH di level BOM (bukan group-level) — sumber dari fg_routes
+      `CREATE TABLE IF NOT EXISTS bom_routing (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        bom_id VARCHAR(100) NOT NULL,
+        cat VARCHAR(100) DEFAULT '',
+        type VARCHAR(50) DEFAULT '',
+        process_time DECIMAL(15,6) DEFAULT 0,
+        setup_time DECIMAL(10,4) DEFAULT 0,
+        factor DECIMAL(10,4) DEFAULT 1,
+        total_hour DECIMAL(15,6) DEFAULT 0,
+        total_cost DECIMAL(20,4) DEFAULT 0,
+        sort_order INT DEFAULT 0,
+        FOREIGN KEY (bom_id) REFERENCES bom(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+      // Header dokumen COGS Summary
+      `CREATE TABLE IF NOT EXISTS cogs_summary (
+        id VARCHAR(100) PRIMARY KEY,
+        cogsid VARCHAR(50) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        date VARCHAR(50),
+        note TEXT,
+        total_cogs_idr DECIMAL(20,4) DEFAULT 0,
+        total_cogs_usd DECIMAL(20,6) DEFAULT 0,
+        created_by VARCHAR(100), created_dt VARCHAR(50),
+        modified_by VARCHAR(100), modified_dt VARCHAR(50)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+      // Baris BOM dalam dokumen COGS Summary
+      `CREATE TABLE IF NOT EXISTS cogs_summary_lines (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        cogs_id VARCHAR(100) NOT NULL,
+        bom_id VARCHAR(100),
+        bom_number VARCHAR(50),
+        product VARCHAR(255),
+        project VARCHAR(255),
+        est_qty DECIMAL(15,4) DEFAULT 0,
+        jenis_fiber VARCHAR(100),
+        fiber_usd DECIMAL(20,6) DEFAULT 0,
+        rm_others DECIMAL(20,6) DEFAULT 0,
+        usd_rate DECIMAL(20,4) DEFAULT 0,
+        total_idr DECIMAL(20,4) DEFAULT 0,
+        dl_idr DECIMAL(20,4) DEFAULT 0,
+        fohf_idr DECIMAL(20,4) DEFAULT 0,
+        fohv_idr DECIMAL(20,4) DEFAULT 0,
+        cogs_idr DECIMAL(20,4) DEFAULT 0,
+        cogs_usd DECIMAL(20,6) DEFAULT 0,
+        note VARCHAR(255),
+        sort_order INT DEFAULT 0,
+        FOREIGN KEY (cogs_id) REFERENCES cogs_summary(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
     ];
 
     for (const sql of tables) {
@@ -268,14 +348,17 @@ async function initSchema() {
       { table:'item_prices',     col:'loose_tube_qty',    def:'INT DEFAULT 0' },
       { table:'item_prices',     col:'fiber_per_tube_qty',def:'INT DEFAULT 0' },
       { table:'item_prices',     col:'total_fiber_qty',   def:'INT DEFAULT 0' },
+      { table:'masterbom',       col:'product_code',      def:"VARCHAR(100) DEFAULT ''" },
+      // item_code di tabel bom — FG item yang di-link ke fg_routes
+      { table:'bom',             col:'item_code',         def:"VARCHAR(100) DEFAULT ''" },
     ];
 
     // Batch check all columns at once — include all tables and columns being migrated
     const [existing] = await conn.execute(
       `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = ?
-         AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices')
-         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','product_code','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom')`,
+         AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices','masterbom')
+         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code')`
       [cfg.database]
     );
     const existSet = new Set(existing.map(r => `${r.TABLE_NAME.toLowerCase()}.${r.COLUMN_NAME.toLowerCase()}`));
@@ -288,7 +371,7 @@ async function initSchema() {
     }
 
     // ── Seed sequences ──
-    for (const name of ['item','price','kap','masterbom','bom']) {
+    for (const name of ['item','price','kap','masterbom','bom','cogs']) {
       await conn.execute(`INSERT IGNORE INTO sequences (name,value) VALUES (?,0)`, [name]);
     }
 
