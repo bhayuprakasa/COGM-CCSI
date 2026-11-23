@@ -6240,8 +6240,10 @@ function getCogsBomData(bomId){
   var bom=allBom.find(function(b){return b.id===bomId||b.bomid===bomId;});
   if(!bom) return null;
 
-  var allLines=(bom.groups||[]).reduce(function(a,g){return a.concat(g.lines||[]);}, []);
-  var allDlfoh=(bom.groups||[]).reduce(function(a,g){return a.concat(g.dlfohLines||[]);}, []);
+  // groups bisa berupa array (dari API) atau object (dari CSV import)
+  var groupsArr=Array.isArray(bom.groups)?bom.groups:Object.values(bom.groups||{});
+  var allLines=groupsArr.reduce(function(a,g){return a.concat(g.lines||[]);}, []);
+  var allDlfoh=groupsArr.reduce(function(a,g){return a.concat(g.dlfohLines||[]);}, []);
 
   // Fiber: items whose name/code matches fiber keywords
   var fiberLines=allLines.filter(function(l){
@@ -6249,16 +6251,55 @@ function getCogsBomData(bomId){
   });
   var fiberUSD  =fiberLines.reduce(function(s,l){return s+(parseFloat(l.total_amt)||0);},0);
   var totalUSD  =allLines.reduce(function(s,l){return s+(parseFloat(l.total_amt)||0);},0);
+
+  // Fallback: jika total_amt semua 0 tapi BOM punya price_id, hitung ulang dari price list
+  if(totalUSD===0 && bom.price_id && DB.prices){
+    var priceRec=DB.prices.find(function(p){return p.id===bom.price_id;});
+    if(priceRec){
+      allLines.forEach(function(l){
+        var pl=(priceRec.lines||[]).find(function(pl){return pl.item_code===l.item_code;});
+        if(pl && (l.total_qty||0)>0){
+          var rateConv=getLatestConversion(pl.currency||'USD');
+          var amt=(parseFloat(l.total_qty)||0)*(parseFloat(pl.price)||0)
+                  *(1+((parseFloat(pl.landed)||0)+(parseFloat(pl.hedging)||0))/100)*rateConv;
+          l._calc_total_amt=amt;
+        }
+      });
+      var getAmt=function(l){return parseFloat(l.total_amt)||parseFloat(l._calc_total_amt)||0;};
+      fiberUSD=fiberLines.reduce(function(s,l){return s+getAmt(l);},0);
+      totalUSD=allLines.reduce(function(s,l){return s+getAmt(l);},0);
+    }
+  }
   var rmOthers  =totalUSD-fiberUSD;
   var usdRate   =getLatestRate('USD');
 
-  // DL/FOH by type — look up type from DB.dlfoh (source of truth)
+  // Auto-detect jenis fiber dari item_name fiber line, lalu fallback ke product name
+  var jenisFiber='';
+  var fiberSpec=/\b(SM\s+G\d{3}\w*|MM\s+OM\d|SMF\s+G\d{3}\w*|MMF\s+OM\d|G\d{3}\w*|OM[1-4]|SMF|MMF)\b/i;
+  if(fiberLines.length){
+    var m=(fiberLines[0].item_name||'').match(fiberSpec)
+       ||(fiberLines[0].item_code||'').match(fiberSpec);
+    if(m) jenisFiber=m[0].replace(/\s+/g,' ').trim();
+    // fallback: gunakan item_name pendek jika tidak ada pola standar
+    if(!jenisFiber && (fiberLines[0].item_name||'').length<=40)
+      jenisFiber=fiberLines[0].item_name||'';
+  }
+  if(!jenisFiber){
+    var mp=(bom.product||'').match(fiberSpec);
+    if(mp) jenisFiber=mp[0].replace(/\s+/g,' ').trim();
+  }
+
+  // DL/FOH by type — look up type & rate from DB.dlfoh (source of truth)
+  // fallback: hitung total_cost dari total_hour × rate jika total_cost = 0
   function sumDlfohType(typeFilter){
     return allDlfoh.reduce(function(s,dl){
       var rec=DB.dlfoh.find(function(d){return d.catid===dl.cat;});
       var t=rec?rec.type:(dl.type||'');
-      if(typeFilter(t)) return s+(parseFloat(dl.total_cost)||0);
-      return s;
+      if(!typeFilter(t)) return s;
+      var cost=parseFloat(dl.total_cost)||0;
+      if(cost===0 && rec && (parseFloat(dl.total_hour)||0)>0)
+        cost=(parseFloat(dl.total_hour)||0)*(parseFloat(rec.rate)||0);
+      return s+cost;
     },0);
   }
   var dlIDR  =sumDlfohType(function(t){return t==='Labour';});
@@ -6267,6 +6308,7 @@ function getCogsBomData(bomId){
 
   return {
     product:bom.product||'', project:bom.project||'',
+    jenisFiber:jenisFiber,
     fiberUSD:fiberUSD, rmOthers:rmOthers, usdRate:usdRate,
     dlIDR:dlIDR, fohfIDR:fohfIDR, fohvIDR:fohvIDR, bomid:bom.bomid
   };
@@ -6330,6 +6372,8 @@ function onCogsBomPick(k, bomId){
   var d=getCogsBomData(bomId);
   if(d){
     r.product=d.product; r.project=d.project;
+    // auto-fill jenis fiber jika field masih kosong atau BOM baru dipilih
+    if(d.jenisFiber) r.jenisFiber=d.jenisFiber;
     r.fiberUSD=d.fiberUSD; r.rmOthers=d.rmOthers;
     r.usdRate=d.usdRate;
     r.dlIDR=d.dlIDR; r.fohfIDR=d.fohfIDR; r.fohvIDR=d.fohvIDR;
