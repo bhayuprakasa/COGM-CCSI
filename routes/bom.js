@@ -382,4 +382,103 @@ async function insertBomGroups(bomId, groups) {
   }
 }
 
+// ── COGS SUMMARY ──
+
+router.get('/cogs', requireAuth, async (req, res) => {
+  try {
+    const docs = await query(`SELECT * FROM cogs_summary ORDER BY date DESC, created_dt DESC`);
+    for (const d of docs) {
+      d.rows = await query(
+        `SELECT * FROM cogs_summary_lines WHERE cogs_id = ? ORDER BY sort_order`,
+        [d.id]
+      );
+    }
+    res.json(docs);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/cogs', requireEdit, async (req, res) => {
+  try {
+    const { name, date, note, rows } = req.body;
+    if (!name) return res.status(400).json({ error: 'Nama COGS Summary wajib.' });
+
+    const seq    = await nextSeq('cogs');
+    const cogsid = 'COGS-' + String(seq).padStart(4, '0');
+    const id     = 'COGSDOC-' + cogsid;
+
+    const totalCogsIdr = (rows || []).reduce((s, r) => s + (parseFloat(r.cogsIDR || r.cogs_idr) || 0), 0);
+    const totalCogsUsd = (rows || []).reduce((s, r) => s + (parseFloat(r.cogsUSD || r.cogs_usd) || 0), 0);
+
+    await query(
+      `INSERT INTO cogs_summary (id,cogsid,name,date,note,total_cogs_idr,total_cogs_usd,created_by,created_dt,modified_by,modified_dt)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+      [id, cogsid, name, date || '', note || '', totalCogsIdr, totalCogsUsd, who(req), now(), who(req), now()]
+    );
+
+    await insertCogsLines(id, rows || []);
+    res.json({ id, cogsid });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.put('/cogs/:id', requireEdit, async (req, res) => {
+  try {
+    const { name, date, note, rows } = req.body;
+    const [existing] = await query(`SELECT id FROM cogs_summary WHERE id = ?`, [req.params.id]);
+    if (!existing) return res.status(404).json({ error: 'COGS Summary tidak ditemukan.' });
+
+    const totalCogsIdr = (rows || []).reduce((s, r) => s + (parseFloat(r.cogsIDR || r.cogs_idr) || 0), 0);
+    const totalCogsUsd = (rows || []).reduce((s, r) => s + (parseFloat(r.cogsUSD || r.cogs_usd) || 0), 0);
+
+    await query(
+      `UPDATE cogs_summary SET name=?,date=?,note=?,total_cogs_idr=?,total_cogs_usd=?,modified_by=?,modified_dt=? WHERE id=?`,
+      [name, date || '', note || '', totalCogsIdr, totalCogsUsd, who(req), now(), req.params.id]
+    );
+    await query(`DELETE FROM cogs_summary_lines WHERE cogs_id = ?`, [req.params.id]);
+    await insertCogsLines(req.params.id, rows || []);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/cogs/:id', requireEdit, async (req, res) => {
+  try {
+    const [existing] = await query(`SELECT id FROM cogs_summary WHERE id = ?`, [req.params.id]);
+    if (!existing) return res.status(404).json({ error: 'COGS Summary tidak ditemukan.' });
+    await query(`DELETE FROM cogs_summary_lines WHERE cogs_id = ?`, [req.params.id]);
+    await query(`DELETE FROM cogs_summary WHERE id = ?`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+async function insertCogsLines(cogsId, rows) {
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    await query(
+      `INSERT INTO cogs_summary_lines
+       (cogs_id,bom_id,bom_number,product,project,est_qty,jenis_fiber,
+        fiber_usd,rm_others,usd_rate,total_idr,dl_idr,fohf_idr,fohv_idr,cogs_idr,cogs_usd,note,sort_order)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [
+        cogsId,
+        r.bomId      || r.bom_id      || '',
+        r.bomid      || r.bom_number  || '',
+        r.product    || '',
+        r.project    || '',
+        parseFloat(r.estQty    || r.est_qty)   || 0,
+        r.jenisFiber || r.jenis_fiber           || '',
+        parseFloat(r.fiberUSD  || r.fiber_usd)  || 0,
+        parseFloat(r.rmOthers  || r.rm_others)  || 0,
+        parseFloat(r.usdRate   || r.usd_rate)   || 0,
+        parseFloat(r.totalIDR  || r.total_idr)  || 0,
+        parseFloat(r.dlIDR     || r.dl_idr)     || 0,
+        parseFloat(r.fohfIDR   || r.fohf_idr)   || 0,
+        parseFloat(r.fohvIDR   || r.fohv_idr)   || 0,
+        parseFloat(r.cogsIDR   || r.cogs_idr)   || 0,
+        parseFloat(r.cogsUSD   || r.cogs_usd)   || 0,
+        r.note || '',
+        i,
+      ]
+    );
+  }
+}
+
 module.exports = router;

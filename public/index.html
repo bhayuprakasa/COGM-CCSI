@@ -1639,7 +1639,7 @@ window.serverLogout = async function() {
 
 // ── Load ALL data from server → fully replace in-memory DB ──
 window.loadAllData = async function() {
-  const [itemPrices, fgItems, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs] = await Promise.all([
+  const [itemPrices, fgItems, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs, cogs] = await Promise.all([
     apiGet('/item-prices'),  // item_prices sekarang menggantikan items sebagai master data
     apiGet('/items/fg'),     // master FG (is_fg=1) untuk dropdown item code di Master BOM
     apiGet('/prices'),
@@ -1651,6 +1651,7 @@ window.loadAllData = async function() {
     apiGet('/bom'),
     apiGet('/bom/history'),
     apiGet('/sequences'),
+    apiGet('/cogs'),
   ]);
 
   // Fully replace — never merge with seed/sample data
@@ -1664,6 +1665,7 @@ window.loadAllData = async function() {
   DB.masterbom  = masterbom  || [];
   DB.bom        = bom        || [];
   DB.bomHistory = history    || [];
+  DB.cogs       = cogs       || [];
 
   // Sync sequence counters to avoid ID collisions
   if (seqs) {
@@ -1676,8 +1678,32 @@ window.loadAllData = async function() {
 
   console.log('✅ DB loaded from server:', {
     itemPrices: DB_itemPrices.length, prices: DB.prices.length,
-    mesin: DB.mesin.length, bom: DB.bom.length,
+    mesin: DB.mesin.length, bom: DB.bom.length, cogs: DB.cogs.length,
   });
+
+  // Migrasi satu kali: data COGS dari localStorage → API (jika ada dan DB.cogs masih kosong)
+  if (!DB.cogs.length) {
+    try {
+      var legacy = JSON.parse(localStorage.getItem('cogm_cogs_docs') || '[]');
+      if (legacy.length) {
+        for (var _cd of legacy) {
+          try {
+            await apiPost('/cogs', {
+              name: _cd.name || 'Legacy COGS',
+              date: _cd.date || '',
+              note: _cd.note || '',
+              rows: (_cd.rows || []).map(function(r){ return r; }),
+            });
+          } catch(e) { console.warn('Migration cogs row failed:', e); }
+        }
+        localStorage.removeItem('cogm_cogs_docs');
+        const migratedCogs = await apiGet('/cogs');
+        DB.cogs = migratedCogs || [];
+        console.log('✅ Migrated', legacy.length, 'COGS docs from localStorage to DB');
+      }
+    } catch(e) { console.warn('COGS migration failed:', e); }
+  }
+
   return true;
 };
 
@@ -1705,7 +1731,14 @@ window.API = {
     delete:  id          => apiDelete('/bom/'+id),
     submit:  id          => apiPost('/bom/'+id+'/submit', {}),
     cancel:  id          => apiPost('/bom/'+id+'/cancel',  {}),
-    approve: (id,status,note) => apiPost('/bom/'+id+'/approve', {status, note}),
+    approve:     (id,status,note) => apiPost('/bom/'+id+'/approve', {status, note}),
+    recalculate: id              => apiPost('/bom/'+id+'/recalculate', {}),
+  },
+  cogs: {
+    list:   ()        => apiGet('/cogs'),
+    create: d         => apiPost('/cogs', d),
+    update: (id, d)   => apiPut('/cogs/' + id, d),
+    delete: id        => apiDelete('/cogs/' + id),
   },
   users: {
     list:   ()     => apiGet('/users'),
@@ -1758,6 +1791,7 @@ const DB = {
   mesin:    [],
   masterbom:[],
   bomHistory: [],
+  cogs:       [],
   itemHistory: {},
 };
 
@@ -6325,18 +6359,38 @@ function calcCogsRow(r){
 
 // ── Open / Close form ──
 function openCogsForm(docId){
-  loadCogsDocs();
   cogsRows=[]; cogsEditId=docId||null; cogsRowSeq=0;
   setDisp('cogs_form_card','');
   setDisp('cogs_list_card','none');
   if(docId){
-    var doc=cogsDocs.find(function(d){return d.id===docId;});
+    var allDocs2=(DB&&DB.cogs&&DB.cogs.length)?DB.cogs:cogsDocs;
+    var doc=allDocs2.find(function(d){return d.id===docId;});
     if(!doc){toast('Dokumen tidak ditemukan.','error');return;}
     setText('cogs_form_title','Edit COGS: '+doc.name);
     setVal('cogs_doc_name',doc.name||'');
     setVal('cogs_doc_date',doc.date||'');
     setVal('cogs_doc_note',doc.note||'');
-    cogsRows=JSON.parse(JSON.stringify(doc.rows||[]));
+    // Normalisasi snake_case dari DB → camelCase yang dipakai JS frontend
+    cogsRows=(doc.rows||[]).map(function(r,i){
+      return {
+        _k: i+1,
+        bomId:     r.bomId     || r.bom_id      || '',
+        product:   r.product   || '',
+        project:   r.project   || '',
+        estQty:    parseFloat(r.estQty    || r.est_qty)   || 0,
+        jenisFiber:r.jenisFiber|| r.jenis_fiber || '',
+        fiberUSD:  parseFloat(r.fiberUSD  || r.fiber_usd) || 0,
+        rmOthers:  parseFloat(r.rmOthers  || r.rm_others) || 0,
+        usdRate:   parseFloat(r.usdRate   || r.usd_rate)  || 0,
+        totalIDR:  parseFloat(r.totalIDR  || r.total_idr) || 0,
+        dlIDR:     parseFloat(r.dlIDR     || r.dl_idr)    || 0,
+        fohfIDR:   parseFloat(r.fohfIDR   || r.fohf_idr)  || 0,
+        fohvIDR:   parseFloat(r.fohvIDR   || r.fohv_idr)  || 0,
+        cogsIDR:   parseFloat(r.cogsIDR   || r.cogs_idr)  || 0,
+        cogsUSD:   parseFloat(r.cogsUSD   || r.cogs_usd)  || 0,
+        note:      r.note || '',
+      };
+    });
     cogsRowSeq=cogsRows.length;
   } else {
     setText('cogs_form_title','COGS Summary Baru');
@@ -6475,53 +6529,58 @@ function saveCogsDoc(){
   var name=(ge('cogs_doc_name')||{value:''}).value.trim();
   if(!name){toast('Nama COGS Summary wajib diisi.','error');return;}
   if(!cogsRows.length){toast('Tambahkan minimal 1 baris BOM.','error');return;}
-  loadCogsDocs();
-  var now=nowStr();
-  var doc={
-    id:cogsEditId||('COGS-'+Date.now()),
+  var payload={
     name:name,
     date:(ge('cogs_doc_date')||{value:''}).value,
     note:(ge('cogs_doc_note')||{value:''}).value,
     rows:JSON.parse(JSON.stringify(cogsRows)),
-    totalCogsIDR:cogsRows.reduce(function(s,r){return s+(r.cogsIDR||0);},0),
-    totalCogsUSD:cogsRows.reduce(function(s,r){return s+(r.cogsUSD||0);},0),
-    createdAt:cogsEditId?(cogsDocs.find(function(d){return d.id===cogsEditId;})||{}).createdAt||now:now,
-    updatedAt:now,
   };
-  if(cogsEditId){
-    var idx=cogsDocs.findIndex(function(d){return d.id===cogsEditId;});
-    if(idx>-1) cogsDocs[idx]=doc; else cogsDocs.push(doc);
-  } else {
-    cogsDocs.push(doc);
+  var onDone=function(){
+    toast('COGS Summary berhasil disimpan.','success');
+    closeCogsForm();
+    loadAllData().then(function(){renderCogsList();updateCounts();});
+  };
+  if(typeof API!=='undefined'){
+    if(cogsEditId){
+      apiSave(API.cogs.update(cogsEditId,payload),onDone);
+    } else {
+      apiSave(API.cogs.create(payload),onDone);
+    }
+    return;
   }
-  saveCogsDocs();
-  toast('COGS Summary berhasil disimpan.','success');
-  closeCogsForm();
-  renderCogsList();
+  // Fallback localStorage (tidak digunakan jika API tersedia)
+  loadCogsDocs();
+  var doc=Object.assign({id:'COGS-'+Date.now(),createdAt:nowStr(),updatedAt:nowStr()},payload,
+    {totalCogsIDR:cogsRows.reduce(function(s,r){return s+(r.cogsIDR||0);},0),
+     totalCogsUSD:cogsRows.reduce(function(s,r){return s+(r.cogsUSD||0);},0)});
+  if(cogsEditId){var idx=cogsDocs.findIndex(function(d){return d.id===cogsEditId;});if(idx>-1)cogsDocs[idx]=doc;else cogsDocs.push(doc);}
+  else cogsDocs.push(doc);
+  saveCogsDocs(); toast('COGS Summary berhasil disimpan.','success'); closeCogsForm(); renderCogsList();
 }
 
 // ── List ──
 function filterCogsList(v){ cogsFilter=v.toLowerCase(); renderCogsList(); }
 
 function renderCogsList(){
-  loadCogsDocs();
   var tbody=document.getElementById('cogs_list_tbody');
   if(!tbody) return;
   var idFmt=function(v){return Number((v||0).toFixed(0)).toLocaleString('id-ID');};
-  var rows=cogsDocs.filter(function(d){
+  // Gunakan DB.cogs (dari API) jika tersedia, fallback ke localStorage
+  var allDocs=(DB&&DB.cogs&&DB.cogs.length)?DB.cogs:cogsDocs;
+  var rows=allDocs.filter(function(d){
     return !cogsFilter||(d.name||'').toLowerCase().includes(cogsFilter)||(d.date||'').includes(cogsFilter);
-  }).sort(function(a,b){return (b.createdAt||'')>(a.createdAt||'')?1:-1;});
-  var c=ge('cogs_count'); if(c) c.textContent=cogsDocs.length;
+  }).sort(function(a,b){return (b.created_dt||b.createdAt||'')>(a.created_dt||a.createdAt||'')?1:-1;});
+  var c=ge('cogs_count'); if(c) c.textContent=allDocs.length;
   if(!rows.length){
     tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">Belum ada COGS Summary. Klik "+ Buat COGS Summary".</td></tr>';
     return;
   }
   tbody.innerHTML=rows.map(function(d){return '<tr>'
-    +'<td><strong>'+escHtml(d.name)+'</strong><br><span style="font-size:.68rem;color:var(--muted)">'+(d.updatedAt||'')+'</span></td>'
+    +'<td><strong>'+escHtml(d.name)+'</strong><br><span style="font-size:.68rem;color:var(--muted)">'+(d.modified_dt||d.updatedAt||'')+'</span></td>'
     +'<td class="mono">'+(d.date||'—')+'</td>'
     +'<td style="text-align:center"><span class="badge badge-violet">'+((d.rows||[]).length)+' BOM</span></td>'
-    +'<td style="text-align:right;font-family:var(--fm);color:var(--green)">'+idFmt(d.totalCogsIDR)+'</td>'
-    +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(d.totalCogsUSD,4)+'</td>'
+    +'<td style="text-align:right;font-family:var(--fm);color:var(--green)">'+idFmt(d.total_cogs_idr||d.totalCogsIDR||0)+'</td>'
+    +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(d.total_cogs_usd||d.totalCogsUSD||0,4)+'</td>'
     +'<td class="muted" style="font-size:.72rem">'+(d.note||'—')+'</td>'
     +'<td><div style="display:flex;gap:.3rem">'
     +'<button class="btn btn-ghost btn-xs" onclick="viewCogsDoc(\''+d.id+'\')">👁 Detail</button>'
@@ -6532,17 +6591,22 @@ function renderCogsList(){
 
 function delCogsDoc(id){
   if(!confirm('Hapus COGS Summary ini?')) return;
+  if(typeof API!=='undefined'){
+    apiSave(API.cogs.delete(id),function(){
+      DB.cogs=DB.cogs.filter(function(d){return d.id!==id;});
+      renderCogsList(); updateCounts(); toast('COGS Summary dihapus.','info');
+    });
+    return;
+  }
   loadCogsDocs();
   cogsDocs=cogsDocs.filter(function(d){return d.id!==id;});
-  saveCogsDocs();
-  renderCogsList();
-  toast('COGS Summary dihapus.','info');
+  saveCogsDocs(); renderCogsList(); toast('COGS Summary dihapus.','info');
 }
 
 // ── View Detail ──
 function viewCogsDoc(id){
-  loadCogsDocs();
-  var doc=cogsDocs.find(function(d){return d.id===id;});
+  var allDocs3=(DB&&DB.cogs&&DB.cogs.length)?DB.cogs:cogsDocs;
+  var doc=allDocs3.find(function(d){return d.id===id;});
   if(!doc){toast('Dokumen tidak ditemukan.','error');return;}
   var modal=ge('detail_modal');
   var title=ge('detail_modal_title');
@@ -6550,7 +6614,24 @@ function viewCogsDoc(id){
   if(!modal||!body) return;
   if(title) title.textContent='Detail COGS — '+doc.name;
   var idFmt=function(v){return Number((v||0).toFixed(0)).toLocaleString('id-ID');};
-  var rows=doc.rows||[];
+  // Normalisasi snake_case dari DB → camelCase untuk display
+  var rows=(doc.rows||[]).map(function(r){return{
+    bomId:     r.bomId     ||r.bom_id     ||'',
+    product:   r.product   ||'',
+    project:   r.project   ||'',
+    estQty:    parseFloat(r.estQty    ||r.est_qty)  ||0,
+    jenisFiber:r.jenisFiber||r.jenis_fiber||'',
+    fiberUSD:  parseFloat(r.fiberUSD  ||r.fiber_usd)||0,
+    rmOthers:  parseFloat(r.rmOthers  ||r.rm_others)||0,
+    usdRate:   parseFloat(r.usdRate   ||r.usd_rate) ||0,
+    totalIDR:  parseFloat(r.totalIDR  ||r.total_idr)||0,
+    dlIDR:     parseFloat(r.dlIDR     ||r.dl_idr)   ||0,
+    fohfIDR:   parseFloat(r.fohfIDR   ||r.fohf_idr) ||0,
+    fohvIDR:   parseFloat(r.fohvIDR   ||r.fohv_idr) ||0,
+    cogsIDR:   parseFloat(r.cogsIDR   ||r.cogs_idr) ||0,
+    cogsUSD:   parseFloat(r.cogsUSD   ||r.cogs_usd) ||0,
+    note:      r.note||'',
+  };});
   var trs=rows.map(function(r,i){return '<tr style="border-bottom:1px solid rgba(255,255,255,.06)">'
     +'<td style="padding:.4rem .5rem;text-align:center;color:var(--muted)">'+(i+1)+'</td>'
     +'<td style="padding:.4rem .5rem"><span class="run-num" style="font-size:.7rem">'+(r.bomId||'—')+'</span></td>'
@@ -6579,8 +6660,8 @@ function viewCogsDoc(id){
     +'<td style="padding:.4rem .5rem;text-align:right">'+idFmt(rows.reduce(function(s,r){return s+(r.dlIDR||0);},0))+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right">'+idFmt(rows.reduce(function(s,r){return s+(r.fohfIDR||0);},0))+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right">'+idFmt(rows.reduce(function(s,r){return s+(r.fohvIDR||0);},0))+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--green);font-size:.85rem">'+idFmt(doc.totalCogsIDR||0)+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan);font-size:.85rem">'+fmt_num(doc.totalCogsUSD||0,4)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--green);font-size:.85rem">'+idFmt(doc.total_cogs_idr||doc.totalCogsIDR||0)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan);font-size:.85rem">'+fmt_num(doc.total_cogs_usd||doc.totalCogsUSD||0,4)+'</td>'
     +'<td></td></tr>';
   body.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:1rem;padding:.75rem;background:var(--s2);border-radius:var(--r)">'
     +'<div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase">Nama</div><div style="font-weight:700">'+escHtml(doc.name)+'</div></div>'
@@ -6607,7 +6688,6 @@ function viewCogsDoc(id){
 }
 
 function onPageCogs(){
-  loadCogsDocs();
   renderCogsList();
 }
 </script>
