@@ -262,6 +262,8 @@ async function initSchema() {
       // item_name & uom now stored directly on item_prices (no more JOIN to items)
       { table:'item_prices',     col:'item_name',         def:"VARCHAR(255) DEFAULT ''" },
       { table:'item_prices',     col:'uom',               def:"VARCHAR(50) DEFAULT ''"  },
+      // product_code stored on masterbom for item-code-based search (like Master Route)
+      { table:'masterbom',       col:'product_code',      def:"VARCHAR(255) DEFAULT ''" },
     ];
 
     // Batch check all columns at once — include all tables and columns being migrated
