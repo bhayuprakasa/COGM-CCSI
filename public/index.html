@@ -585,6 +585,9 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <th style="text-align:right">Hedging (%)</th>
             <th style="text-align:right">Landed (%)</th>
             <th>Effective Date</th>
+            <th style="text-align:right">Loose Tube</th>
+            <th style="text-align:right">Fiber/Tube</th>
+            <th style="text-align:right">Total Fiber</th>
             <th>Modified By</th>
             <th>Modified</th>
             <th>Aksi</th>
@@ -6905,7 +6908,7 @@ function renderItemPrices(){
   });
   if(countEl) countEl.textContent=DB_itemPrices.length;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:2rem">'
+    tbody.innerHTML='<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:2rem">'
       +(DB_itemPrices.length?'Tidak ada item yang cocok pencarian.':'Belum ada raw material. Klik "+ Tambah Raw Material".')
       +'</td></tr>';
     return;
@@ -6949,6 +6952,10 @@ function renderItemPrices(){
       +'<td style="text-align:right;font-family:var(--fm)">'+fmtIdNum(p.landed,2)+'%</td>'
       // Effective Date
       +'<td class="muted mono" style="font-size:.75rem">'+(p.effective_date||'—')+'</td>'
+      // Fiber spec — tampil sebagai angka, 0 ditampilkan sebagai —
+      +'<td style="text-align:right;font-family:var(--fm)">'+(p.loose_tube_qty||0)+'</td>'
+      +'<td style="text-align:right;font-family:var(--fm)">'+(p.fiber_per_tube_qty||0)+'</td>'
+      +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+(p.total_fiber_qty||0)+'</td>'
       +'<td class="muted" style="font-size:.72rem">'+(p.modified_by||'—')+'</td>'
       +'<td class="muted mono" style="font-size:.72rem">'+(p.modified_dt||'—')+'</td>'
       // Aksi
@@ -6967,36 +6974,59 @@ function renderItemPrices(){
     // ── Baris inline update (muncul di bawah baris utama saat tombol Update diklik) ──
     var updateRow = '';
     if(_upd && !_ge){
+      var _ltq = p.loose_tube_qty||0;
+      var _ftq = p.fiber_per_tube_qty||0;
+      var _tfq = _ltq * _ftq; // total fiber qty dihitung client-side untuk tampilan
       updateRow = '<tr style="background:rgba(34,211,238,.04);border-top:1px dashed rgba(34,211,238,.2)">'
-        +'<td colspan="11" style="padding:.7rem 1rem">'
+        +'<td colspan="14" style="padding:.7rem 1rem">'
         +'<div style="display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap">'
         // Currency
         +'<div style="display:flex;flex-direction:column;gap:.25rem">'
         +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Currency</label>'
         +'<select class="ge-select" id="ipu_curr_'+p.item_code+'" style="width:82px">'+_currOpts+'</select>'
         +'</div>'
-        // Price — format Indonesia: titik ribuan, koma desimal
+        // Price
         +'<div style="display:flex;flex-direction:column;gap:.25rem">'
         +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Price / Unit</label>'
         +'<input class="ge-input" id="ipu_price_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.price,6))+'"'
         +' style="width:148px;text-align:right" placeholder="0" title="Format: 1.234.567,890000">'
         +'</div>'
-        // Hedging — format koma sebagai desimal
+        // Hedging
         +'<div style="display:flex;flex-direction:column;gap:.25rem">'
         +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Hedging (%)</label>'
         +'<input class="ge-input" id="ipu_hed_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.hedging,2))+'"'
-        +' style="width:80px;text-align:right" placeholder="0,00" title="Gunakan koma sebagai desimal (cth: 3,00)">'
+        +' style="width:80px;text-align:right" placeholder="0,00">'
         +'</div>'
-        // Landed — format koma sebagai desimal
+        // Landed
         +'<div style="display:flex;flex-direction:column;gap:.25rem">'
         +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Landed (%)</label>'
         +'<input class="ge-input" id="ipu_land_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.landed,2))+'"'
-        +' style="width:80px;text-align:right" placeholder="0,00" title="Gunakan koma sebagai desimal (cth: 9,00)">'
+        +' style="width:80px;text-align:right" placeholder="0,00">'
         +'</div>'
         // Effective Date
         +'<div style="display:flex;flex-direction:column;gap:.25rem">'
         +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Effective Date</label>'
         +'<input class="ge-input" type="date" id="ipu_edate_'+p.item_code+'" value="'+(p.effective_date||'')+'" style="width:138px">'
+        +'</div>'
+        // Loose Tube Qty
+        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Loose Tube Qty</label>'
+        +'<input class="ge-input" type="number" id="ipu_ltq_'+p.item_code+'" value="'+_ltq+'"'
+        +' style="width:80px;text-align:right" min="0" step="1"'
+        +' oninput="var t=document.getElementById(\'ipu_tfq_'+p.item_code+'\');if(t)t.value=(parseInt(this.value)||0)*(parseInt((document.getElementById(\'ipu_ftq_'+p.item_code+'\')||{}).value)||0)">'
+        +'</div>'
+        // Fiber/Tube Qty
+        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Fiber/Tube Qty</label>'
+        +'<input class="ge-input" type="number" id="ipu_ftq_'+p.item_code+'" value="'+_ftq+'"'
+        +' style="width:80px;text-align:right" min="0" step="1"'
+        +' oninput="var t=document.getElementById(\'ipu_tfq_'+p.item_code+'\');if(t)t.value=(parseInt(this.value)||0)*(parseInt((document.getElementById(\'ipu_ltq_'+p.item_code+'\')||{}).value)||0)">'
+        +'</div>'
+        // Total Fiber Qty — disabled, dihitung otomatis
+        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Total Fiber</label>'
+        +'<input class="ge-input" type="number" id="ipu_tfq_'+p.item_code+'" value="'+_tfq+'"'
+        +' style="width:80px;text-align:right;background:var(--bg2);color:var(--t3);cursor:not-allowed" disabled>'
         +'</div>'
         // Tombol
         +'<div style="display:flex;gap:.35rem;padding-bottom:.05rem">'
@@ -7134,6 +7164,8 @@ function ipSaveUpdate(code) {
   var hedgRaw  = (document.getElementById('ipu_hed_'+code)||{}).value||'0';
   var landRaw  = (document.getElementById('ipu_land_'+code)||{}).value||'0';
   var effDate  = (document.getElementById('ipu_edate_'+code)||{}).value||new Date().toISOString().slice(0,10);
+  var looseTube    = parseInt((document.getElementById('ipu_ltq_'+code)||{}).value)||0;
+  var fiberPerTube = parseInt((document.getElementById('ipu_ftq_'+code)||{}).value)||0;
 
   // Parse format Indonesia → float
   var price   = parseIdNum(priceRaw);
@@ -7143,12 +7175,15 @@ function ipSaveUpdate(code) {
   if(price<0){ toast('Harga tidak boleh negatif','error'); return; }
 
   apiSave(API.itemPrice.update(code, {currency:currency, price:price, hedging:hedging,
-    landed:landed, effective_date:effDate}), function(){
+    landed:landed, effective_date:effDate,
+    loose_tube_qty:looseTube, fiber_per_tube_qty:fiberPerTube}), function(){
     IP_UPDATE[code] = false;
     // Update cache lokal DB_itemPrices
     var rec = DB_itemPrices.find(function(r){ return r.item_code===code; });
     if(rec){ rec.currency=currency; rec.price=price; rec.hedging=hedging;
-             rec.landed=landed; rec.effective_date=effDate; }
+             rec.landed=landed; rec.effective_date=effDate;
+             rec.loose_tube_qty=looseTube; rec.fiber_per_tube_qty=fiberPerTube;
+             rec.total_fiber_qty=looseTube*fiberPerTube; }
     renderItemPrices();
     toast('Harga berhasil diupdate','success');
   });
