@@ -48,14 +48,14 @@ router.get('/masterbom', requireAuth, async (req,res) => {
 
 router.post('/masterbom', requireEdit, async (req,res) => {
   try {
-    const {product,product_code,customer,project,fiber_cnt,buffer_qty,fiber_qty,groups} = req.body;
+    const {product,product_code,fiber_cnt,buffer_qty,fiber_qty,groups} = req.body;
     if(!product) return res.status(400).json({error:'Product Name wajib.'});
     if(!groups?.length) return res.status(400).json({error:'Minimal 1 Machine Line.'});
     const seq   = await nextSeq('masterbom');
     const bomid = 'MBOM-'+String(seq).padStart(4,'0');
     const id    = 'MBOMDOC-'+bomid;
-    await query(`INSERT INTO masterbom (id,bomid,product,product_code,customer,project,fiber_cnt,buffer_qty,fiber_qty,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [id,bomid,product,product_code||'',customer||'',project||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',who(req),now(),who(req),now()]);
+    await query(`INSERT INTO masterbom (id,bomid,product,product_code,fiber_cnt,buffer_qty,fiber_qty,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+      [id,bomid,product,product_code||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',who(req),now(),who(req),now()]);
     await insertMBomGroups(id,groups);
     res.json({id,bomid});
   } catch(e) { res.status(500).json({error:e.message}); }
@@ -63,9 +63,9 @@ router.post('/masterbom', requireEdit, async (req,res) => {
 
 router.put('/masterbom/:id', requireEdit, async (req,res) => {
   try {
-    const {product,product_code,customer,project,fiber_cnt,buffer_qty,fiber_qty,groups} = req.body;
-    await query(`UPDATE masterbom SET product=?,product_code=?,customer=?,project=?,fiber_cnt=?,buffer_qty=?,fiber_qty=?,modified_by=?,modified_dt=? WHERE id=?`,
-      [product,product_code||'',customer||'',project||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',who(req),now(),req.params.id]);
+    const {product,product_code,fiber_cnt,buffer_qty,fiber_qty,groups} = req.body;
+    await query(`UPDATE masterbom SET product=?,product_code=?,fiber_cnt=?,buffer_qty=?,fiber_qty=?,modified_by=?,modified_dt=? WHERE id=?`,
+      [product,product_code||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',who(req),now(),req.params.id]);
     await deleteMBomGroups(req.params.id);
     await insertMBomGroups(req.params.id, groups||[]);
     res.json({ok:true});
