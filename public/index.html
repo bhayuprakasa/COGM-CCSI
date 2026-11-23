@@ -2345,41 +2345,56 @@ function renderDlfoh(){try{
 // Machine Line options untuk form kapasitas
 const KAP_MACHINE_LINES=['Colouring','Buffering','Stranding','Jacketing','Armoring','Pipe Line'];
 
-// Render satu baris line (Machine Line + Duration + Setup) ke dalam container
-function buildKapLineRow(ml,dur,setup){
+// Build opsi dropdown DL-FOH dari DB.dlfoh (dipanggil saat render baris)
+function buildDlfohOpts(selected){
+  const cats=(typeof DB!=='undefined'&&DB.dlfoh)||[];
+  // Tambah opsi kosong di awal
+  const base='<option value="">— Pilih DL-FOH —</option>';
+  return base+cats.map(c=>`<option value="${c.catid}" ${c.catid===selected?'selected':''}>[${c.type}] ${c.catid} – ${c.desc} (Rp ${Number(c.rate).toLocaleString('id-ID')}/jam)</option>`).join('');
+}
+
+// Render satu baris line (Machine Line + Duration + Setup + Category DL-FOH) ke dalam container
+function buildKapLineRow(ml,dur,setup,dlfoh_cat){
   const idx=Date.now()+Math.random(); // id unik per baris
-  const opts=KAP_MACHINE_LINES.map(o=>`<option value="${o}" ${o===ml?'selected':''}>${o}</option>`).join('');
+  const mlOpts=KAP_MACHINE_LINES.map(o=>`<option value="${o}" ${o===ml?'selected':''}>${o}</option>`).join('');
   const row=document.createElement('div');
   row.className='kap-line-row';
-  row.style.cssText='display:flex;gap:.5rem;align-items:center;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.5rem .6rem';
+  // Pakai flex-wrap agar tampil rapi di layar kecil
+  row.style.cssText='display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-start;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.5rem .6rem';
   row.innerHTML=`
-    <div class="form-group" style="flex:1;margin:0">
+    <div class="form-group" style="flex:1;min-width:140px;margin:0">
       <div class="flabel req" style="margin-bottom:.25rem">Machine Line</div>
-      <select class="fselect kap-line-ml">${opts}</select>
+      <select class="fselect kap-line-ml">${mlOpts}</select>
     </div>
-    <div class="form-group" style="flex:1;margin:0">
+    <div class="form-group" style="flex:1;min-width:120px;margin:0">
       <div class="flabel req" style="margin-bottom:.25rem">Duration Process (Jam)</div>
       <input class="finput kap-line-dur" type="number" step="0.001" min="0" placeholder="0.000" value="${dur||''}">
     </div>
-    <div class="form-group" style="flex:1;margin:0">
+    <div class="form-group" style="flex:1;min-width:120px;margin:0">
       <div class="flabel" style="margin-bottom:.25rem">Setup (Jam)</div>
       <input class="finput kap-line-setup" type="number" step="0.001" min="0" placeholder="0.000" value="${setup||''}">
     </div>
-    <button type="button" onclick="this.closest('.kap-line-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem;flex-shrink:0" title="Hapus baris">✕</button>`;
+    <div class="form-group" style="flex:2;min-width:200px;margin:0">
+      <div class="flabel" style="margin-bottom:.25rem">Category DL-FOH <span style="color:var(--t3);font-weight:400;font-size:.65rem">(untuk hitung rate)</span></div>
+      <select class="fselect kap-line-dlfoh">${buildDlfohOpts(dlfoh_cat||'')}</select>
+    </div>
+    <button type="button" onclick="this.closest('.kap-line-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem;flex-shrink:0;margin-top:1.4rem" title="Hapus baris">✕</button>`;
   return row;
 }
 
 // Tambah satu baris kosong ke container
-function addKapLine(ml,dur,setup){
-  document.getElementById('kap_lines_container').appendChild(buildKapLineRow(ml||'',dur||'',setup||''));
+function addKapLine(ml,dur,setup,dlfoh_cat){
+  document.getElementById('kap_lines_container').appendChild(buildKapLineRow(ml||'',dur||'',setup||'',dlfoh_cat||''));
 }
 
-// Ambil semua baris line dari form sebagai array [{machine_line, duration, setup}]
+// Ambil semua baris line dari form sebagai array [{machine_line, duration, setup, dlfoh_cat}]
 function getKapLines(){
   return Array.from(document.querySelectorAll('#kap_lines_container .kap-line-row')).map(row=>({
     machine_line: row.querySelector('.kap-line-ml').value,
     duration: parseFloat(row.querySelector('.kap-line-dur').value)||0,
-    setup: parseFloat(row.querySelector('.kap-line-setup').value)||0
+    setup: parseFloat(row.querySelector('.kap-line-setup').value)||0,
+    // dlfoh_cat: Category DL-FOH yang dipilih untuk perhitungan rate DL/jam
+    dlfoh_cat: row.querySelector('.kap-line-dlfoh').value||''
   }));
 }
 
@@ -2403,8 +2418,8 @@ function openKapForm(id){try{
       // Parse lines dari notes (disimpan sebagai JSON)
       var lines=[];
       try{lines=JSON.parse(rec.notes||'[]');}catch(e){lines=[];}
-      // Pass setup jika ada (data lama tidak punya field setup, default 0)
-      if(lines.length){lines.forEach(function(l){addKapLine(l.machine_line,l.duration,l.setup||0);});}
+      // Pass setup & dlfoh_cat jika ada (data lama tidak punya field ini, default kosong)
+      if(lines.length){lines.forEach(function(l){addKapLine(l.machine_line,l.duration,l.setup||0,l.dlfoh_cat||'');});}
       else{addKapLine();}
     } else {
       toast('Data tidak ditemukan.','error');
@@ -2475,7 +2490,11 @@ function renderKap(){try{
     const _ge=GE.kap==='__all__'||GE.kap===k.id;
     // Parse lines dari notes
     var klines=[];try{klines=JSON.parse(k.notes||'[]');}catch(e){klines=[];}
-    var linesSummary=klines.length?klines.map(function(l){return`<span class="badge badge-violet" style="font-size:.65rem">${l.machine_line}</span>`;}).join(' '):'<span class="muted">—</span>';
+    var linesSummary=klines.length?klines.map(function(l){
+      // Tampilkan machine_line + DL-FOH category jika ada
+      const dlfohBadge=l.dlfoh_cat?` <span class="badge" style="font-size:.6rem;background:var(--s3);color:var(--cyan);border:1px solid var(--cyan)">${l.dlfoh_cat}</span>`:'';
+      return`<span class="badge badge-violet" style="font-size:.65rem">${l.machine_line}</span>${dlfohBadge}`;
+    }).join(' '):'<span class="muted">—</span>';
     return`<tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('kap',k.id)?' checked':''} onchange="toggleRowSelect('kap','${k.id}',this.checked)"></td>
     ${col('kap','kapid')?`<td><span class="run-num">${k.kapid}</span></td>`:''}
