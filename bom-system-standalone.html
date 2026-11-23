@@ -941,14 +941,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <input class="finput" id="mbom_product" placeholder="Nama produk">
           </div>
           <div class="form-group">
-            <div class="flabel">Customer Name</div>
-            <input class="finput" id="mbom_customer" placeholder="Nama customer">
-          </div>
-          <div class="form-group">
-            <div class="flabel">Project Name</div>
-            <input class="finput" id="mbom_project" placeholder="Nama project">
-          </div>
-          <div class="form-group">
             <div class="flabel">Jumlah Fiber</div>
             <input class="finput" type="number" id="mbom_fiber_cnt" placeholder="0" min="0">
           </div>
@@ -1004,7 +996,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="card-body" style="padding:0">
       <div class="tbl-wrap">
         <table class="tbl">
-          <thead><tr><th>BOM ID</th><th>Product</th><th>Customer</th><th>Project</th><th>Machine Line</th><th>Jumlah Item</th><th>Created</th><th>Aksi</th></tr></thead>
+          <thead><tr><th>BOM ID</th><th>Product</th><th>Machine Line</th><th>Jumlah Item</th><th>Created</th><th>Aksi</th></tr></thead>
           <tbody id="mbom_tbody"></tbody>
         </table>
       </div>
@@ -3094,7 +3086,7 @@ function openMBomForm(id){try{
   setDisp('mbom_form_section','');
   setDisp('mbom_list_card','none');
   setVal('mbom_edit_id','');
-  ['mbom_product','mbom_customer','mbom_project'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['mbom_product'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['mbom_fiber_cnt','mbom_buffer_qty','mbom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   setVal('mbom_new_ml_sel','');
   const _mmid=ge('mbom_new_mid_sel');if(_mmid)_mmid.innerHTML='<option value="">← Pilih Machine Line dulu</option>';
@@ -3107,8 +3099,8 @@ function openMBomForm(id){try{
     setVal('mbom_edit_id',id);
     setVal('mbom_id_disp',rec.bomid);
     setVal('mbom_product',rec.product||'');
-    setVal('mbom_customer',rec.customer||'');
-    setVal('mbom_project',rec.project||'');
+    
+    
     setVal('mbom_fiber_cnt',rec.fiber_cnt||'');
     setVal('mbom_buffer_qty',rec.buffer_qty||'');
     setVal('mbom_fiber_qty',rec.fiber_qty||'');
@@ -3434,8 +3426,6 @@ function saveMBom(){try{
   const data={
     id:editId||('MBOMDOC-'+bomid), bomid, product,
     machine_lines,
-    customer:(ge('mbom_customer')||{value:''}).value,
-    project:(ge('mbom_project')||{value:''}).value,
     fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,
     buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,
     fiber_qty:(ge('mbom_fiber_qty')||{value:''}).value,
@@ -3467,12 +3457,10 @@ function renderMBom(){try{
   const tbody=ge('mbom_tbody'); if(!tbody) return;
   setText('mbom_count',DB.masterbom.length);
   const rows=DB.masterbom.filter(b=>!mbomFilter||(b.bomid.toLowerCase().includes(mbomFilter)||b.product.toLowerCase().includes(mbomFilter)));
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="es-icon">&#128208;</div><p>Belum ada Master BOM.</p></div></td></tr>';return;}
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="es-icon">&#128208;</div><p>Belum ada Master BOM.</p></div></td></tr>';return;}
   tbody.innerHTML=rows.map(b=>'<tr><td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" '+(isSelected('masterbom',b.id)?'checked':'')+' onchange="toggleRowSelect(\'masterbom\',\''+b.id+'\',this.checked)"></td>'
     +'<td><span class="run-num">'+b.bomid+'</span></td>'
     +'<td><strong>'+b.product+'</strong></td>'
-    +'<td class="muted">'+(b.customer||'&#8212;')+'</td>'
-    +'<td class="muted">'+(b.project||'&#8212;')+'</td>'
     +'<td>'+(b.machine_lines||[]).map(ml=>'<span class="badge badge-violet" style="margin-right:2px">'+ml+'</span>').join('')+'</td>'
     +'<td><span class="badge badge-amber">'+((b.lines||[]).length)+' item</span></td>'
     +'<td class="audit-cell">'+(b.created||'&#8212;')+'</td>'
