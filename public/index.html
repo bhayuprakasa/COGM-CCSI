@@ -767,14 +767,13 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         </div>
         <div class="form-group">
           <div class="flabel req">Item Code</div>
-          <div class="search-field-wrap">
-            <input class="finput" id="kap_item_code" placeholder="Cari item code...">
-            <span class="search-icon clickable" onclick="openSearchModal('item','kap_item_code','kap_item_name')">🔍</span>
-          </div>
+          <!-- Input langsung, bukan lookup -->
+          <input class="finput" id="kap_item_code" placeholder="Masukkan item code">
         </div>
         <div class="form-group">
-          <div class="flabel">Item Name</div>
-          <input class="finput" id="kap_item_name" readonly placeholder="Auto dari item code">
+          <div class="flabel req">Item Name</div>
+          <!-- Input langsung, bukan auto-fill dari lookup -->
+          <input class="finput" id="kap_item_name" placeholder="Masukkan nama item">
         </div>
       </div>
       <!-- Section Line: bisa tambah lebih dari 1 baris -->
@@ -2420,13 +2419,7 @@ function openKapForm(id){try{
     setText('kap_form_title','Tambah Master FG (Route)');
     addKapLine(); // satu baris default
   }
-  // wire item code search
-  const codeEl=document.getElementById('kap_item_code');
-  codeEl.oninput=function(){
-    // Lookup dari DB_itemPrices — Master Item sudah dihapus
-    const item=DB_itemPrices.find(p=>p.item_code===this.value);
-    if(item)(function(){const _e=ge('kap_item_name');if(_e)_e.value=item.item_name||'';})();
-  };
+  // item_code dan item_name diisi manual, tidak ada lookup
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openKapForm:",e);}}
 function closeKapForm(){try{setDisp('kap_form_card','none');setDisp('kap_list_card','');}catch(e){console.warn("closeKapForm:",e);}}
@@ -2437,6 +2430,7 @@ function saveKap(){try{
   const item_code=document.getElementById('kap_item_code').value.trim();
   const item_name=document.getElementById('kap_item_name').value.trim();
   if(!item_code){toast('Item Code wajib diisi.','error');return;}
+  if(!item_name){toast('Item Name wajib diisi.','error');return;}
   const lines=getKapLines();
   if(!lines.length){toast('Tambahkan minimal 1 baris Line.','error');return;}
   // Simpan lines sebagai JSON di field notes
@@ -2486,8 +2480,8 @@ function renderKap(){try{
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('kap',k.id)?' checked':''} onchange="toggleRowSelect('kap','${k.id}',this.checked)"></td>
     ${col('kap','kapid')?`<td><span class="run-num">${k.kapid}</span></td>`:''}
     ${col('kap','created')?`<td class="muted mono" style="font-size:.7rem;white-space:nowrap">${k.created_dt||k.created||'—'}</td>`:''}
-    ${col('kap','icode')?(_ge?`<td><input class="ge-input" id="ge_kap_code_${k.id}" value="${geEsc(k.item_code)}" style="width:110px" oninput="const _it=DB_itemPrices.find(p=>p.item_code===this.value.toUpperCase().trim());const _n=document.getElementById('ge_kap_name_${k.id}');if(_n)_n.value=_it?(_it.item_name||''):''"></td>`:`<td class="mono">${k.item_code}</td>`):''}
-    ${col('kap','iname')?(_ge?`<td><input class="ge-input" id="ge_kap_name_${k.id}" value="${geEsc(k.item_name)}" readonly style="color:var(--t3)"></td>`:`<td style="white-space:nowrap">${k.item_name}</td>`):''}
+    ${col('kap','icode')?(_ge?`<td><input class="ge-input" id="ge_kap_code_${k.id}" value="${geEsc(k.item_code)}" style="width:110px" placeholder="Item code"></td>`:`<td class="mono">${k.item_code}</td>`):''}
+    ${col('kap','iname')?(_ge?`<td><input class="ge-input" id="ge_kap_name_${k.id}" value="${geEsc(k.item_name)}" style="width:160px" placeholder="Item name"></td>`:`<td style="white-space:nowrap">${k.item_name}</td>`):''}
     ${col('kap','lines')?`<td style="font-size:.72rem">${linesSummary}</td>`:''}
     ${col('kap','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveKap('${k.id}')">💾 Simpan</button>${GE.kap!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('kap')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openKapForm('${k.id}')">✏</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`):''}
   </tr>`;}).join('');
@@ -7197,6 +7191,7 @@ function geSaveKap(id) {
   var item_code=(document.getElementById('ge_kap_code_'+id)||{}).value||'';
   var item_name=(document.getElementById('ge_kap_name_'+id)||{}).value||'';
   if(!item_code.trim()){toast('Item code tidak boleh kosong','error');return;}
+  if(!item_name.trim()){toast('Item name tidak boleh kosong','error');return;}
   var rec=DB.kap.find(function(r){return r.id==id||r.id===id;});
   if(!rec){toast('Data tidak ditemukan','error');return;}
   // Kirim semua field existing, hanya ubah item_code & item_name
