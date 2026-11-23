@@ -915,6 +915,21 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <input class="finput" id="mbom_product" placeholder="Nama produk">
           </div>
           <div class="form-group">
+            <div class="flabel">Product Code (FG) <span style="font-size:.6rem;color:var(--cyan)">(link ke item FG)</span></div>
+            <div class="search-field-wrap">
+              <input class="finput" id="mbom_product_code" placeholder="Pilih item FG..." readonly>
+              <span class="search-icon clickable" onclick="openSearchModal('masterfg','mbom_product_code',null)">🔍</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="flabel">Customer Name</div>
+            <input class="finput" id="mbom_customer" placeholder="Nama customer">
+          </div>
+          <div class="form-group">
+            <div class="flabel">Project Name</div>
+            <input class="finput" id="mbom_project" placeholder="Nama project">
+          </div>
+          <div class="form-group">
             <div class="flabel">Jumlah Fiber</div>
             <input class="finput" type="number" id="mbom_fiber_cnt" placeholder="0" min="0">
           </div>
@@ -1051,13 +1066,20 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
                 <span class="search-icon clickable" onclick="openSearchModal('masterbom','bom_master_bom_id',null)">🔍</span>
               </div>
             </div>
+            <div class="form-group">
+              <div class="flabel">Master FG <span style="font-size:.6rem;color:var(--cyan)">(Route)</span></div>
+              <div class="search-field-wrap">
+                <input class="finput" id="bom_master_fg_id" placeholder="Pilih FG Item..." readonly>
+                <span class="search-icon clickable" onclick="openSearchModal('masterfg','bom_master_fg_id',null)">🔍</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- MACHINE LINE GROUPS - loaded from Master BOM -->
         <div class="sec-head">Lines — Material &amp; DL-FOH (dari Master BOM)</div>
         <div style="padding:.75rem 1rem;background:var(--cyan-g);border:1px solid rgba(34,211,238,.15);border-radius:var(--r);margin-bottom:.75rem;font-size:.8rem;color:var(--t2)">
-          ℹ️ Pilih <strong>Master BOM ID</strong> di header untuk memuat Machine Line, material, dan DL-FOH secara otomatis. Anda hanya perlu melengkapi <strong>Price ID</strong> dan data amount.
+          ℹ️ Pilih <strong>Master BOM ID</strong> atau <strong>Master FG (Route)</strong> di header untuk memuat Machine Line, material, dan DL-FOH secara otomatis. Anda hanya perlu melengkapi <strong>Price ID</strong> dan data amount.
         </div>
         <div id="bom_machine_groups"></div>
 
@@ -1316,7 +1338,7 @@ function openSearchModal(type, codeField, nameField, extra){
   sm_type=type; sm_field=codeField; sm_nameField=nameField||'';
   // Only overwrite sm_extra if caller explicitly passes a 4th argument
   if(arguments.length>=4) sm_extra = extra||null;
-  const titles={item:'Pilih Item',price:'Pilih Price ID',exrate:'Pilih Currency',dlfoh:'Pilih DL-FOH Category',kap:'Pilih Kapasitas'};
+  const titles={item:'Pilih Item',price:'Pilih Price ID',exrate:'Pilih Currency',dlfoh:'Pilih DL-FOH Category',kap:'Pilih Kapasitas',masterfg:'Pilih Master FG (Route)'};
   setText('sm_title',titles[type]||'Search');
   setVal('sm_search','');
   buildSearchData(type);
@@ -1330,6 +1352,8 @@ function buildSearchData(type){
   else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Rp '+Number(d.rate).toLocaleString('id-ID')+'/jam'}));
   else if(type==='kap') sm_data=DB.kap.map(k=>({code:k.id,name:k.item_name,sub:k.proses+' | '+(DB.mesin.find(m=>m.machine_id===k.mesin)||{machine_name:k.mesin}).machine_name}));
   else if(type==='masterbom') sm_data=DB.masterbom.map(b=>({code:b.bomid,name:b.product,sub:b.machine_line+' | '+(b.lines||[]).length+' items'}));
+  // FG items only (is_fg=1) — used for Master FG (Route) selection
+  else if(type==='masterfg') sm_data=DB.items.filter(i=>i.is_fg).map(i=>({code:i.code,name:i.name,sub:'FG | '+i.uom}));
 }
 function latestRate(e){
   if(!e.lines||!e.lines.length) return '-';
@@ -1364,6 +1388,12 @@ function selectSearchResult(code,name){
   // Master BOM select for BOM header
   if(sm_type==='masterbom'){
     onMasterBomSelect(code);
+    closeSearchModal(); return;
+  }
+  // Master FG (Route) select — dari BOM form: auto-fill lines; dari masterbom form: hanya set field
+  if(sm_type==='masterfg'){
+    if(sm_field==='bom_master_fg_id') onMasterFgSelect(code);
+    // jika dari mbom_product_code, nilai sudah di-set oleh codeEl.value=code di atas
     closeSearchModal(); return;
   }
   // Master BOM material line item search
@@ -2023,7 +2053,7 @@ function openBomForm(id){try{
   setDisp('bom_form_section','');
   const _blc=ge('bom_list_card');if(_blc)_blc.style.display='none';
   setVal('bom_edit_id','');
-  ['bom_product','bom_customer','bom_project','bom_price_id'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['bom_product','bom_customer','bom_project','bom_price_id','bom_master_bom_id','bom_master_fg_id'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['bom_fiber_cnt','bom_buffer_qty','bom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   // Machine groups come from Master BOM selection - only reset if opening blank form
   if(!id) bomGroups=[];
@@ -2041,6 +2071,8 @@ function openBomForm(id){try{
     setVal('bom_buffer_qty',rec.buffer_qty||'');
     setVal('bom_fiber_qty',rec.fiber_qty||'');
     setVal('bom_price_id',rec.price_id||'');
+    setVal('bom_master_bom_id',rec.master_bom_id||'');
+    setVal('bom_master_fg_id',rec.master_fg_id||'');
     bomGroups=JSON.parse(JSON.stringify(rec.groups||[]));
     bomGroups.forEach(g=>{
       if(!g.dlfohLines) g.dlfohLines=[];
@@ -2627,6 +2659,8 @@ function saveBom(){try{
     buffer_qty:document.getElementById('bom_buffer_qty').value,
     fiber_qty:document.getElementById('bom_fiber_qty').value,
     price_id:document.getElementById('bom_price_id').value,
+    master_bom_id:document.getElementById('bom_master_bom_id').value,
+    master_fg_id:document.getElementById('bom_master_fg_id').value,
     groups:JSON.parse(JSON.stringify(bomGroups)),
     lines:bomGroups.flatMap(g=>g.lines),
     machine_lines:bomGroups.map(g=>g.machine_line),
@@ -2808,7 +2842,7 @@ function openMBomForm(id){try{
   setDisp('mbom_form_section','');
   setDisp('mbom_list_card','none');
   setVal('mbom_edit_id','');
-  ['mbom_product'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['mbom_product','mbom_product_code','mbom_customer','mbom_project'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['mbom_fiber_cnt','mbom_buffer_qty','mbom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   setVal('mbom_new_ml_sel','');
   const _mmid=ge('mbom_new_mid_sel');if(_mmid)_mmid.innerHTML='<option value="">← Pilih Machine Line dulu</option>';
@@ -2821,6 +2855,9 @@ function openMBomForm(id){try{
     setVal('mbom_edit_id',id);
     setVal('mbom_id_disp',rec.bomid);
     setVal('mbom_product',rec.product||'');
+    setVal('mbom_product_code',rec.product_code||'');
+    setVal('mbom_customer',rec.customer||'');
+    setVal('mbom_project',rec.project||'');
     setVal('mbom_fiber_cnt',rec.fiber_cnt||'');
     setVal('mbom_buffer_qty',rec.buffer_qty||'');
     setVal('mbom_fiber_qty',rec.fiber_qty||'');
@@ -3145,6 +3182,7 @@ function saveMBom(){try{
   const machine_lines=mbomGroups.map(g=>g.machine_line);
   const data={
     id:editId||('MBOMDOC-'+bomid), bomid, product,
+    product_code:(ge('mbom_product_code')||{value:''}).value,
     machine_lines,
     fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,
     buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,
@@ -3246,6 +3284,32 @@ function onMasterBomSelect(mbomId){
   if(priceId) onBomPriceSelect(priceId);
 
   toast('Header dan lines dari Master BOM "'+rec.bomid+'" berhasil dimuat.','success');
+}
+
+// ── Auto-fill BOM dari Master FG (Route) ──
+// Cari masterbom berdasarkan product_code atau product yang cocok dengan item_code FG
+function onMasterFgSelect(itemCode){
+  const fgItem=DB.items.find(i=>i.code===itemCode);
+  if(!fgItem){toast('FG Item tidak ditemukan.','error');return;}
+
+  // Set field Master FG
+  setVal('bom_master_fg_id', itemCode);
+
+  // Cari masterbom yang product_code-nya cocok dengan item_code FG
+  // atau product name cocok dengan item name FG (case-insensitive)
+  const mbom=DB.masterbom.find(b=>
+    (b.product_code&&b.product_code===itemCode) ||
+    b.product.toLowerCase()===fgItem.name.toLowerCase()
+  );
+
+  if(!mbom){
+    toast('Tidak ada Master BOM untuk FG item "'+itemCode+'". Silakan isi manual atau pilih Master BOM ID.','info');
+    return;
+  }
+
+  // Gunakan onMasterBomSelect untuk load groups & lines dari masterbom yang cocok
+  onMasterBomSelect(mbom.bomid);
+  toast('Route dari FG "'+itemCode+'" → Master BOM "'+mbom.bomid+'" dimuat.','success');
 }
 
 // ═══════════════════════════════════════════
