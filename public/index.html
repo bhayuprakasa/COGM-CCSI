@@ -961,7 +961,13 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             </div>
             <div class="form-group">
               <div class="flabel req">Product Name</div>
-              <input class="finput" id="bom_product" placeholder="Nama produk">
+              <div class="search-field-wrap">
+                <!-- Product Name diambil dari Master FG (item dengan is_fg=1) -->
+                <input class="finput" id="bom_product" placeholder="Pilih produk FG..." readonly>
+                <span class="search-icon clickable" onclick="openSearchModal('fg_item','bom_product_code','bom_product')">🔍</span>
+              </div>
+              <!-- Hidden: menyimpan item code FG yang dipilih -->
+              <input type="hidden" id="bom_product_code">
             </div>
             <div class="form-group">
               <div class="flabel">Customer Name</div>
@@ -983,13 +989,8 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               <div class="flabel">Length Qty</div>
               <input class="finput" type="number" id="bom_fiber_qty" placeholder="0">
             </div>
-            <div class="form-group">
-              <div class="flabel">Price ID</div>
-              <div class="search-field-wrap">
-                <input class="finput" id="bom_price_id" placeholder="Cari Price ID..." readonly>
-                <span class="search-icon clickable" onclick="openSearchModal('price','bom_price_id',null)">🔍</span>
-              </div>
-            </div>
+            <!-- Price ID dihapus sesuai permintaan -->
+            <input type="hidden" id="bom_price_id" value="">
             <div class="form-group">
               <div class="flabel">Master BOM ID <span style="font-size:.6rem;color:var(--cyan)">(auto-fill header &amp; lines)</span></div>
               <div class="search-field-wrap">
@@ -1012,7 +1013,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         <!-- MACHINE LINE GROUPS - loaded from Master BOM -->
         <div class="sec-head">Lines — Material &amp; DL-FOH (dari Master BOM)</div>
         <div style="padding:.75rem 1rem;background:var(--cyan-g);border:1px solid rgba(34,211,238,.15);border-radius:var(--r);margin-bottom:.75rem;font-size:.8rem;color:var(--t2)">
-          ℹ️ Pilih <strong>Master BOM ID</strong> di header untuk memuat Machine Line, material, dan DL-FOH secara otomatis. Anda hanya perlu melengkapi <strong>Price ID</strong> dan data amount.
+          ℹ️ Pilih <strong>Master BOM ID</strong> di header untuk memuat Machine Line, material, dan DL-FOH secara otomatis. Anda hanya perlu melengkapi data amount.
         </div>
         <div id="bom_machine_groups"></div>
 
@@ -1871,8 +1872,23 @@ function selectSearchResult(code,name){
   const codeEl=document.getElementById(sm_field);
   if(codeEl) codeEl.value=code;
   if(sm_nameField){const nel=document.getElementById(sm_nameField);if(nel) nel.value=name;}
-  // Master BOM product search — code ke mbom_product_code (visible), name ke mbom_product (readonly auto-fill)
+  // FG item search — digunakan oleh BOM form dan Master BOM form
   if(sm_type==='fg_item'){
+    if(sm_field==='bom_product_code'){
+      // BOM form: set code (hidden) dan name (readonly visible)
+      const codeEl=document.getElementById('bom_product_code');
+      if(codeEl) codeEl.value=code;
+      const nameEl=document.getElementById('bom_product');
+      if(nameEl) nameEl.value=name;
+      // Auto-fill Loose Tube Qty dan Fiber/Tube dari data item FG
+      const fgRec=DB_fgItems.find(p=>p.code===code);
+      if(fgRec){
+        const lt=ge('bom_fiber_cnt');   if(lt) lt.value=fgRec.loose_tube_qty||0;
+        const ft=ge('bom_buffer_qty');  if(ft) ft.value=fgRec.fiber_qty||0;
+      }
+      closeSearchModal(); return;
+    }
+    // Master BOM product search — code ke mbom_product_code (visible), name ke mbom_product (readonly auto-fill)
     const codeEl=document.getElementById('mbom_product_code');
     if(codeEl) codeEl.value=code;
     const nameEl=document.getElementById('mbom_product');
@@ -2523,7 +2539,8 @@ function openBomForm(id){try{
   setDisp('bom_form_section','');
   const _blc=ge('bom_list_card');if(_blc)_blc.style.display='none';
   setVal('bom_edit_id','');
-  ['bom_product','bom_customer','bom_project','bom_price_id'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  // Reset semua field header form BOM
+  ['bom_product','bom_customer','bom_project','bom_product_code'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['bom_fiber_cnt','bom_buffer_qty','bom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   // Machine groups come from Master BOM selection - only reset if opening blank form
   if(!id) bomGroups=[];
@@ -2540,7 +2557,8 @@ function openBomForm(id){try{
     setVal('bom_fiber_cnt',rec.fiber_cnt||'');
     setVal('bom_buffer_qty',rec.buffer_qty||'');
     setVal('bom_fiber_qty',rec.fiber_qty||'');
-    setVal('bom_price_id',rec.price_id||'');
+    // Restore product code (hidden) agar pencarian FG konsisten saat edit
+    setVal('bom_product_code',rec.product_code||'');
     // Restore the USD rate snapshot that was locked at BOM creation time
     bomUsdRate=parseFloat(rec.usd_rate_snapshot)||getLatestRate('USD');
     setVal('bom_usd_rate_snap',bomUsdRate);
@@ -3189,12 +3207,13 @@ function saveBom(){try{
   if(!validGroups.length){toast('Setiap group harus memiliki Machine Line.','error');return;}
   const payload={
     product,
+    product_code:(ge('bom_product_code')||{value:''}).value,
     customer:(ge('bom_customer')||{value:''}).value,
     project:(ge('bom_project')||{value:''}).value,
     fiber_cnt:(ge('bom_fiber_cnt')||{value:''}).value,
     buffer_qty:(ge('bom_buffer_qty')||{value:''}).value,
     fiber_qty:(ge('bom_fiber_qty')||{value:''}).value,
-    price_id:(ge('bom_price_id')||{value:''}).value,
+    // price_id dihapus dari BOM form
     master_bom_id:(ge('bom_master_bom_id')||{value:''}).value,
     usd_rate_snapshot: bomUsdRate||getLatestRate('USD'),
     groups:JSON.parse(JSON.stringify(validGroups))
@@ -3240,7 +3259,7 @@ function saveBom(){try{
     fiber_cnt:(ge('bom_fiber_cnt')||{value:''}).value,
     buffer_qty:(ge('bom_buffer_qty')||{value:''}).value,
     fiber_qty:(ge('bom_fiber_qty')||{value:''}).value,
-    price_id:(ge('bom_price_id')||{value:''}).value,
+    // price_id dihapus
     master_bom_id:(ge('bom_master_bom_id')||{value:''}).value,
     groups:JSON.parse(JSON.stringify(validGroups)),
     lines:validGroups.flatMap(function(g){return g.lines||[];}),
