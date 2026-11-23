@@ -262,6 +262,10 @@ async function initSchema() {
       // item_name & uom now stored directly on item_prices (no more JOIN to items)
       { table:'item_prices',     col:'item_name',         def:"VARCHAR(255) DEFAULT ''" },
       { table:'item_prices',     col:'uom',               def:"VARCHAR(50) DEFAULT ''"  },
+      // Fiber spec columns on item_prices — loose tube count, fibers-per-tube, computed total
+      { table:'item_prices',     col:'loose_tube_qty',    def:'INT DEFAULT 0' },
+      { table:'item_prices',     col:'fiber_per_tube_qty',def:'INT DEFAULT 0' },
+      { table:'item_prices',     col:'total_fiber_qty',   def:'INT DEFAULT 0' },
     ];
 
     // Batch check all columns at once — include all tables and columns being migrated
@@ -269,7 +273,7 @@ async function initSchema() {
       `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = ?
          AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices')
-         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','total_fiber_qty','item_name','uom')`,
+         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom')`,
       [cfg.database]
     );
     const existSet = new Set(existing.map(r => `${r.TABLE_NAME.toLowerCase()}.${r.COLUMN_NAME.toLowerCase()}`));
