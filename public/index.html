@@ -540,6 +540,26 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <input class="finput" type="number" id="ip_landed" placeholder="Wajib diisi" step="0.01">
         </div>
       </div>
+      <!-- Fiber spec row: loose tube qty × fiber/tube qty = total qty fiber (auto-calculated, disabled) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+        <div class="form-group">
+          <div class="flabel">Loose Tube Qty</div>
+          <input class="finput" type="number" id="ip_loose_tube_qty" placeholder="0" step="1" min="0"
+            oninput="calcTotalFiberQty()">
+        </div>
+        <div class="form-group">
+          <div class="flabel">Fiber/Tube Qty</div>
+          <input class="finput" type="number" id="ip_fiber_per_tube_qty" placeholder="0" step="1" min="0"
+            oninput="calcTotalFiberQty()">
+        </div>
+        <div class="form-group">
+          <!-- Total Qty Fiber dihitung otomatis: Loose Tube Qty × Fiber/Tube Qty, tidak bisa diedit -->
+          <div class="flabel">Total Qty Fiber</div>
+          <input class="finput" type="number" id="ip_total_fiber_qty" placeholder="0" disabled
+            style="background:var(--bg2,#1a1a2e);color:var(--t3,#8888aa);cursor:not-allowed">
+        </div>
+        <div></div>
+      </div>
       <div class="form-group">
         <div class="flabel">Catatan Perubahan</div>
         <input class="finput" id="ip_note" placeholder="Alasan perubahan harga (opsional)">
@@ -6632,6 +6652,15 @@ function onIpCurrencyChange(currency){
   ipSetDefaultsByCurrency(currency);
 }
 
+// Hitung total_fiber_qty otomatis dari perkalian loose_tube_qty × fiber_per_tube_qty
+function calcTotalFiberQty(){
+  var loose=parseInt((ge('ip_loose_tube_qty')||{value:'0'}).value)||0;
+  var fpt=parseInt((ge('ip_fiber_per_tube_qty')||{value:'0'}).value)||0;
+  var total=loose*fpt;
+  var el=ge('ip_total_fiber_qty');
+  if(el) el.value=total||0;
+}
+
 function openItemPriceForm(itemCode){
   setDisp('item_price_form_card','');
   setDisp('item_price_list_card','none');
@@ -6647,6 +6676,10 @@ function openItemPriceForm(itemCode){
   setVal('ip_landed','');
   setVal('ip_note','');
   setVal('ip_effective_date',new Date().toISOString().slice(0,10));
+  // Reset fiber spec fields
+  setVal('ip_loose_tube_qty','0');
+  setVal('ip_fiber_per_tube_qty','0');
+  setVal('ip_total_fiber_qty','0');
 
   if(itemCode){
     setText('item_price_form_title','Edit Harga: '+itemCode);
@@ -6662,6 +6695,10 @@ function openItemPriceForm(itemCode){
       setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
       setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
       setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
+      // Load fiber spec dari data existing
+      setVal('ip_loose_tube_qty',existing.loose_tube_qty||0);
+      setVal('ip_fiber_per_tube_qty',existing.fiber_per_tube_qty||0);
+      setVal('ip_total_fiber_qty',existing.total_fiber_qty||0);
     }
   } else {
     setText('item_price_form_title','Set Harga Item');
@@ -6693,7 +6730,7 @@ function onIpItemCodeChange(code){
   setVal('ip_item_code',code);
   var existing=DB_itemPrices.find(function(p){return p.item_code===code;});
   if(existing){
-    // Jika item sudah ada di DB_itemPrices, autofill item_name, uom, dan harga lama
+    // Jika item sudah ada di DB_itemPrices, autofill semua field termasuk fiber spec
     setVal('ip_item_name',existing.item_name||'');
     setVal('ip_item_uom',existing.uom||existing.item_uom||'');
     setVal('ip_currency',existing.currency||'USD');
@@ -6701,6 +6738,9 @@ function onIpItemCodeChange(code){
     setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
     setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
     setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
+    setVal('ip_loose_tube_qty',existing.loose_tube_qty||0);
+    setVal('ip_fiber_per_tube_qty',existing.fiber_per_tube_qty||0);
+    setVal('ip_total_fiber_qty',existing.total_fiber_qty||0);
     toast('Harga lama dimuat — ubah nilai dan simpan untuk update.','info');
   } else {
     var cur=(ge('ip_currency')||{value:'USD'}).value;
@@ -6729,9 +6769,13 @@ function saveItemPrice(){
   if(landed===null||isNaN(landed)){toast('Landed (%) wajib diisi.','error');return;}
   landed=parseFloat(landed)||0;
 
-  // Payload termasuk item_name dan uom — tidak lagi JOIN ke items master
+  var looseTubeQty=parseInt((ge('ip_loose_tube_qty')||{value:'0'}).value)||0;
+  var fiberPerTubeQty=parseInt((ge('ip_fiber_per_tube_qty')||{value:'0'}).value)||0;
+
+  // Payload termasuk item_name, uom, dan fiber spec — tidak lagi JOIN ke items master
   var payload={item_code:itemCode,item_name:itemName,uom:uom,currency:currency,price:price,
-    hedging:hedging,landed:landed,effective_date:effective_date,note:note};
+    hedging:hedging,landed:landed,effective_date:effective_date,note:note,
+    loose_tube_qty:looseTubeQty,fiber_per_tube_qty:fiberPerTubeQty};
 
   if(typeof API!=='undefined'){
     var editCode=(ge('ip_edit_code')||{value:''}).value;
