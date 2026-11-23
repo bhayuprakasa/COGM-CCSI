@@ -1639,8 +1639,9 @@ window.serverLogout = async function() {
 
 // ── Load ALL data from server → fully replace in-memory DB ──
 window.loadAllData = async function() {
-  const [itemPrices, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs] = await Promise.all([
+  const [itemPrices, fgItems, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs] = await Promise.all([
     apiGet('/item-prices'),  // item_prices sekarang menggantikan items sebagai master data
+    apiGet('/items/fg'),     // master FG (is_fg=1) untuk dropdown item code di Master BOM
     apiGet('/prices'),
     apiGet('/exrates'),
     apiGet('/dlfoh'),
@@ -1654,6 +1655,7 @@ window.loadAllData = async function() {
 
   // Fully replace — never merge with seed/sample data
   DB_itemPrices = itemPrices || [];  // item_prices sebagai sumber lookup item
+  DB_fgItems    = fgItems    || [];  // master FG untuk lookup item code di Master BOM
   DB.items      = [];                // tidak lagi digunakan — lookup pakai DB_itemPrices
   DB.prices     = prices     || [];
   DB.exrates    = exrates    || [];
@@ -1834,8 +1836,8 @@ function openSearchModal(type, codeField, nameField, extra){
 }
 function buildSearchData(type){
   if(type==='fg_item'){
-    // Semua item dari DB_itemPrices — Master Item sudah dihapus, lookup dari item_prices
-    sm_data=DB_itemPrices.map(p=>({code:p.item_code,name:p.item_name||p.item_code,sub:p.uom||p.item_uom||''}));
+    // Item code diambil dari master FG (items dengan is_fg=1)
+    sm_data=DB_fgItems.map(p=>({code:p.code,name:p.name||p.code,sub:p.uom||''}));
   }
   else if(type==='item'){
     // Semua lookup item sekarang dari DB_itemPrices
@@ -3764,9 +3766,10 @@ function calcMBomTotalFiber(){
 }
 // Auto-fill Product Name dari Item Code yang diketik manual (sama seperti kap_item_code di Master Route)
 function onMBomProductCodeInput(val){
-  const item=DB_itemPrices.find(p=>p.item_code===(val||'').trim().toUpperCase());
+  // Lookup dari master FG (is_fg=1) — bukan dari item_prices
+  const item=DB_fgItems.find(p=>p.code===(val||'').trim().toUpperCase());
   const nameEl=ge('mbom_product');
-  if(nameEl) nameEl.value=item?(item.item_name||''):'';
+  if(nameEl) nameEl.value=item?(item.name||''):'';
   // Uppercase item code input
   const codeEl=ge('mbom_product_code');
   if(codeEl) codeEl.value=(val||'').toUpperCase();
@@ -6569,6 +6572,7 @@ function onPageCogs(){
 // ITEM PRICE — State & Functions
 // ══════════════════════════════════════════════════════
 var DB_itemPrices = [];
+var DB_fgItems    = []; // master FG (is_fg=1) — sumber lookup item code di Master BOM
 var itemPriceFilter = '';
 
 // ── Load item prices into DB_itemPrices ──

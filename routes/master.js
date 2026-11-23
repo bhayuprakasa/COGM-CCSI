@@ -81,6 +81,15 @@ async function isItemUsed(code) {
   return checks.some(r => r.length > 0);
 }
 
+// Endpoint khusus untuk dropdown Master BOM — hanya FG (is_fg=1)
+router.get('/items/fg', requireAuth, async (req,res) => {
+  try {
+    const items = await query(`SELECT id,code,name,uom,loose_tube_qty,fiber_qty,total_fiber_qty FROM items WHERE is_fg=1 ORDER BY code`);
+    res.json(items);
+  }
+  catch(e) { res.status(500).json({error:e.message}); }
+});
+
 router.get('/items', requireAuth, async (req,res) => {
   try {
     // Sertakan flag in_use: 1 jika item sudah dipakai di transaksi apapun
