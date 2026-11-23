@@ -380,4 +380,62 @@ router.get('/sequences', requireAuth, async (req,res) => {
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
+// ── FG ROUTES (master routing tenaga kerja per FG item) ──
+
+router.get('/fg-routes', requireAuth, async (req, res) => {
+  try {
+    res.json(await query(`SELECT * FROM fg_routes ORDER BY item_code, sort_order`));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/fg-routes/by-item/:itemCode', requireAuth, async (req, res) => {
+  try {
+    res.json(await query(
+      `SELECT fr.*, d.rate FROM fg_routes fr
+       LEFT JOIN dlfoh d ON d.catid = fr.cat
+       WHERE fr.item_code = ? ORDER BY fr.sort_order`,
+      [req.params.itemCode]
+    ));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/fg-routes', requireEdit, async (req, res) => {
+  try {
+    const { item_code, item_name, routes } = req.body;
+    if (!item_code) return res.status(400).json({ error: 'item_code wajib.' });
+    if (!routes?.length) return res.status(400).json({ error: 'Minimal 1 route entry.' });
+    // Hapus semua route lama untuk item ini, ganti dengan yang baru (upsert gaya array)
+    await query(`DELETE FROM fg_routes WHERE item_code = ?`, [item_code]);
+    for (let i = 0; i < routes.length; i++) {
+      const r = routes[i];
+      const [dlfohRec] = await query(`SELECT \`desc\`, type FROM dlfoh WHERE catid = ?`, [r.cat || '']);
+      await query(
+        `INSERT INTO fg_routes
+         (item_code, item_name, cat, cat_desc, type, process_time, setup_time, factor, sort_order, created_by, created_dt, modified_by, modified_dt)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [
+          item_code,
+          item_name || '',
+          r.cat || '',
+          dlfohRec ? (dlfohRec.desc || '') : (r.cat_desc || ''),
+          dlfohRec ? (dlfohRec.type || '') : (r.type || ''),
+          parseFloat(r.process_time) || 0,
+          parseFloat(r.setup_time) || 0,
+          parseFloat(r.factor) || 1,
+          i,
+          who(req), now(), who(req), now(),
+        ]
+      );
+    }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/fg-routes/by-item/:itemCode', requireEdit, async (req, res) => {
+  try {
+    await query(`DELETE FROM fg_routes WHERE item_code = ?`, [req.params.itemCode]);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;

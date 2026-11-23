@@ -143,13 +143,37 @@ async function insertMBomGroups(mbomId, groups) {
   }
 }
 
+// Helper: simpan routing snapshot ke bom_routing (dari fg_routes yang di-select saat BOM dibuat)
+async function insertBomRouting(bomId, routes) {
+  for (let i = 0; i < routes.length; i++) {
+    const r = routes[i];
+    // Ambil rate dari dlfoh master berdasarkan cat
+    const [dlfohRec] = await query(`SELECT type, rate FROM dlfoh WHERE catid = ?`, [r.cat || '']);
+    const dlfohRate = dlfohRec ? parseFloat(dlfohRec.rate) || 0 : 0;
+    const type = r.type || (dlfohRec ? dlfohRec.type : '') || '';
+    const processTime = parseFloat(r.process_time) || 0;
+    const setupTime   = parseFloat(r.setup_time) || 0;
+    const factor      = parseFloat(r.factor) || 1;
+    // total_hour = process_time × factor + setup_time (setup_time = fixed cost)
+    const totalHour = processTime * factor + setupTime;
+    const totalCost = totalHour * dlfohRate;
+    await query(
+      `INSERT INTO bom_routing (bom_id, cat, type, process_time, setup_time, factor, total_hour, total_cost, sort_order)
+       VALUES (?,?,?,?,?,?,?,?,?)`,
+      [bomId, r.cat || '', type, processTime, setupTime, factor, totalHour, totalCost, i]
+    );
+  }
+}
+
 // ── BOM ──
 async function buildBomList(whereClause='', params=[]) {
   const boms = await query(`SELECT * FROM bom ${whereClause} ORDER BY bomid`, params);
   const result = [];
   for (const b of boms) {
-    const groups = await buildGroups('bom_groups','bom_lines','bom_dlfoh','bom_id',b.id);
-    result.push({...b, groups, machine_lines:groups.map(g=>g.machine_line), lines:groups.flatMap(g=>g.lines)});
+    const groups  = await buildGroups('bom_groups','bom_lines','bom_dlfoh','bom_id',b.id);
+    // Sertakan routing snapshot per BOM
+    const routing = await query(`SELECT * FROM bom_routing WHERE bom_id = ? ORDER BY sort_order`, [b.id]);
+    result.push({...b, groups, routing, machine_lines:groups.map(g=>g.machine_line), lines:groups.flatMap(g=>g.lines)});
   }
   return result;
 }
@@ -177,17 +201,18 @@ router.get('/bom/active', requireAuth, async (req,res) => {
 
 router.post('/bom', requireEdit, async (req,res) => {
   try {
-    const {product,customer,project,fiber_cnt,buffer_qty,fiber_qty,price_id,master_bom_id,usd_rate_snapshot,groups} = req.body;
+    const {product,customer,project,fiber_cnt,buffer_qty,fiber_qty,price_id,master_bom_id,item_code,usd_rate_snapshot,groups,routing} = req.body;
     if(!product) return res.status(400).json({error:'Product Name wajib.'});
     if(!groups?.length) return res.status(400).json({error:'Pilih Master BOM ID untuk memuat Machine Line.'});
     const seq   = await nextSeq('bom');
     const bomid = 'BOM-'+String(seq).padStart(4,'0');
     const id    = 'BOMREC-'+bomid;
     const rateSnap = parseFloat(usd_rate_snapshot)||0;
-    await query(`INSERT INTO bom (id,bomid,product,customer,project,fiber_cnt,buffer_qty,fiber_qty,price_id,master_bom_id,usd_rate_snapshot,status,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [id,bomid,product,customer||'',project||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',price_id||'',master_bom_id||'',rateSnap,'draft',who(req),now(),who(req),now()]);
+    await query(`INSERT INTO bom (id,bomid,product,customer,project,fiber_cnt,buffer_qty,fiber_qty,price_id,master_bom_id,item_code,usd_rate_snapshot,status,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [id,bomid,product,customer||'',project||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',price_id||'',master_bom_id||'',item_code||'',rateSnap,'draft',who(req),now(),who(req),now()]);
     await insertBomGroups(id,groups);
     await snapshotRates(id);
+    if (routing?.length) await insertBomRouting(id, routing);
     res.json({id,bomid});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
@@ -198,12 +223,15 @@ router.put('/bom/:id', requireEdit, async (req,res) => {
     if(!existing) return res.status(404).json({error:'BOM tidak ditemukan.'});
     const editable = existing.status==='draft';
     if(!editable) return res.status(400).json({error:'Hanya BOM Draft/Rejected yang dapat diedit.'});
-    const {product,customer,project,fiber_cnt,buffer_qty,fiber_qty,price_id,master_bom_id,usd_rate_snapshot,groups} = req.body;
-    await query(`UPDATE bom SET product=?,customer=?,project=?,fiber_cnt=?,buffer_qty=?,fiber_qty=?,price_id=?,master_bom_id=?,usd_rate_snapshot=?,modified_by=?,modified_dt=? WHERE id=?`,
-      [product,customer||'',project||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',price_id||'',master_bom_id||'',parseFloat(usd_rate_snapshot)||0,who(req),now(),req.params.id]);
+    const {product,customer,project,fiber_cnt,buffer_qty,fiber_qty,price_id,master_bom_id,item_code,usd_rate_snapshot,groups,routing} = req.body;
+    await query(`UPDATE bom SET product=?,customer=?,project=?,fiber_cnt=?,buffer_qty=?,fiber_qty=?,price_id=?,master_bom_id=?,item_code=?,usd_rate_snapshot=?,modified_by=?,modified_dt=? WHERE id=?`,
+      [product,customer||'',project||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',price_id||'',master_bom_id||'',item_code||'',parseFloat(usd_rate_snapshot)||0,who(req),now(),req.params.id]);
     await deleteBomGroups(req.params.id);
     await insertBomGroups(req.params.id, groups||[]);
     await snapshotRates(req.params.id);
+    // Reset dan simpan ulang routing snapshot
+    await query(`DELETE FROM bom_routing WHERE bom_id = ?`, [req.params.id]);
+    if (routing?.length) await insertBomRouting(req.params.id, routing);
     res.json({ok:true});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
@@ -281,6 +309,16 @@ router.post('/bom/:id/recalculate', requireEdit, async (req, res) => {
       }
     }
 
+    // Recalc bom_routing: total_cost = total_hour × dlfoh.rate (rate bisa berubah sewaktu-waktu)
+    const routingRows = await query(`SELECT * FROM bom_routing WHERE bom_id = ?`, [req.params.id]);
+    for (const r of routingRows) {
+      if (!r.cat) continue;
+      const [dlfohMaster] = await query(`SELECT rate FROM dlfoh WHERE catid = ?`, [r.cat]);
+      if (!dlfohMaster) continue;
+      const totalCost = (parseFloat(r.total_hour) || 0) * (parseFloat(dlfohMaster.rate) || 0);
+      await query(`UPDATE bom_routing SET total_cost = ? WHERE id = ?`, [totalCost, r.id]);
+    }
+
     await query(
       `UPDATE bom SET modified_by = ?, modified_dt = ? WHERE id = ?`,
       [who(req), now(), req.params.id]
@@ -298,6 +336,9 @@ router.delete('/bom/:id', requireEdit, async (req,res) => {
     if(!b) return res.status(404).json({error:'BOM tidak ditemukan.'});
     if(b.status!=='draft') return res.status(400).json({error:'Hanya BOM Draft yang dapat dihapus.'});
     await deleteBomGroups(req.params.id);
+    // Hapus routing snapshot dan rate snapshots
+    await query(`DELETE FROM bom_routing WHERE bom_id = ?`, [req.params.id]);
+    await query(`DELETE FROM bom_rate_snapshots WHERE bom_id = ?`, [req.params.id]);
     await query(`DELETE FROM bom WHERE id=?`,[req.params.id]);
     res.json({ok:true});
   } catch(e) { res.status(500).json({error:e.message}); }
