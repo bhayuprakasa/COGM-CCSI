@@ -170,7 +170,8 @@ async function initSchema() {
 
       `CREATE TABLE IF NOT EXISTS bom (
         id VARCHAR(100) PRIMARY KEY, bomid VARCHAR(50) UNIQUE NOT NULL,
-        product VARCHAR(255) NOT NULL, customer VARCHAR(255),
+        product VARCHAR(255) NOT NULL, product_code VARCHAR(100),
+        customer VARCHAR(255),
         project VARCHAR(255), fiber_cnt VARCHAR(50),
         buffer_qty VARCHAR(50), fiber_qty VARCHAR(50),
         price_id VARCHAR(100), master_bom_id VARCHAR(100),
@@ -334,6 +335,7 @@ async function initSchema() {
       { table:'bom_lines',       col:'modified_by',       def:'VARCHAR(100)'            },
       { table:'bom_lines',       col:'modified_dt',       def:'VARCHAR(50)'             },
       { table:'bom',             col:'usd_rate_snapshot', def:'DECIMAL(20,4) DEFAULT 0' },
+      { table:'bom',             col:'product_code',      def:"VARCHAR(100) DEFAULT ''" },
       { table:'items',           col:'is_fg',             def:'TINYINT(1) NOT NULL DEFAULT 0' },
       // Fiber spec columns on items — loose tube count, fibers-per-tube, computed total
       { table:'items',           col:'loose_tube_qty',    def:'INT DEFAULT 0' },
@@ -356,7 +358,7 @@ async function initSchema() {
       `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = ?
          AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices','masterbom')
-         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code')`,
+         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code')`
       [cfg.database]
     );
     const existSet = new Set(existing.map(r => `${r.TABLE_NAME.toLowerCase()}.${r.COLUMN_NAME.toLowerCase()}`));
