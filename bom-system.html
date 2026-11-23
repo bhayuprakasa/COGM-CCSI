@@ -715,15 +715,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <input class="finput" id="kap_created" readonly placeholder="Auto-generate">
         </div>
         <div class="form-group">
-          <div class="flabel req">Item Code</div>
+          <div class="flabel req">Product Code</div>
           <div class="search-field-wrap">
-            <input class="finput" id="kap_item_code" placeholder="Cari item code...">
+            <input class="finput" id="kap_item_code" placeholder="Cari product code...">
             <span class="search-icon clickable" onclick="openSearchModal('item','kap_item_code','kap_item_name')">🔍</span>
           </div>
         </div>
         <div class="form-group">
-          <div class="flabel">Item Name</div>
-          <input class="finput" id="kap_item_name" readonly placeholder="Auto dari item code">
+          <div class="flabel">Product Name</div>
+          <input class="finput" id="kap_item_name" readonly placeholder="Auto dari product code">
         </div>
         <div class="form-group">
           <div class="flabel req">Proses</div>
@@ -1949,7 +1949,7 @@ function saveKap(){try{
   const dl=parseInt(document.getElementById('kap_dl').value)||0;
   const efisiensi=parseFloat(document.getElementById('kap_efisiensi').value)||0;
   const notes=document.getElementById('kap_notes').value.trim();
-  if(!item_code||!proses||!machine_id){toast('Item Code, Proses, dan Machine ID wajib diisi.','error');return;}
+  if(!item_code||!proses||!machine_id){toast('Product Code, Proses, dan Machine ID wajib diisi.','error');return;}
   const payload={item_code,item_name,tube,fiber,proses,machine_id,machine_name,kecepatan,dl,efisiensi,notes,updated:nowStr()};
   if(editId){
     const rec=DB.kap.find(k=>k.id===editId);
@@ -1970,7 +1970,7 @@ function renderKap(){try{
   const thead=document.getElementById('kap_thead');
   if(thead) thead.innerHTML='<tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll(\'kap\',this.checked)" title="Pilih Semua"></th>'+[
     col('kap','kapid')&&'<th>Kap. ID</th>',col('kap','created')&&'<th>Created</th>',
-    col('kap','icode')&&'<th>Item Code</th>',col('kap','iname')&&'<th>Item Name</th>',
+    col('kap','icode')&&'<th>Product Code</th>',col('kap','iname')&&'<th>Product Name</th>',
     col('kap','proses')&&'<th>Proses</th>',col('kap','machid')&&'<th>Machine ID</th>',
     col('kap','machname')&&'<th>Machine Name</th>',col('kap','tube')&&'<th>Tube</th>',
     col('kap','fiber')&&'<th>Fiber</th>',col('kap','speed')&&'<th>Kec. (MPM)</th>',
@@ -2201,7 +2201,7 @@ function renderBomGroups(){
         <div class="line-tbl-wrap">
           <table class="line-tbl">
             <thead><tr>
-              <th>Item Code</th><th>Item Name</th><th>UOM</th>
+              <th>Product Code</th><th>Product Name</th><th>UOM</th>
               <th>Qty</th><th>Scrap%</th><th>Factor</th><th>Total Qty</th>
               <th>Currency</th><th>Price</th><th>Landed%</th><th>Hedging%</th>
               <th>Total(USD)</th><th>Total(IDR)</th><th></th>
@@ -2941,7 +2941,7 @@ function renderMBomGroups(){
         <div class="line-tbl-wrap">
           <table class="line-tbl">
             <thead><tr>
-              <th>Item Code</th><th>Item Name</th><th>UOM</th>
+              <th>Product Code</th><th>Product Name</th><th>UOM</th>
               <th>Qty</th><th>Scrap%</th><th>Factor</th><th>Total Qty</th><th></th>
             </tr></thead>
             <tbody id="mbom_lines_${gIdx}">
@@ -3930,7 +3930,7 @@ function viewBomDetail(id, src){try{
         <div style="overflow-x:auto;margin-bottom:.65rem">
           <table class="tbl" style="min-width:800px">
             <thead><tr>
-              <th>Item Code</th><th>Item Name</th><th>UOM</th>
+              <th>Product Code</th><th>Product Name</th><th>UOM</th>
               <th style="text-align:right">Qty</th><th style="text-align:right">Scrap%</th>
               <th style="text-align:right">Factor</th><th style="text-align:right">Total Qty</th>
               <th style="text-align:center">Currency</th><th style="text-align:right">Price</th>
