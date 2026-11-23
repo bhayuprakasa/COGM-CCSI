@@ -475,7 +475,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     <div class="stat-row" style="margin-bottom:0">
       <div class="stat-pill"><span class="sp-label">Total Item Price</span><span class="sp-val" id="price_count">0</span></div>
     </div>
-    <button class="btn btn-primary" onclick="openItemPriceForm()">+ Tambah Raw Material</button>
     <button class="btn btn-ghost" id="ge_toggle_itemprice" onclick="geToggleAll('itemprice')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
     <button class="btn btn-primary" id="ge_saveall_itemprice" onclick="geSaveAll('itemprice')" style="display:none">💾 Simpan Semua</button>
     <button class="btn btn-ghost" onclick="openUploadModal('itemprice')">⬆ Upload CSV</button>
@@ -559,10 +558,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             style="background:var(--bg2,#1a1a2e);color:var(--t3,#8888aa);cursor:not-allowed">
         </div>
         <div></div>
-      </div>
-      <div class="form-group">
-        <div class="flabel">Catatan Perubahan</div>
-        <input class="finput" id="ip_note" placeholder="Alasan perubahan harga (opsional)">
       </div>
     </div>
   </div>
@@ -6903,7 +6898,7 @@ function renderItemPrices(){
   if(countEl) countEl.textContent=DB_itemPrices.length;
   if(!rows.length){
     tbody.innerHTML='<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:2rem">'
-      +(DB_itemPrices.length?'Tidak ada item yang cocok pencarian.':'Belum ada raw material. Klik "+ Tambah Raw Material".')
+      +(DB_itemPrices.length?'Tidak ada item yang cocok pencarian.':'Belum ada raw material.')
       +'</td></tr>';
     return;
   }
