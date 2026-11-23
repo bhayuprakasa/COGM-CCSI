@@ -314,14 +314,15 @@ async function initSchema() {
       { table:'item_prices',     col:'loose_tube_qty',    def:'INT DEFAULT 0' },
       { table:'item_prices',     col:'fiber_per_tube_qty',def:'INT DEFAULT 0' },
       { table:'item_prices',     col:'total_fiber_qty',   def:'INT DEFAULT 0' },
+      { table:'masterbom',       col:'product_code',      def:"VARCHAR(100) DEFAULT ''" },
     ];
 
     // Batch check all columns at once — include all tables and columns being migrated
     const [existing] = await conn.execute(
       `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = ?
-         AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices')
-         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom')`,
+         AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices','masterbom')
+         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code')`,
       [cfg.database]
     );
     const existSet = new Set(existing.map(r => `${r.TABLE_NAME.toLowerCase()}.${r.COLUMN_NAME.toLowerCase()}`));
@@ -334,7 +335,7 @@ async function initSchema() {
     }
 
     // ── Seed sequences ──
-    for (const name of ['item','price','kap','masterbom','bom']) {
+    for (const name of ['item','price','kap','masterbom','bom','cogs']) {
       await conn.execute(`INSERT IGNORE INTO sequences (name,value) VALUES (?,0)`, [name]);
     }
 

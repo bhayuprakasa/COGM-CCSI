@@ -9,6 +9,33 @@ const now = () => new Date().toLocaleString('id-ID',{hour12:false}).replace(',',
 const who = r => r.user?.nama || 'System';
 const uid = () => Math.random().toString(36).slice(2)+Date.now().toString(36);
 
+// Snapshot exchange rates saat BOM dibuat/diupdate — capture semua currency di bom_lines
+async function snapshotRates(bomId) {
+  const lines = await query(
+    `SELECT DISTINCT bl.currency FROM bom_groups bg
+     JOIN bom_lines bl ON bl.group_id = bg.id
+     WHERE bg.bom_id = ? AND bl.currency IS NOT NULL AND bl.currency != ''`,
+    [bomId]
+  );
+  const currencies = new Set(['USD', ...lines.map(l => l.currency)]);
+
+  for (const currency of currencies) {
+    const [exrate] = await query(`SELECT id FROM exrates WHERE currency_id = ?`, [currency]);
+    if (!exrate) continue;
+    const [latest] = await query(
+      `SELECT rate FROM exrate_lines WHERE exrate_id = ? ORDER BY tanggal DESC LIMIT 1`,
+      [exrate.id]
+    );
+    if (!latest) continue;
+    await query(
+      `INSERT INTO bom_rate_snapshots (bom_id, currency, rate, snapped_dt)
+       VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE rate = VALUES(rate), snapped_dt = VALUES(snapped_dt)`,
+      [bomId, currency, parseFloat(latest.rate) || 0, now()]
+    );
+  }
+}
+
 // ── Helper: build groups with lines ──
 async function buildGroups(groupTable, lineTable, dlfohTable, parentField, parentId) {
   const groups = await query(`SELECT * FROM ${groupTable} WHERE ${parentField}=? ORDER BY sort_order`, [parentId]);
@@ -160,6 +187,7 @@ router.post('/bom', requireEdit, async (req,res) => {
     await query(`INSERT INTO bom (id,bomid,product,customer,project,fiber_cnt,buffer_qty,fiber_qty,price_id,master_bom_id,usd_rate_snapshot,status,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [id,bomid,product,customer||'',project||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',price_id||'',master_bom_id||'',rateSnap,'draft',who(req),now(),who(req),now()]);
     await insertBomGroups(id,groups);
+    await snapshotRates(id);
     res.json({id,bomid});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
@@ -175,8 +203,93 @@ router.put('/bom/:id', requireEdit, async (req,res) => {
       [product,customer||'',project||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',price_id||'',master_bom_id||'',parseFloat(usd_rate_snapshot)||0,who(req),now(),req.params.id]);
     await deleteBomGroups(req.params.id);
     await insertBomGroups(req.params.id, groups||[]);
+    await snapshotRates(req.params.id);
     res.json({ok:true});
   } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+// Recalculate semua total_idr (bom_lines) dan total_cost (bom_dlfoh) server-side
+// Menggunakan bom_rate_snapshots — tidak mengubah qty/price/hour, hanya update total
+router.post('/bom/:id/recalculate', requireEdit, async (req, res) => {
+  try {
+    const [bom] = await query(`SELECT id, status FROM bom WHERE id = ?`, [req.params.id]);
+    if (!bom) return res.status(404).json({ error: 'BOM tidak ditemukan.' });
+    if (!['draft', 'pending_l1', 'pending_l2', 'pending_l3'].includes(bom.status))
+      return res.status(400).json({ error: 'BOM sudah final, tidak dapat dihitung ulang.' });
+
+    // Ambil snapshot rates untuk BOM ini
+    const snapshots = await query(
+      `SELECT currency, rate FROM bom_rate_snapshots WHERE bom_id = ?`,
+      [req.params.id]
+    );
+    const rateMap = {};
+    for (const s of snapshots) rateMap[s.currency] = parseFloat(s.rate) || 0;
+
+    // Jika USD belum di-snapshot, coba ambil dari exrate_lines
+    if (!rateMap['USD']) {
+      const [usdEx] = await query(`SELECT id FROM exrates WHERE currency_id = 'USD'`);
+      if (usdEx) {
+        const [latest] = await query(
+          `SELECT rate FROM exrate_lines WHERE exrate_id = ? ORDER BY tanggal DESC LIMIT 1`,
+          [usdEx.id]
+        );
+        if (latest) rateMap['USD'] = parseFloat(latest.rate) || 0;
+      }
+    }
+    const usdRate = rateMap['USD'] || 1;
+
+    const groups = await query(`SELECT id FROM bom_groups WHERE bom_id = ?`, [req.params.id]);
+    for (const g of groups) {
+      // Recalc bom_lines: total_idr = total_qty × price × (1 + (landed+hedging)/100) × rate_IDR
+      const bomLines = await query(`SELECT * FROM bom_lines WHERE group_id = ?`, [g.id]);
+      for (const l of bomLines) {
+        const currency = (l.currency || 'USD').trim();
+        let currRate = rateMap[currency];
+        if (!currRate) {
+          const [ex] = await query(`SELECT id FROM exrates WHERE currency_id = ?`, [currency]);
+          if (ex) {
+            const [lat] = await query(
+              `SELECT rate FROM exrate_lines WHERE exrate_id = ? ORDER BY tanggal DESC LIMIT 1`,
+              [ex.id]
+            );
+            if (lat) currRate = rateMap[currency] = parseFloat(lat.rate) || 0;
+          }
+        }
+        currRate = currRate || usdRate;
+
+        const totalQty = parseFloat(l.total_qty) || 0;
+        const price    = parseFloat(l.price) || 0;
+        const landed   = parseFloat(l.landed) || 0;
+        const hedging  = parseFloat(l.hedging) || 0;
+        const totalIdr = totalQty * price * (1 + (landed + hedging) / 100) * currRate;
+        const totalAmt = usdRate > 0 ? totalIdr / usdRate : 0;
+
+        await query(
+          `UPDATE bom_lines SET total_amt = ?, total_idr = ? WHERE id = ?`,
+          [totalAmt, totalIdr, l.id]
+        );
+      }
+
+      // Recalc bom_dlfoh: total_cost = total_hour × dlfoh.rate
+      const dlfohLines = await query(`SELECT * FROM bom_dlfoh WHERE group_id = ?`, [g.id]);
+      for (const d of dlfohLines) {
+        if (!d.cat) continue;
+        const [master] = await query(`SELECT rate FROM dlfoh WHERE catid = ?`, [d.cat]);
+        if (!master) continue;
+        const totalCost = (parseFloat(d.total_hour) || 0) * (parseFloat(master.rate) || 0);
+        await query(`UPDATE bom_dlfoh SET total_cost = ? WHERE id = ?`, [totalCost, d.id]);
+      }
+    }
+
+    await query(
+      `UPDATE bom SET modified_by = ?, modified_dt = ? WHERE id = ?`,
+      [who(req), now(), req.params.id]
+    );
+
+    res.json({ ok: true, message: 'Recalculate berhasil.' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 router.delete('/bom/:id', requireEdit, async (req,res) => {
