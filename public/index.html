@@ -858,14 +858,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <input class="finput" id="mbom_product" readonly placeholder="Auto dari item code" style="background:var(--s2);color:var(--t2);cursor:default">
           </div>
           <div class="form-group">
-            <div class="flabel">Customer Name</div>
-            <input class="finput" id="mbom_customer" placeholder="Nama customer">
-          </div>
-          <div class="form-group">
-            <div class="flabel">Project Name</div>
-            <input class="finput" id="mbom_project" placeholder="Nama project">
-          </div>
-          <div class="form-group">
             <div class="flabel">Loose Tube Qty</div>
             <!-- Loose Tube count; triggers auto-calc of Total Fiber Qty -->
             <input class="finput" type="number" id="mbom_fiber_cnt" placeholder="0" min="0" oninput="calcMBomTotalFiber()">
@@ -4000,7 +3992,7 @@ let mbomSeq=0;
 function openMBomForm(id){try{
   mbomGroups=[];
   setVal('mbom_edit_id','');
-  ['mbom_product','mbom_product_code','mbom_customer','mbom_project'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['mbom_product','mbom_product_code'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['mbom_fiber_cnt','mbom_buffer_qty','mbom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   setVal('mbom_new_ml_sel','');
 
@@ -4017,8 +4009,6 @@ function openMBomForm(id){try{
       setVal('mbom_id_disp',rec.bomid);
       setVal('mbom_product_code',rec.product_code||'');
       setVal('mbom_product',rec.product||'');
-      setVal('mbom_customer',rec.customer||'');
-      setVal('mbom_project',rec.project||'');
       setVal('mbom_fiber_cnt',rec.fiber_cnt||'');
       setVal('mbom_buffer_qty',rec.buffer_qty||'');
       // Recalculate Total Fiber Qty from stored values (Loose Tube × Fiber/Tube)
@@ -4314,7 +4304,7 @@ function saveMBom(){try{
   if(!product_code){toast('Item Code wajib diisi.','error');return;}
   if(!mbomGroups.length){toast('Tambahkan minimal 1 Machine Line.','error');return;}
   // Kirim product_code dan product (nama) ke API
-  const payload={product_code,product,customer:(ge('mbom_customer')||{value:''}).value,project:(ge('mbom_project')||{value:''}).value,fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,fiber_qty:(ge('mbom_fiber_qty')||{value:''}).value,groups:JSON.parse(JSON.stringify(mbomGroups))};
+  const payload={product_code,product,fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,fiber_qty:(ge('mbom_fiber_qty')||{value:''}).value,groups:JSON.parse(JSON.stringify(mbomGroups))};
   if(typeof API!=='undefined'){
     if(editId){apiSave(API.masterbom.update(editId,payload),function(){toast('Master BOM diupdate.','success');closeMBomForm();loadAllData().then(function(){renderMBom();updateCounts();});});}
     else{apiSave(API.masterbom.create(payload),function(){toast('Master BOM disimpan.','success');closeMBomForm();loadAllData().then(function(){renderMBom();updateCounts();});});}
@@ -4326,8 +4316,6 @@ function saveMBom(){try{
   const data={
     id:editId||('MBOMDOC-'+bomid), bomid, product,
     machine_lines,
-    customer:(ge('mbom_customer')||{value:''}).value,
-    project:(ge('mbom_project')||{value:''}).value,
     fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,
     buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,
     fiber_qty:(ge('mbom_fiber_qty')||{value:''}).value,
