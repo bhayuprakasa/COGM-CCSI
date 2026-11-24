@@ -439,8 +439,8 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master FG (Route)</div>
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
-  <div class="nav-item" onclick="goPage('bom')"><span class="ni">📋</span> Bill of Material</div>
-  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> History BOM</div>
+  <div class="nav-item" onclick="goPage('bom')"><span class="ni">📋</span> COGS Calculated</div>
+  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> COGM Approved</div>
   <div class="nav-item" id="nav_cogs" onclick="goPage('cogs')"><span class="ni">📊</span> COGS Summary</div>
   <div class="nav-section">Panduan</div>
   <div class="nav-item" onclick="goPage('guide')"><span class="ni">📖</span> Panduan Sistem</div>
@@ -998,7 +998,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div id="bom_form_section" style="display:none">
     <div class="card">
       <div class="card-head">
-        <div class="card-title"><span class="card-title-icon">📋</span><span id="bom_form_title">Bill of Material Baru</span></div>
+        <div class="card-title"><span class="card-title-icon">📋</span><span id="bom_form_title">COGS Calculated Baru</span></div>
         <div style="display:flex;gap:.4rem">
           <button class="btn btn-secondary btn-sm" onclick="closeBomForm()">Batal</button>
           <button class="btn btn-primary btn-sm" onclick="saveBom()">Simpan BOM</button>
@@ -1140,7 +1140,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <!-- BOM LIST -->
   <div class="card" id="bom_list_card">
     <div class="card-head">
-      <div class="card-title"><span class="card-title-icon">📋</span> Daftar Bill of Material</div>
+      <div class="card-title"><span class="card-title-icon">📋</span> Daftar COGS Calculated</div>
       <div style="display:flex;align-items:center;gap:.5rem"><input class="finput" style="width:200px" placeholder="🔍 Cari BOM..." oninput="filterBom(this.value)"><div id="coltoggle_bom"></div></div>
     </div>
     <div class="card-body" style="padding:0">
@@ -1368,11 +1368,11 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <div style="text-align:center;font-size:.65rem;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">④ Transaksi</div>
             <div style="border:1px solid var(--b2);border-radius:var(--r1);overflow:hidden">
               <div onclick="goPage('bom')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer;border-bottom:1px solid var(--b2)" class="guide-flow-item">
-                <div style="font-size:.7rem;font-weight:700">📋 Bill of Material</div>
+                <div style="font-size:.7rem;font-weight:700">📋 COGS Calculated</div>
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">BOM aktual per order produksi</div>
               </div>
               <div onclick="goPage('history')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
-                <div style="font-size:.7rem;font-weight:700">📜 History BOM</div>
+                <div style="font-size:.7rem;font-weight:700">📜 COGM Approved</div>
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Riwayat & audit trail BOM</div>
               </div>
             </div>
@@ -1922,8 +1922,8 @@ const pageTitles={
   mesin:'🔧 Master Data <span>Mesin</span>',
   kapasitas:'⚡ Master Data <span>Master FG (Route)</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
-  bom:'📋 <span>Bill of Material</span>',
-  history:'📜 <span>History BOM</span>',
+  bom:'📋 <span>COGS Calculated</span>',
+  history:'📜 <span>COGM Approved</span>',
   cogs:'📊 <span>COGS Summary</span>',
   roles:'🔑 <span>Access Role</span>',
   guide:'📖 <span>Panduan Sistem</span>',
@@ -2843,7 +2843,7 @@ function openBomForm(id){try{
       });
     });
   } else {
-    setText('bom_form_title','Bill of Material Baru');
+    setText('bom_form_title','COGS Calculated Baru');
     const newBomId='BOM-'+(++bomSeq).toString().padStart(4,'0');
     setVal('bom_id_disp',newBomId);
     // Snapshot current USD rate — will be fixed for this BOM's IDR calculations
@@ -3532,7 +3532,7 @@ function renderBom(){try{
   const rows=DB.bom.filter(b=>!bomFilter||(b.bomid.toLowerCase().includes(bomFilter)||b.product.toLowerCase().includes(bomFilter)));
   setText('bom_count',DB.bom.length);
   const span=COL_DEFS.bom.filter(c=>colState.bom[c.key]!==false).length;
-  if(!rows.length){tbody.innerHTML=`<tr><td colspan="${span}"><div class="empty-state"><div class="es-icon">📋</div><p>Belum ada Bill of Material.</p></div></td></tr>`;return;}
+  if(!rows.length){tbody.innerHTML=`<tr><td colspan="${span}"><div class="empty-state"><div class="es-icon">📋</div><p>Belum ada COGS Calculated.</p></div></td></tr>`;return;}
   tbody.innerHTML=rows.map(b=>{const _bchk='<td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" '+(isSelected('bom',b.id)?'checked':'')+' onchange="toggleRowSelect(\'bom\',\''+b.id+'\',this.checked)"></td>';
     const status=b.status||'draft';
     const si=statusInfo(status);
@@ -5247,7 +5247,7 @@ function closeAddUserForm(){ setDisp('add_user_card','none'); }
 
 function buildCustomAccessChecks(selected){
   const wrap = document.getElementById('custom_access_checks');
-  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',kapasitas:'Master FG (Route)',bom:'Bill of Material',history:'History BOM',cogs:'COGS Summary',roles:'Access Role'};
+  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',kapasitas:'Master FG (Route)',bom:'COGS Calculated',history:'COGM Approved',cogs:'COGS Summary',roles:'Access Role'};
   wrap.innerHTML = ALL_PAGES.map(p=>`
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;padding:.3rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--b1)">
       <input type="checkbox" id="chk_${p}" ${selected.includes(p)?'checked':''} style="accent-color:var(--cyan)"> ${pageLabels[p]||p}
@@ -5407,7 +5407,7 @@ function doApproval(action){try{
     loadAllData().then(function(){renderBom();renderHistory();});
     const msg=action==='approve'
       ?(newStatus==='approved'?'BOM Approved sepenuhnya ✅':'Diteruskan ke level berikutnya ✅')
-      :'BOM Ditolak (Rejected) — tercatat di History BOM.';
+      :'BOM Ditolak (Rejected) — tercatat di COGM Approved.';
     toast(msg,isTerminal&&action==='approve'?'success':'info');
   });
 }catch(e){console.warn("doApproval:",e);}}
