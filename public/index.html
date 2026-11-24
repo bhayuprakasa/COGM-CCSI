@@ -2837,6 +2837,26 @@ function openBomForm(id){try{
         };
       });
     });
+
+    // Restore prosesTime & setupTime dari kapasitas.notes agar PROCESS & SET UP tampil benar
+    // bom_groups tidak menyimpan kolom ini, jadi harus di-lookup dari DB.kap saat edit
+    if(rec.item_code){
+      const _kapRec=DB.kap.find(k=>k.item_code===rec.item_code);
+      if(_kapRec){
+        let _kapLines=[];
+        try{_kapLines=JSON.parse(_kapRec.notes||'[]');}catch(e){_kapLines=[];}
+        bomGroups.forEach(g=>{
+          const _kl=_kapLines.find(l=>l.machine_line===g.machine_line);
+          if(_kl){
+            // Gunakan kapasitas.duration sebagai processTime (lebih akurat dari speed/kapPct)
+            const _pt=parseFloat(_kl.duration)||0;
+            const _st=parseFloat(_kl.setup)||0;
+            if(_pt>0) g.prosesTime=_pt;
+            if(_st>0) g.setupTime=_st;
+          }
+        });
+      }
+    }
   } else {
     setText('bom_form_title','COGS Calculated Baru');
     const newBomId='BOM-'+(++bomSeq).toString().padStart(4,'0');
