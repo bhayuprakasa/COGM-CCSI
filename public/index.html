@@ -1001,8 +1001,9 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               <input class="finput" type="number" id="bom_buffer_qty" placeholder="0">
             </div>
             <div class="form-group">
-              <div class="flabel">Length Qty</div>
-              <input class="finput" type="number" id="bom_fiber_qty" placeholder="0">
+              <div class="flabel req">Length Qty</div>
+              <!-- oninput: update lengthQty semua group dan recalc DL-FOH -->
+              <input class="finput" type="number" id="bom_fiber_qty" placeholder="0" oninput="onBomLengthQtyChange(this.value)">
             </div>
             <!-- Price ID dihapus sesuai permintaan -->
             <input type="hidden" id="bom_price_id" value="">
@@ -3101,8 +3102,9 @@ function renderDlfohRow(gIdx,dIdx,dl){
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
         </td>
       <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,4)}" readonly></td>
-      <td><input class="li-input dlfoh-rate-cell" style="width:80px" value="${fmt_num(rec?parseFloat(rec.rate)||0:0,0)}" readonly></td>
-      <td><input class="li-input dlfoh-cost-cell" style="width:92px" value="${fmt_num(dl.total_cost||0,0)}" readonly></td>
+      <!-- Rate & Total Cost: format locale ID agar tampil titik-koma ribuan -->
+      <td><input class="li-input dlfoh-rate-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
+      <td><input class="li-input dlfoh-cost-cell" style="width:92px" value="${Number(dl.total_cost||0).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="bomGroups[${gIdx}].dlfohLines.splice(${dIdx},1);renderBomGroups()">&#10005;</button>`)}</td>
     </tr>`;
 }
@@ -3186,8 +3188,8 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
     const rateCell=row.querySelector('.dlfoh-rate-cell');
     const costCell=row.querySelector('.dlfoh-cost-cell');
     if(hourCell) hourCell.value=fmt_num(th,4);
-    if(rateCell) rateCell.value=fmt_num(rec?parseFloat(rec.rate)||0:0,0);
-    if(costCell) costCell.value=fmt_num(dl.total_cost,0);
+    if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
+    if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
   }
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
   const el=document.getElementById('grp_dlfoh_idr_'+gIdx);
@@ -3225,8 +3227,8 @@ function recalcGroupDlfoh(gIdx){
       if(idxCell&&!dl.index_manual) idxCell.value=fmt_num(idx,5);
       if(setupCell&&!dl.setup_manual) setupCell.value=fmt_num(dl.setup,5);
       if(hourCell) hourCell.value=fmt_num(th,4);
-      if(rateCell) rateCell.value=fmt_num(rec?parseFloat(rec.rate)||0:0,0);
-      if(costCell) costCell.value=fmt_num(dl.total_cost,0);
+      if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
+      if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
       const t=rec?rec.type:'—';
       // badge color: DL=green, FFOH=violet, VFOH=amber
       const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
@@ -3237,6 +3239,14 @@ function recalcGroupDlfoh(gIdx){
   const el=document.getElementById('grp_dlfoh_idr_'+gIdx);
   if(el) el.textContent=Number(groupTotal.toFixed(0)).toLocaleString('id-ID');
   recalcAllGroups();
+}
+
+// Dipanggil saat user mengubah Length Qty di header BOM
+// Update g.lengthQty semua group dan recalc DL-FOH agar total_hour ikut berubah
+function onBomLengthQtyChange(val){
+  const lq=parseFloat(val)||0;
+  if(lq<=0) return;
+  bomGroups.forEach((g,gIdx)=>{g.lengthQty=lq;recalcGroupDlfoh(gIdx);});
 }
 
 function recalcAllGroups(){
@@ -4426,6 +4436,14 @@ function renderMBom(){try{
 
 // ── Auto-fill BOM from Master BOM ──
 function onMasterBomSelect(mbomId){
+  // Validasi: Length Qty wajib diisi sebelum memilih Master BOM
+  const lqEl=ge('bom_fiber_qty');
+  const userLengthQty=parseFloat(lqEl?lqEl.value:0)||0;
+  if(!userLengthQty||userLengthQty<=0){
+    toast('Isi Length Qty terlebih dahulu sebelum memilih Master BOM.','error');
+    return;
+  }
+
   const rec=DB.masterbom.find(b=>b.id===mbomId||b.bomid===mbomId);
   if(!rec){toast('Master BOM tidak ditemukan.','error');return;}
   // Fill header fields (except Price ID, Customer, Project, Length Qty)
@@ -4440,7 +4458,7 @@ function onMasterBomSelect(mbomId){
     const el=ge(id);
     if(el){el.readOnly=true;el.style.background='var(--s2)';el.style.color='var(--t3)';}
   });
-  // bom_fiber_qty = Length Qty (km per job) — tidak diambil dari master, diisi user per BOM
+  // bom_fiber_qty = Length Qty — diisi user, tidak diambil dari master BOM
 
   // Rebuild bomGroups from master BOM groups
   bomGroups=[];
@@ -4450,17 +4468,27 @@ function onMasterBomSelect(mbomId){
     const dlLot =parseFloat(g.dlLot ||g.dl_lot )||1;
     const fohLot=parseFloat(g.fohLot||g.foh_lot)||1;
     const speed =parseFloat(g.speed)||1;
-    // Proses/setup time: use stored value or derive from legacy speed/kapPct
+    // Proses time: dari stored value atau derive dari speed/kapPct (legacy)
     var gProsesTime=parseFloat(g.prosesTime||g.proses_time)||null;
     if(gProsesTime===null) gProsesTime=speed>0&&kapPct>0?parseFloat((1000/(speed*60*(kapPct/100))).toFixed(5)):0;
-    const gSetupTime=parseFloat(g.setupTime||g.setup_time)||0;
-    const gLengthQty=parseFloat(g.lengthQty||g.length_qty)||1;
+    // Setup time: dari stored value; jika 0 cari dari DB.kap (Master FG Route) per machine_line
+    var gSetupTime=parseFloat(g.setupTime||g.setup_time)||0;
+    if(!gSetupTime){
+      var ml=g.machine_line;
+      for(var ki=0;ki<DB.kap.length;ki++){
+        var klines=[];try{klines=JSON.parse(DB.kap[ki].notes||'[]');}catch(e){klines=[];}
+        var kMatch=klines.find(function(kl){return kl.machine_line===ml;});
+        if(kMatch&&parseFloat(kMatch.setup)){gSetupTime=parseFloat(kMatch.setup)||0;break;}
+      }
+    }
+    // lengthQty dari input user bom_fiber_qty, bukan dari master BOM
+    const gLengthQty=userLengthQty;
     bomGroups.push({
       machine_line:g.machine_line,
       machine_id:g.machine_id||'', kap_id:g.kap_id||'',
       prosesTime:gProsesTime, setupTime:gSetupTime, lengthQty:gLengthQty,
       dlLot:dlLot, fohLot:fohLot,
-      fromMaster:true, // grup ini dari Master BOM — lines tidak boleh ditambah/hapus/ubah struktur
+      fromMaster:true, // grup dari Master BOM — lines tidak boleh ditambah/hapus/ubah struktur
       lines:(g.lines||[]).map(l=>({
         item_code:l.item_code, item_name:l.item_name,
         uom:l.uom||(DB_itemPrices.find(p=>p.item_code===l.item_code)||{}).uom||'',
@@ -4468,8 +4496,8 @@ function onMasterBomSelect(mbomId){
         currency:'USD', price:0, landed:0, hedging:0, usd_rate:getLatestRate('USD'), total_amt:0, total_idr:0,
         fromMaster:true, // field qty/scrap/factor/item_code dari master, tidak boleh diedit
       })),
-      // Auto-generate semua baris DL-FOH (DL, FFOH, VFOH) dari master dlfoh per machine_line.
-      // Index & setup akan diupdate otomatis saat Item Code FG dipilih (dari kapasitas.notes).
+      // Auto-generate DL-FOH dari master dlfoh per machine_line
+      // total_hour = prosesTime × lengthQty + setupTime
       dlfohLines: DB.dlfoh
         .filter(d => d.machine_line === g.machine_line)
         .map(d => ({
@@ -4479,7 +4507,7 @@ function onMasterBomSelect(mbomId){
           factor: gLengthQty, factor_manual: false,
           total_hour: gProsesTime * gLengthQty + gSetupTime,
           total_cost: (gProsesTime * gLengthQty + gSetupTime) * (parseFloat(d.rate) || 0),
-          fromMaster: true, // baris auto-generated dari master DL-FOH, tidak bisa dihapus
+          fromMaster: true, // auto-generated dari master DL-FOH, tidak bisa dihapus
         })),
     });
   });
