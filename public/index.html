@@ -1969,9 +1969,12 @@ function selectSearchResult(code,name){
     closeSearchModal(); return;
   }
   // Master BOM select for BOM header
+  // closeSearchModal dipanggil SEBELUM onMasterBomSelect agar popup selalu tertutup
+  // meskipun onMasterBomSelect melempar error di render
   if(sm_type==='masterbom'){
+    closeSearchModal();
     onMasterBomSelect(code);
-    closeSearchModal(); return;
+    return;
   }
   // FG Item untuk Routing DL-FOH di BOM form
   if(sm_type==='fgrl'){
