@@ -2475,8 +2475,7 @@ function buildDlfohOpts(selected){
 }
 
 // Render satu baris line (Machine Line + Duration + Setup + Category DL-FOH) ke dalam container
-function buildKapLineRow(ml,dur,setup,dlfoh_cat){
-  const idx=Date.now()+Math.random(); // id unik per baris
+function buildKapLineRow(ml,dur,setup){
   const mlOpts=KAP_MACHINE_LINES.map(o=>`<option value="${o}" ${o===ml?'selected':''}>${o}</option>`).join('');
   const row=document.createElement('div');
   row.className='kap-line-row';
@@ -2495,27 +2494,22 @@ function buildKapLineRow(ml,dur,setup,dlfoh_cat){
       <div class="flabel" style="margin-bottom:.25rem">Setup (Jam)</div>
       <input class="finput kap-line-setup" type="number" step="0.001" min="0" placeholder="0.000" value="${setup||''}">
     </div>
-    <div class="form-group" style="flex:2;min-width:200px;margin:0">
-      <div class="flabel" style="margin-bottom:.25rem">Category DL-FOH <span style="color:var(--t3);font-weight:400;font-size:.65rem">(untuk hitung rate)</span></div>
-      <select class="fselect kap-line-dlfoh">${buildDlfohOpts(dlfoh_cat||'')}</select>
-    </div>
     <button type="button" onclick="this.closest('.kap-line-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem;flex-shrink:0;margin-top:1.4rem" title="Hapus baris">✕</button>`;
   return row;
 }
 
 // Tambah satu baris kosong ke container
-function addKapLine(ml,dur,setup,dlfoh_cat){
-  document.getElementById('kap_lines_container').appendChild(buildKapLineRow(ml||'',dur||'',setup||'',dlfoh_cat||''));
+function addKapLine(ml,dur,setup){
+  document.getElementById('kap_lines_container').appendChild(buildKapLineRow(ml||'',dur||'',setup||''));
 }
 
-// Ambil semua baris line dari form sebagai array [{machine_line, duration, setup, dlfoh_cat}]
+// Ambil semua baris line dari form sebagai array [{machine_line, duration, setup}]
+// dlfoh_cat tidak lagi diperlukan — semua DL/FOH pada machine_line berlaku general
 function getKapLines(){
   return Array.from(document.querySelectorAll('#kap_lines_container .kap-line-row')).map(row=>({
     machine_line: row.querySelector('.kap-line-ml').value,
     duration: parseFloat(row.querySelector('.kap-line-dur').value)||0,
-    setup: parseFloat(row.querySelector('.kap-line-setup').value)||0,
-    // dlfoh_cat: Category DL-FOH yang dipilih untuk perhitungan rate DL/jam
-    dlfoh_cat: row.querySelector('.kap-line-dlfoh').value||''
+    setup: parseFloat(row.querySelector('.kap-line-setup').value)||0
   }));
 }
 
@@ -2539,8 +2533,8 @@ function openKapForm(id){try{
       // Parse lines dari notes (disimpan sebagai JSON)
       var lines=[];
       try{lines=JSON.parse(rec.notes||'[]');}catch(e){lines=[];}
-      // Pass setup & dlfoh_cat jika ada (data lama tidak punya field ini, default kosong)
-      if(lines.length){lines.forEach(function(l){addKapLine(l.machine_line,l.duration,l.setup||0,l.dlfoh_cat||'');});}
+      // dlfoh_cat tidak lagi diperlukan (rate DL/FOH general per machine_line)
+      if(lines.length){lines.forEach(function(l){addKapLine(l.machine_line,l.duration,l.setup||0);});}
       else{addKapLine();}
     } else {
       toast('Data tidak ditemukan.','error');
@@ -2612,9 +2606,7 @@ function renderKap(){try{
     // Parse lines dari notes
     var klines=[];try{klines=JSON.parse(k.notes||'[]');}catch(e){klines=[];}
     var linesSummary=klines.length?klines.map(function(l){
-      // Tampilkan machine_line + DL-FOH category jika ada
-      const dlfohBadge=l.dlfoh_cat?` <span class="badge" style="font-size:.6rem;background:var(--s3);color:var(--cyan);border:1px solid var(--cyan)">${l.dlfoh_cat}</span>`:'';
-      return`<span class="badge badge-violet" style="font-size:.65rem">${l.machine_line}</span>${dlfohBadge}`;
+      return`<span class="badge badge-violet" style="font-size:.65rem">${l.machine_line}</span>`;
     }).join(' '):'<span class="muted">—</span>';
     return`<tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('kap',k.id)?' checked':''} onchange="toggleRowSelect('kap','${k.id}',this.checked)"></td>
@@ -2667,25 +2659,24 @@ function autoLoadBomRouting(itemCode) {
   if (kap) {
     let lines = [];
     try { lines = JSON.parse(kap.notes || '[]'); } catch(e) { lines = []; }
-    bomRouting = lines
-      .filter(l => l.dlfoh_cat)
-      .map(l => {
-        const dlfohRec = DB.dlfoh.find(d => d.catid === l.dlfoh_cat);
-        const processTime = parseFloat(l.duration) || 0;
-        const setupTime   = parseFloat(l.setup)    || 0;
-        const totalHour   = processTime + setupTime;
-        const rate        = dlfohRec ? parseFloat(dlfohRec.rate) || 0 : 0;
-        return {
-          cat: l.dlfoh_cat,
-          cat_desc: dlfohRec ? dlfohRec.desc || '' : '',
-          type: dlfohRec ? dlfohRec.type || '' : '',
-          process_time: processTime,
-          setup_time: setupTime,
-          factor: 1,
-          total_hour: totalHour,
-          total_cost: totalHour * rate,
-        };
-      });
+    // Preview routing: semua DL/FOH pada machine_line yang sama berlaku general
+    bomRouting = lines.filter(l => l.machine_line).flatMap(l => {
+      const processTime = parseFloat(l.duration) || 0;
+      const setupTime   = parseFloat(l.setup)    || 0;
+      const totalHour   = processTime + setupTime;
+      // Ambil semua dlfoh yang machine_line-nya cocok
+      const dlfohForLine = DB.dlfoh.filter(d => d.machine_line === l.machine_line);
+      return dlfohForLine.map(d => ({
+        cat: d.catid,
+        cat_desc: d.desc || '',
+        type: d.type || '',
+        process_time: processTime,
+        setup_time: setupTime,
+        factor: 1,
+        total_hour: totalHour,
+        total_cost: totalHour * (parseFloat(d.rate) || 0),
+      }));
+    });
   } else { bomRouting = []; }
   renderBomRouting();
 }
