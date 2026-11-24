@@ -1933,18 +1933,17 @@ function selectSearchResult(code,name){
   // FG item search — digunakan oleh BOM form dan Master BOM form
   if(sm_type==='fg_item'){
     if(sm_field==='bom_product_code'){
-      // BOM form: set code (hidden) dan name (readonly visible)
+      // BOM (COGS Calculated) form: set code (hidden) dan name (readonly visible)
       const codeEl=document.getElementById('bom_product_code');
       if(codeEl) codeEl.value=code;
       const nameEl=document.getElementById('bom_product');
       if(nameEl) nameEl.value=name;
-      // Ambil loose_tube_qty dan fiber_qty dari Master FG (DB_fgItems / items is_fg=1)
-      // sesuai product_code yang dipilih
+      // Auto-fill Loose Tube Qty dan Fiber/Tube dari Master FG (field readonly, diisi via JS)
       const fgRec=DB_fgItems.find(p=>p.code===code);
-      setVal('bom_fiber_cnt', fgRec ? (fgRec.loose_tube_qty||'') : '');
-      setVal('bom_buffer_qty', fgRec ? (fgRec.fiber_qty||'') : '');
-      // Reset Master BOM ID — user tetap bisa pilih manual jika diperlukan
-      setVal('bom_master_bom_id','');
+      if(fgRec){
+        const lt=ge('bom_fiber_cnt'); if(lt) lt.value=fgRec.loose_tube_qty||0;
+        const ft=ge('bom_buffer_qty'); if(ft) ft.value=fgRec.fiber_qty||0;
+      }
       closeSearchModal(); return;
     }
     // Master BOM product search — code ke mbom_product_code, name ke mbom_product, lalu sync dari kap
@@ -1952,7 +1951,13 @@ function selectSearchResult(code,name){
     if(codeEl) codeEl.value=code;
     const nameEl=document.getElementById('mbom_product');
     if(nameEl) nameEl.value=name;
-    fillMBomFiberFromKap(code);
+    // Auto-fill Loose Tube, Fiber/Tube, Total Fiber dari Master FG
+    const fgRec=DB_fgItems.find(p=>p.code===code);
+    if(fgRec){
+      setVal('mbom_fiber_cnt',fgRec.loose_tube_qty||0);
+      setVal('mbom_buffer_qty',fgRec.fiber_qty||0);
+      setVal('mbom_fiber_qty',fgRec.total_fiber_qty||((fgRec.loose_tube_qty||0)*(fgRec.fiber_qty||0)));
+    }
     closeSearchModal(); return;
   }
   // Master BOM select for BOM header
@@ -2762,9 +2767,13 @@ function openBomForm(id){try{
     setVal('bom_product',rec.product);
     setVal('bom_customer',rec.customer||'');
     setVal('bom_project',rec.project||'');
-    setVal('bom_fiber_cnt',rec.fiber_cnt||'');
-    setVal('bom_buffer_qty',rec.buffer_qty||'');
+    // Loose Tube Qty & Fiber/Tube: ambil dari Master BOM jika ada, fallback ke nilai tersimpan di record
+    var mbomRec=rec.master_bom_id?DB.masterbom.find(b=>b.id===rec.master_bom_id||b.bomid===rec.master_bom_id):null;
+    setVal('bom_fiber_cnt',mbomRec?mbomRec.fiber_cnt||'':rec.fiber_cnt||'');
+    setVal('bom_buffer_qty',mbomRec?mbomRec.buffer_qty||'':rec.buffer_qty||'');
     setVal('bom_fiber_qty',rec.fiber_qty||'');
+    // Restore Master BOM ID di field header
+    setVal('bom_master_bom_id',rec.master_bom_id||'');
     // Restore product code (hidden) agar pencarian FG konsisten saat edit
     setVal('bom_product_code',rec.product_code||'');
     // bomUsdRate tetap dipakai untuk usd_rate_snapshot di payload (reference rate)
