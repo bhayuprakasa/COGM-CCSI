@@ -2952,9 +2952,9 @@ function renderBomGroups(){
           <table class="line-tbl">
             <thead><tr>
               <th>Item Code</th><th>Item Name</th><th>UOM</th>
-              <th>Qty</th><th>Scrap%</th><th>Factor</th><th>Total Qty</th>
+              <th>Total Qty</th>
               <th>Currency</th><th>Price</th><th>Landed%</th><th>Hedging%</th>
-              <th>Total(USD)</th><th>Total(IDR)</th><th></th>
+              <th>Total</th><th>Total(IDR)</th><th></th>
             </tr></thead>
             <tbody id="bom_lines_body_${gIdx}">
               ${g.lines.map((l,lIdx)=>renderBomLineRow(gIdx,lIdx,l)).join('')}
@@ -3038,12 +3038,6 @@ function renderBomLineRow(gIdx,lIdx,l){
       </td>
       <td><input class="li-input bom-line-name" style="width:105px" value="${l.item_name||''}" readonly></td>
       <td><input class="li-input bom-line-uom" style="width:44px" value="${l.uom||''}" readonly></td>
-      <td><input class="li-input bom-line-qty" type="number" style="width:54px" value="${l.qty||0}" ${fm?rdStr:(`oninput="recalcBomLine(${gIdx},${lIdx})"`)}>
-        ${fm?'':''}</td>
-      <td><input class="li-input bom-line-scrap" type="number" style="width:48px" value="${l.scrap||0}" ${fm?rdStr:(`oninput="recalcBomLine(${gIdx},${lIdx})"`)}>
-        </td>
-      <td><input class="li-input bom-line-factor" type="number" style="width:48px" value="${l.factor||1}" ${fm?rdStr:(`oninput="recalcBomLine(${gIdx},${lIdx})"`)}>
-        </td>
       <td><input class="li-input bom-line-totalqty" style="width:70px" value="${fmt_num(l.total_qty||0,4)}" readonly></td>
       <td>
         <div style="display:flex;gap:.2rem;align-items:center">
