@@ -1937,12 +1937,17 @@ function selectSearchResult(code,name){
   // FG item search — digunakan oleh BOM form dan Master BOM form
   if(sm_type==='fg_item'){
     if(sm_field==='bom_product_code'){
-      // BOM form: set code (hidden) dan name (readonly visible)
+      // BOM (COGS Calculated) form: set code (hidden) dan name (readonly visible)
       const codeEl=document.getElementById('bom_product_code');
       if(codeEl) codeEl.value=code;
       const nameEl=document.getElementById('bom_product');
       if(nameEl) nameEl.value=name;
-      // Loose Tube Qty dan Fiber/Tube hanya diisi dari Master BOM, bukan dari FG item
+      // Auto-fill Loose Tube Qty dan Fiber/Tube dari Master FG (field readonly, diisi via JS)
+      const fgRec=DB_fgItems.find(p=>p.code===code);
+      if(fgRec){
+        const lt=ge('bom_fiber_cnt'); if(lt) lt.value=fgRec.loose_tube_qty||0;
+        const ft=ge('bom_buffer_qty'); if(ft) ft.value=fgRec.fiber_qty||0;
+      }
       closeSearchModal(); return;
     }
     // Master BOM product search — code ke mbom_product_code (visible), name ke mbom_product (readonly auto-fill)
@@ -1950,6 +1955,13 @@ function selectSearchResult(code,name){
     if(codeEl) codeEl.value=code;
     const nameEl=document.getElementById('mbom_product');
     if(nameEl) nameEl.value=name;
+    // Auto-fill Loose Tube, Fiber/Tube, Total Fiber dari Master FG
+    const fgRec=DB_fgItems.find(p=>p.code===code);
+    if(fgRec){
+      setVal('mbom_fiber_cnt',fgRec.loose_tube_qty||0);
+      setVal('mbom_buffer_qty',fgRec.fiber_qty||0);
+      setVal('mbom_fiber_qty',fgRec.total_fiber_qty||((fgRec.loose_tube_qty||0)*(fgRec.fiber_qty||0)));
+    }
     closeSearchModal(); return;
   }
   // Master BOM select for BOM header
@@ -4048,6 +4060,12 @@ function onMBomProductCodeInput(val){
   // Uppercase item code input
   const codeEl=ge('mbom_product_code');
   if(codeEl) codeEl.value=(val||'').toUpperCase();
+  // Auto-fill Loose Tube, Fiber/Tube, Total Fiber dari Master FG saat item ditemukan
+  if(item){
+    setVal('mbom_fiber_cnt',item.loose_tube_qty||0);
+    setVal('mbom_buffer_qty',item.fiber_qty||0);
+    setVal('mbom_fiber_qty',item.total_fiber_qty||((item.loose_tube_qty||0)*(item.fiber_qty||0)));
+  }
 }
 
 // ── Group management ──
