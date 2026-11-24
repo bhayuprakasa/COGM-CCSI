@@ -144,7 +144,8 @@ async function insertMBomGroups(mbomId, groups) {
 }
 
 // Helper: simpan routing snapshot ke bom_routing dari kapasitas.notes per item_code
-// kapasitas.notes berisi JSON: [{machine_line, duration, setup, dlfoh_cat}]
+// kapasitas.notes berisi JSON: [{machine_line, duration, setup}]
+// dlfoh_cat TIDAK diperlukan — semua DL/FOH pada machine_line yang sama berlaku untuk semua item
 async function insertBomRoutingFromKap(bomId, itemCode) {
   if (!itemCode) return;
   // Ambil kapasitas pertama yang cocok dengan item_code (diurutkan kapid)
@@ -152,24 +153,32 @@ async function insertBomRoutingFromKap(bomId, itemCode) {
   if (!kap) return;
   let lines = [];
   try { lines = JSON.parse(kap.notes || '[]'); } catch (e) { return; }
-  for (let i = 0; i < lines.length; i++) {
-    const r = lines[i];
-    const cat = r.dlfoh_cat || '';
-    if (!cat) continue; // skip baris tanpa DL-FOH category
-    const [dlfohRec] = await query(`SELECT type, rate FROM dlfoh WHERE catid = ?`, [cat]);
-    const dlfohRate  = dlfohRec ? parseFloat(dlfohRec.rate) || 0 : 0;
-    const type       = dlfohRec ? dlfohRec.type || '' : '';
-    const processTime = parseFloat(r.duration) || 0; // kapasitas pakai field 'duration'
+
+  let sortIdx = 0;
+  for (const r of lines) {
+    const machineLine = r.machine_line || '';
+    if (!machineLine) continue; // skip baris tanpa machine_line
+
+    const processTime = parseFloat(r.duration) || 0;
     const setupTime   = parseFloat(r.setup)    || 0;
     const factor      = 1;
-    // total_hour = process_time × factor + setup_time
-    const totalHour = processTime * factor + setupTime;
-    const totalCost = totalHour * dlfohRate;
-    await query(
-      `INSERT INTO bom_routing (bom_id, cat, type, process_time, setup_time, factor, total_hour, total_cost, sort_order)
-       VALUES (?,?,?,?,?,?,?,?,?)`,
-      [bomId, cat, type, processTime, setupTime, factor, totalHour, totalCost, i]
+    // total_hour = process_time × factor + setup_time (sama untuk DL, VFOH, FFOH pada machine_line yang sama)
+    const totalHour   = processTime * factor + setupTime;
+
+    // Ambil semua DL-FOH yang terdaftar untuk machine_line ini — rate general per machine_line
+    const dlfohList = await query(
+      `SELECT catid, type, rate FROM dlfoh WHERE machine_line = ? ORDER BY catid`,
+      [machineLine]
     );
+
+    for (const d of dlfohList) {
+      const totalCost = totalHour * (parseFloat(d.rate) || 0);
+      await query(
+        `INSERT INTO bom_routing (bom_id, cat, type, process_time, setup_time, factor, total_hour, total_cost, sort_order)
+         VALUES (?,?,?,?,?,?,?,?,?)`,
+        [bomId, d.catid, d.type, processTime, setupTime, factor, totalHour, totalCost, sortIdx++]
+      );
+    }
   }
 }
 
