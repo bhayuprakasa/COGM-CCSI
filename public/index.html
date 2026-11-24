@@ -2959,10 +2959,9 @@ function renderBomGroups(){
           <span style="font-size:.7rem;color:var(--t3)">${g.lines.length} item &middot; ${g.dlfohLines.length} DL-FOH</span>
         </div>
         <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-          <span style="font-size:.7rem;color:var(--t3)">USD:</span>
-          <span style="font-family:var(--fm);font-size:.8rem;color:var(--cyan)" id="grp_usd_${gIdx}">0.00</span>
-          <span style="font-size:.7rem;color:var(--t3)">IDR:</span>
-          <span style="font-family:var(--fm);font-size:.8rem;color:var(--amber)" id="grp_idr_${gIdx}">0</span>
+          <!-- span USD/IDR dihapus dari header group, hanya tampil di TOTALS ROW di bawah -->
+          <span style="font-family:var(--fm);font-size:.8rem;color:var(--cyan)" id="grp_usd_${gIdx}" style="display:none"></span>
+          <span style="font-family:var(--fm);font-size:.8rem;color:var(--amber)" id="grp_idr_${gIdx}" style="display:none"></span>
           ${g.fromMaster?'':(`<button class="btn btn-danger btn-xs" onclick="removeMachineLineGroup(${gIdx})">&#10005; Hapus</button>`)}
         </div>
       </div>
