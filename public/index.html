@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Manufacturing BOM System</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -3146,12 +3149,12 @@ function deleteBomLine(gIdx,lIdx){
   renderBomGroups();
 }
 
-function recalcBomLine(gIdx,lIdx){
+function recalcBomLine(gIdx,lIdx){try{
   // Scope ke container BOM agar tidak salah ambil row dari tabel lain (misal Master BOM)
   const container=document.getElementById('bom_machine_groups')||document;
   const row=container.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
-  // Pastikan row ini benar-benar dari BOM material line (bukan dari tabel Master BOM)
-  if(!row||!row.querySelector('.bom-line-price')) return;
+  // Guard: pastikan row ada dan memiliki semua input BOM material line
+  if(!row||!row.querySelector('.bom-line-price')||!row.querySelector('.bom-line-qty')) return;
   const l=bomGroups[gIdx].lines[lIdx];
   const qty=parseFloat(row.querySelector('.bom-line-qty').value)||0;
   const scrap=parseFloat(row.querySelector('.bom-line-scrap').value)||0;
@@ -3159,23 +3162,21 @@ function recalcBomLine(gIdx,lIdx){
   const price=parseFloat(row.querySelector('.bom-line-price').value)||0;
   const landed=parseFloat(row.querySelector('.bom-line-landed').value)||0;
   const hedging=parseFloat(row.querySelector('.bom-line-hedging').value)||0;
-  const currency=(row.querySelector('.bom-line-currency').value||'USD').trim();
+  const currency=(row.querySelector('.bom-line-currency')?row.querySelector('.bom-line-currency').value:'USD').trim()||'USD';
   // lineUsdRate: rate USD/IDR spesifik per line (input oleh user)
-  const lineUsdRate=parseFloat(row.querySelector('.bom-line-rate').value)||getLatestRate('USD');
+  const lineUsdRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getLatestRate('USD');
   const totalQty=qty*factor*(1+scrap/100);
   // rateConv: converts price in [currency] to USD
-  // e.g. if currency=IDR: rateConv = 1/IDR_rate_in_IDR = 1/16000 → price_USD = price_IDR / 16000
   const rateConv=getLatestConversion(currency);
-  // totalAmt = total cost in USD
+  // totalAmt = total cost in USD; totalIdr = totalAmt × rate USD/IDR per line
   const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv;
-  // totalIdr = totalAmt (USD) × rate USD/IDR per line (bukan global snapshot)
   const totalIdr=totalAmt*lineUsdRate;
-  row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,4);
-  row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,2);
-  row.querySelector('.bom-line-totalidr').value=fmt_num(totalIdr,0);
+  if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,4);
+  if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,2);
+  if(row.querySelector('.bom-line-totalidr')) row.querySelector('.bom-line-totalidr').value=fmt_num(totalIdr,0);
   Object.assign(l,{qty,scrap,factor,price,landed,hedging,currency,usd_rate:lineUsdRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
   recalcAllGroups();
-}
+}catch(e){console.warn('recalcBomLine g='+gIdx+' l='+lIdx+':',e);}}
 
 function recalcGroupDlfohFromRow(gIdx,dIdx){
   // Recalc only total_hour and total_cost for a single row (index or setup was manually edited)
