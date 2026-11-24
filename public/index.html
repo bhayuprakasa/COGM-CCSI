@@ -4360,25 +4360,6 @@ function viewMBomDetail(id){try{
         grpsHtml+='</tbody></table>';
       }
 
-      if((g.dlfohLines||[]).length){
-        grpsHtml+='<div style="font-size:.72rem;font-weight:600;margin:.6rem 0 .3rem;color:var(--muted)">DL-FOH LINES</div>';
-        grpsHtml+='<table style="width:100%;border-collapse:collapse;font-size:.75rem">';
-        grpsHtml+='<thead><tr style="background:rgba(0,0,0,.3)"><th style="padding:.3rem .5rem;text-align:left">Category</th><th style="padding:.3rem .5rem;text-align:left">Type</th><th style="padding:.3rem .5rem;text-align:right">Index</th><th style="padding:.3rem .5rem;text-align:right">Set Up</th><th style="padding:.3rem .5rem;text-align:right">Factor</th><th style="padding:.3rem .5rem;text-align:right">Total Hour</th></tr></thead><tbody>';
-        (g.dlfohLines||[]).forEach(function(d){
-          // type field comes directly from MySQL masterbom_dlfoh.type column
-          var t=d.type||'—';
-          var cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':t==='Overhead'?'badge-amber':'';
-          grpsHtml+='<tr style="border-bottom:1px solid rgba(255,255,255,.05)">';
-          grpsHtml+='<td style="padding:.3rem .5rem">'+d.cat+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem"><span class="badge '+cls+'">'+t+'</span></td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(d.index||d.idx,6)+(d.index_manual?' <span style="font-size:.65rem;color:var(--amber)">[M]</span>':'')+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(d.setup,4)+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(d.factor,4)+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right;font-weight:600;color:var(--cyan)">'+fmt_num(d.total_hour,4)+'</td>';
-          grpsHtml+='</tr>';
-        });
-        grpsHtml+='</tbody></table>';
-      }
       grpsHtml+='</div>';
     });
 
