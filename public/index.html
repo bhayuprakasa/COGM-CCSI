@@ -3131,11 +3131,11 @@ function renderDlfohRow(gIdx,dIdx,dl){
         </div>
       </td>
       <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
-      <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,3)}"
+      <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${parseFloat(dl.index||0).toFixed(3)}"
         data-manual="${dl.index_manual?'1':'0'}"
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
         </td>
-      <td><input class="li-input dlfoh-line-setup dlfoh-setup-cell" type="number" style="width:54px" value="${dl.setup||0}"
+      <td><input class="li-input dlfoh-line-setup dlfoh-setup-cell" type="number" style="width:54px" value="${parseFloat(dl.setup||0).toFixed(3)}"
         data-manual="${dl.setup_manual?'1':'0'}"
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
         </td>
@@ -3262,8 +3262,8 @@ function recalcGroupDlfoh(gIdx){
       const hourCell=row.querySelector('.dlfoh-hour-cell');
       const rateCell=row.querySelector('.dlfoh-rate-cell');
       const costCell=row.querySelector('.dlfoh-cost-cell');
-      if(idxCell&&!dl.index_manual) idxCell.value=fmt_num(idx,3);
-      if(setupCell&&!dl.setup_manual) setupCell.value=fmt_num(dl.setup,3);
+      if(idxCell&&!dl.index_manual) idxCell.value=parseFloat(idx||0).toFixed(3);
+      if(setupCell&&!dl.setup_manual) setupCell.value=parseFloat(dl.setup||0).toFixed(3);
       if(hourCell) hourCell.value=fmt_num(th,3);
       if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
       if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
@@ -4243,7 +4243,7 @@ function renderMBomDlfohRow(gIdx,dIdx,dl){
     +'<button class="btn btn-ghost" style="padding:.15rem .25rem;font-size:.62rem" onclick="sm_extra={g:\'mbom_dlfoh\',gi:'+gIdx+',l:'+dIdx+'};openSearchModal(\'dlfoh\',\'__mdc_'+gIdx+'_'+dIdx+'\',null)">&#128269;</button>'
     +'<input type="hidden" id="__mdc_'+gIdx+'_'+dIdx+'" value="'+(dl.cat||'')+'"></div></td>'
     +'<td><span class="badge '+cls+'" style="font-size:.6rem" id="mbom_dtype_'+gIdx+'_'+dIdx+'">'+t+'</span></td>'
-    +'<td><input class="li-input mbom-dl-idx" type="number" style="width:72px" value="'+fmt_num(dl.index||0,3)+'" '
+    +'<td><input class="li-input mbom-dl-idx" type="number" style="width:72px" value="'+parseFloat(dl.index||0).toFixed(3)+'" '
     +'oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index_manual=true;recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
     +'<td><input class="li-input mbom-dl-setup" type="number" style="width:56px" value="'+(dl.setup||0)+'" data-manual="'+(dl.setup_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
     +'<td><input class="li-input mbom-dl-factor" type="number" style="width:56px" value="'+(dl.factor||1)+'" data-manual="'+(dl.factor_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor=parseFloat(this.value)||1;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
@@ -4289,8 +4289,8 @@ function recalcMBomGroupDlfoh(gIdx){
     const displayType=dl.type||'—';
     const row=document.querySelector('tr[data-mdg="'+gIdx+'"][data-mdi="'+dIdx+'"]');
     if(row){
-      const ic=row.querySelector('.mbom-dl-idx'); if(ic&&!dl.index_manual) ic.value=fmt_num(dl.index,3);
-      const sc=row.querySelector('.mbom-dl-setup'); if(sc&&!dl.setup_manual) sc.value=fmt_num(dl.setup,3);
+      const ic=row.querySelector('.mbom-dl-idx'); if(ic&&!dl.index_manual) ic.value=parseFloat(dl.index||0).toFixed(3);
+      const sc=row.querySelector('.mbom-dl-setup'); if(sc&&!dl.setup_manual) sc.value=parseFloat(dl.setup||0).toFixed(3);
       const fc=row.querySelector('.mbom-dl-factor'); if(fc&&!dl.factor_manual) fc.value=fmt_num(dl.factor,3);
       const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,3);
       const cls=displayType==='Machine'?'badge-violet':displayType==='Labour'?'badge-green':displayType==='Overhead'?'badge-amber':'';
