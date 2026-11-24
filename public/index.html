@@ -1938,7 +1938,21 @@ function selectSearchResult(code,name){
       if(codeEl) codeEl.value=code;
       const nameEl=document.getElementById('bom_product');
       if(nameEl) nameEl.value=name;
-      // Loose Tube Qty dan Fiber/Tube hanya diisi dari Master BOM, bukan dari FG item
+      // Auto-cari Master BOM yang cocok berdasarkan product_code atau product name
+      // agar Loose Tube Qty dan Fiber/Tube langsung terisi tanpa harus pilih Master BOM manual
+      const matchMBom=DB.masterbom.find(b=>
+        (b.product_code&&b.product_code===code)||(b.product&&b.product===name)
+      );
+      if(matchMBom){
+        setVal('bom_master_bom_id',matchMBom.bomid);
+        setVal('bom_fiber_cnt',matchMBom.fiber_cnt||'');
+        setVal('bom_buffer_qty',matchMBom.buffer_qty||'');
+      } else {
+        // Reset field jika product tidak punya Master BOM
+        setVal('bom_master_bom_id','');
+        setVal('bom_fiber_cnt','');
+        setVal('bom_buffer_qty','');
+      }
       closeSearchModal(); return;
     }
     // Master BOM product search — code ke mbom_product_code, name ke mbom_product, lalu sync dari kap
