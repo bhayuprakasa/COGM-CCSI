@@ -707,6 +707,18 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <div class="flabel req">Rate (IDR/Jam)</div>
           <input class="finput" type="number" id="dlfoh_rate" placeholder="0">
         </div>
+        <div class="form-group">
+          <div class="flabel">Machine Line</div>
+          <select class="fselect" id="dlfoh_machine_line">
+            <option value="">— Pilih Machine Line —</option>
+            <option>Colouring</option>
+            <option>Buffering</option>
+            <option>Stranding</option>
+            <option>Jacketing</option>
+            <option>Armoring</option>
+            <option>Pipe Line</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -719,7 +731,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     <div class="card-body" style="padding:0">
       <div class="tbl-wrap">
         <table class="tbl">
-          <thead><tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll('dlfoh',this.checked)" title="Pilih Semua"></th><th>Category ID</th><th>Description</th><th>Type</th><th>Rate</th><th>Created</th><th>Aksi</th></tr></thead>
+          <thead><tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll('dlfoh',this.checked)" title="Pilih Semua"></th><th>Category ID</th><th>Description</th><th>Type</th><th>Rate</th><th>Machine Line</th><th>Created</th><th>Aksi</th></tr></thead>
           <tbody id="dlfoh_tbody"></tbody>
         </table>
       </div>
@@ -2429,6 +2441,7 @@ function openDlfohForm(id){try{
   setVal('dlfoh_desc','');
   setVal('dlfoh_type','');
   setVal('dlfoh_rate','');
+  setVal('dlfoh_machine_line','');
   document.getElementById('dlfoh_created').value=nowStr();
   if(id){
     setText('dlfoh_form_title','Edit DL-FOH');
@@ -2440,6 +2453,7 @@ function openDlfohForm(id){try{
       (function(){const _e=ge('dlfoh_desc');if(_e)_e.value=rec.desc;})();
       (function(){const _e=ge('dlfoh_type');if(_e)_e.value=rec.type;})();
       (function(){const _e=ge('dlfoh_rate');if(_e)_e.value=rec.rate;})();
+      (function(){const _e=ge('dlfoh_machine_line');if(_e)_e.value=rec.machine_line||'';})();
       (function(){const _e=ge('dlfoh_created');if(_e)_e.value=rec.created_dt||rec.created||'';})();
     } else {
       toast('Data tidak ditemukan.','error');
@@ -2459,10 +2473,11 @@ function saveDlfoh(){try{
   const desc=document.getElementById('dlfoh_desc').value.trim();
   const type=document.getElementById('dlfoh_type').value;
   const rate=parseFloat(document.getElementById('dlfoh_rate').value)||0;
+  const machine_line=document.getElementById('dlfoh_machine_line').value;
   if(!catid||!type){toast('Category ID dan Type wajib.','error');return;}
   if(typeof API!=='undefined'){
-    if(editId){apiSave(API.dlfoh.update(editId,{desc,type,rate}),function(){toast('DL-FOH diupdate.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
-    else{apiSave(API.dlfoh.create({catid,desc,type,rate}),function(){toast('DL-FOH disimpan.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
+    if(editId){apiSave(API.dlfoh.update(editId,{desc,type,rate,machine_line}),function(){toast('DL-FOH diupdate.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
+    else{apiSave(API.dlfoh.create({catid,desc,type,rate,machine_line}),function(){toast('DL-FOH disimpan.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
     return;
   }
   const created=document.getElementById('dlfoh_created').value;
@@ -2472,12 +2487,13 @@ function saveDlfoh(){try{
     if(rec){
       if(rec.desc!==desc) recordHistory('dlfoh',editId,'Description',rec.desc,desc);
       if(rec.rate!==rate) recordHistory('dlfoh',editId,'Rate',rec.rate,rate);
-      rec.desc=desc;rec.type=type;rec.rate=rate;rec.updated_dt=nowStr();rec.updated=nowStr();
+      if(rec.machine_line!==machine_line) recordHistory('dlfoh',editId,'Machine Line',rec.machine_line||'',machine_line);
+      rec.desc=desc;rec.type=type;rec.rate=rate;rec.machine_line=machine_line;rec.updated_dt=nowStr();rec.updated=nowStr();
     }
     toast('DL-FOH diupdate.','success');
   } else {
     if(DB.dlfoh.find(d=>d.catid===catid)){toast('Category ID sudah ada!','error');return;}
-    DB.dlfoh.push({id:'DLFOH-'+catid,catid,desc,type,rate,created,updated:nowStr()});
+    DB.dlfoh.push({id:'DLFOH-'+catid,catid,desc,type,rate,machine_line,created,updated:nowStr()});
     toast('DL-FOH disimpan.','success');
   }
   closeDlfohForm(); renderDlfoh(); updateCounts();
@@ -2490,13 +2506,15 @@ function renderDlfoh(){try{
   const tbody=document.getElementById('dlfoh_tbody');
   const rows=DB.dlfoh.filter(d=>!dlfohFilter||(d.catid.toLowerCase().includes(dlfohFilter)||d.desc.toLowerCase().includes(dlfohFilter)));
   setText('dlfoh_count',DB.dlfoh.length);
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="es-icon">🏭</div><p>Belum ada data DL-FOH.</p></div></td></tr>';return;}
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="es-icon">🏭</div><p>Belum ada data DL-FOH.</p></div></td></tr>';return;}
+  const _mlOpts=['Colouring','Buffering','Stranding','Jacketing','Armoring','Pipe Line'];
   tbody.innerHTML=rows.map(d=>{const _ge=GE.dlfoh==='__all__'||GE.dlfoh===d.id;return`
     <tr${_ge?' class="ge-row"':''}><td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('dlfoh','${d.id}')?'checked':''} onchange="toggleRowSelect('dlfoh','${d.id}',this.checked)"></td>
       <td><span class="run-num">${d.catid}</span></td>
       ${_ge?`<td><input class="ge-input" id="ge_dl_desc_${d.id}" value="${geEsc(d.desc)}"></td>`:`<td>${d.desc}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_type_${d.id}" style="width:110px"><option value="Machine" ${d.type==='Machine'?'selected':''}>Machine</option><option value="Labour" ${d.type==='Labour'?'selected':''}>Labour</option><option value="Overhead" ${d.type==='Overhead'?'selected':''}>Overhead</option></select></td>`:`<td><span class="badge badge-violet">${d.type}</span></td>`}
       ${_ge?`<td><input class="ge-input" type="number" id="ge_dl_rate_${d.id}" value="${d.rate}" style="width:120px"></td>`:`<td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>`}
+      ${_ge?`<td><select class="ge-select" id="ge_dl_ml_${d.id}" style="width:130px"><option value="">—</option>${_mlOpts.map(o=>`<option value="${o}" ${(d.machine_line||'')=== o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td>${d.machine_line?`<span class="badge badge-violet">${d.machine_line}</span>`:'<span class="muted">—</span>'}</td>`}
       <td class="muted mono" style="font-size:.72rem">${d.created_dt||d.created||'—'}</td>
       ${_ge?`<td><div style="display:flex;gap:.3rem">
         <button class="btn btn-primary btn-xs" onclick="geSaveDlfoh('${d.id}')">💾 Simpan</button>
@@ -7711,11 +7729,12 @@ function geSaveDlfoh(id) {
   var desc = (document.getElementById('ge_dl_desc_'+id)||{}).value||'';
   var type = (document.getElementById('ge_dl_type_'+id)||{}).value||'';
   var rate = parseFloat((document.getElementById('ge_dl_rate_'+id)||{}).value)||0;
+  var machine_line = (document.getElementById('ge_dl_ml_'+id)||{}).value||'';
   if(!desc.trim()){toast('Deskripsi tidak boleh kosong','error');return;}
-  apiSave(API.dlfoh.update(id,{desc:desc.trim(),type,rate}), function(){
+  apiSave(API.dlfoh.update(id,{desc:desc.trim(),type,rate,machine_line}), function(){
     if(GE.dlfoh!=='__all__') GE.dlfoh=null;
     var rec=DB.dlfoh.find(function(r){return r.id==id||r.id===id;});
-    if(rec){rec.desc=desc.trim();rec.type=type;rec.rate=rate;}
+    if(rec){rec.desc=desc.trim();rec.type=type;rec.rate=rate;rec.machine_line=machine_line;}
     renderDlfoh();
     toast('DLFOH berhasil disimpan','success');
   });
