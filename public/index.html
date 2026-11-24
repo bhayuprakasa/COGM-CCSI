@@ -2671,26 +2671,48 @@ function autoLoadBomRouting(itemCode) {
   if (kap) {
     let lines = [];
     try { lines = JSON.parse(kap.notes || '[]'); } catch(e) { lines = []; }
-    // Preview routing: semua DL/FOH pada machine_line yang sama berlaku general
+
+    // Update prosesTime & setupTime tiap bomGroup dari kapasitas.notes per machine_line
+    // lalu regenerasi dlfohLines sesuai master DL-FOH (DL, FFOH, VFOH)
+    bomGroups.forEach(g => {
+      const kapLine = lines.find(l => l.machine_line === g.machine_line);
+      if (!kapLine) return;
+      const processTime = parseFloat(kapLine.duration) || 0;
+      const setupTime   = parseFloat(kapLine.setup)    || 0;
+      g.prosesTime = processTime;
+      g.setupTime  = setupTime;
+      // Regenerasi dlfohLines: semua kategori DL-FOH untuk machine_line ini
+      // (index = prosesTime, setup = setupTime, factor = lengthQty)
+      g.dlfohLines = DB.dlfoh
+        .filter(d => d.machine_line === g.machine_line)
+        .map(d => ({
+          cat: d.catid, type: d.type || '',
+          index: processTime, index_manual: false,
+          setup: setupTime,   setup_manual: false,
+          factor: g.lengthQty || 1, factor_manual: false,
+          total_hour: processTime * (g.lengthQty || 1) + setupTime,
+          total_cost: (processTime * (g.lengthQty || 1) + setupTime) * (parseFloat(d.rate) || 0),
+          fromMaster: !!g.fromMaster,
+        }));
+    });
+
+    // Preview routing flat (Routing DL-FOH section bawah)
     bomRouting = lines.filter(l => l.machine_line).flatMap(l => {
       const processTime = parseFloat(l.duration) || 0;
       const setupTime   = parseFloat(l.setup)    || 0;
       const totalHour   = processTime + setupTime;
-      // Ambil semua dlfoh yang machine_line-nya cocok
       const dlfohForLine = DB.dlfoh.filter(d => d.machine_line === l.machine_line);
       return dlfohForLine.map(d => ({
-        cat: d.catid,
-        cat_desc: d.desc || '',
-        type: d.type || '',
-        process_time: processTime,
-        setup_time: setupTime,
-        factor: 1,
+        cat: d.catid, cat_desc: d.desc || '', type: d.type || '',
+        process_time: processTime, setup_time: setupTime, factor: 1,
         total_hour: totalHour,
         total_cost: totalHour * (parseFloat(d.rate) || 0),
       }));
     });
   } else { bomRouting = []; }
-  renderBomRouting();
+
+  renderBomGroups();   // refresh tabel DL-FOH per machine group
+  renderBomRouting();  // refresh tabel routing preview
 }
 
 function renderBomRouting() {
@@ -4445,14 +4467,19 @@ function onMasterBomSelect(mbomId){
         currency:'USD', price:0, landed:0, hedging:0, total_amt:0, total_idr:0,
         fromMaster:true, // field qty/scrap/factor/item_code dari master, tidak boleh diedit
       })),
-      dlfohLines:(g.dlfohLines||[]).map(dl=>({
-        cat:dl.cat||'', type:dl.type||'',
-        index:parseFloat(dl.index!==undefined?dl.index:(dl.idx||0)),
-        index_manual:!!(dl.index_manual),
-        setup:parseFloat(dl.setup)||0, factor:parseFloat(dl.factor)||1,
-        total_hour:parseFloat(dl.total_hour)||0, total_cost:0,
-        fromMaster:true, // cat/index/setup/factor dari master, tidak boleh diedit
-      })),
+      // Auto-generate semua baris DL-FOH (DL, FFOH, VFOH) dari master dlfoh per machine_line.
+      // Index & setup akan diupdate otomatis saat Item Code FG dipilih (dari kapasitas.notes).
+      dlfohLines: DB.dlfoh
+        .filter(d => d.machine_line === g.machine_line)
+        .map(d => ({
+          cat: d.catid, type: d.type || '',
+          index: gProsesTime, index_manual: false,
+          setup: gSetupTime,  setup_manual: false,
+          factor: gLengthQty, factor_manual: false,
+          total_hour: gProsesTime * gLengthQty + gSetupTime,
+          total_cost: (gProsesTime * gLengthQty + gSetupTime) * (parseFloat(d.rate) || 0),
+          fromMaster: true, // baris auto-generated dari master DL-FOH, tidak bisa dihapus
+        })),
     });
   });
   // Fallback: if no groups, use flat lines + machine_lines summary
