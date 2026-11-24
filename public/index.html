@@ -1026,7 +1026,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 
         <!-- TOTALS ROW -->
         <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:.75rem;flex-wrap:wrap">
-          <div class="stat-pill"><span class="sp-label">Total Amount (USD)</span><span class="sp-val" id="bom_total_usd">0.00</span></div>
           <div class="stat-pill"><span class="sp-label">Total Amount (IDR)</span><span class="sp-val" id="bom_total_idr_mat">0</span></div>
         </div>
 
@@ -2951,9 +2950,8 @@ function renderBomGroups(){
           <span style="font-size:.7rem;color:var(--t3)">${g.lines.length} item &middot; ${g.dlfohLines.length} DL-FOH</span>
         </div>
         <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-          <!-- span USD/IDR dihapus dari header group, hanya tampil di TOTALS ROW di bawah -->
-          <span style="font-family:var(--fm);font-size:.8rem;color:var(--cyan)" id="grp_usd_${gIdx}" style="display:none"></span>
-          <span style="font-family:var(--fm);font-size:.8rem;color:var(--amber)" id="grp_idr_${gIdx}" style="display:none"></span>
+          <!-- USD dihapus dari header group, hanya IDR -->
+          <span style="font-family:var(--fm);font-size:.8rem;color:var(--amber);display:none" id="grp_idr_${gIdx}"></span>
           ${g.fromMaster?'':(`<button class="btn btn-danger btn-xs" onclick="removeMachineLineGroup(${gIdx})">&#10005; Hapus</button>`)}
         </div>
       </div>
@@ -2965,7 +2963,7 @@ function renderBomGroups(){
               <th>Item Code</th><th>Item Name</th><th>UOM</th>
               <th>Total Qty</th>
               <th>Currency</th><th>Price</th><th>Landed%</th><th>Hedging%</th>
-              <th>Rate USD/IDR</th><th>Total(USD)</th><th>Total(IDR)</th><th></th>
+              <th>Rate USD/IDR</th><th>Total</th><th>Total(IDR)</th><th></th>
             </tr></thead>
             <tbody id="bom_lines_body_${gIdx}">
               ${g.lines.map((l,lIdx)=>renderBomLineRow(gIdx,lIdx,l)).join('')}
@@ -3068,7 +3066,7 @@ function renderBomLineRow(gIdx,lIdx,l){
       <!-- Rate USD/IDR per line: dipakai untuk konversi total_amt (USD) → total_idr -->
       <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${l.usd_rate||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,2)}" readonly></td>
-      <td><input class="li-input bom-line-totalidr" style="width:98px" value="${fmt_num(l.total_idr||0,0)}" readonly></td>
+      <td><input class="li-input bom-line-totalidr" style="width:98px" value="${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
     </tr>`;
 }
@@ -3165,7 +3163,7 @@ function recalcBomLine(gIdx,lIdx){try{
   const totalIdr=totalAmt*lineUsdRate;
   if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,4);
   if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,2);
-  if(row.querySelector('.bom-line-totalidr')) row.querySelector('.bom-line-totalidr').value=fmt_num(totalIdr,0);
+  if(row.querySelector('.bom-line-totalidr')) row.querySelector('.bom-line-totalidr').value=Number(totalIdr.toFixed(0)).toLocaleString('id-ID');
   Object.assign(l,{price,landed,hedging,currency,usd_rate:lineUsdRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
   recalcAllGroups();
 }catch(e){console.warn('recalcBomLine g='+gIdx+' l='+lIdx+':',e);}}
@@ -5590,7 +5588,6 @@ function viewBomDetail(id, src){try{
           ${g.kap_id?'<span class="badge" style="background:var(--blue-d);color:var(--blue);border:1px solid rgba(96,165,250,.2);font-size:.6rem">⚡ '+g.kap_id+'</span>':''}
         </div>
         <div style="display:flex;gap:.75rem;font-size:.72rem">
-          <span style="color:var(--t3)">Total USD: <span class="mono" style="color:var(--cyan)">${fmt_num(grpUSD,2)}</span></span>
           <span style="color:var(--t3)">Total IDR: <span class="mono" style="color:var(--amber)">${Number(grpIDR.toFixed(0)).toLocaleString('id-ID')}</span></span>
         </div>
       </div>
@@ -5606,7 +5603,7 @@ function viewBomDetail(id, src){try{
               <th style="text-align:center">Currency</th><th style="text-align:right">Price</th>
               <th style="text-align:right">Landed%</th><th style="text-align:right">Hedging%</th>
               <th style="text-align:right">Rate USD/IDR</th>
-              <th style="text-align:right">Total(USD)</th><th style="text-align:right">Total(IDR)</th>
+              <th style="text-align:right">Total</th><th style="text-align:right">Total(IDR)</th>
             </tr></thead>
             <tbody>${matRows||'<tr><td colspan="14" style="text-align:center;color:var(--t3)">Tidak ada material</td></tr>'}</tbody>
           </table>
