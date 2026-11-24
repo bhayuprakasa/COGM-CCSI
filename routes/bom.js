@@ -307,8 +307,11 @@ router.post('/bom/:id/recalculate', requireEdit, async (req, res) => {
         const price    = parseFloat(l.price) || 0;
         const landed   = parseFloat(l.landed) || 0;
         const hedging  = parseFloat(l.hedging) || 0;
-        const totalIdr = totalQty * price * (1 + (landed + hedging) / 100) * currRate;
-        const totalAmt = usdRate > 0 ? totalIdr / usdRate : 0;
+        // totalAmt (USD) = konversi harga ke USD melalui currRate/usdRate
+        const totalAmt = usdRate > 0 ? totalQty * price * (1 + (landed + hedging) / 100) * currRate / usdRate : 0;
+        // totalIdr = gunakan usd_rate per-line; fallback ke usdRate global jika belum diset
+        const lineUsdRate = parseFloat(l.usd_rate) > 0 ? parseFloat(l.usd_rate) : usdRate;
+        const totalIdr = totalAmt * lineUsdRate;
 
         await query(
           `UPDATE bom_lines SET total_amt = ?, total_idr = ? WHERE id = ?`,
@@ -425,8 +428,9 @@ async function insertBomGroups(bomId, groups) {
       [gid,bomId,g.machine_line||'',g.machine_id||'',g.kap_id||'',g.speed||1,g.kapPct||100,g.dlLot||1,g.fohLot||1,gi]);
     for (let li=0; li<(g.lines||[]).length; li++) {
       const l=g.lines[li];
-      await query(`INSERT INTO bom_lines (group_id,item_code,item_name,uom,qty,scrap,factor,total_qty,currency,price,landed,hedging,total_amt,total_idr,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [gid,l.item_code||'',l.item_name||'',l.uom||'',l.qty||0,l.scrap||0,l.factor||1,l.total_qty||0,l.currency||'USD',l.price||0,l.landed||0,l.hedging||0,l.total_amt||0,l.total_idr||0,li]);
+      // usd_rate = rate USD/IDR per line, digunakan untuk konversi total_amt (USD) → total_idr
+      await query(`INSERT INTO bom_lines (group_id,item_code,item_name,uom,qty,scrap,factor,total_qty,currency,price,landed,hedging,total_amt,total_idr,usd_rate,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [gid,l.item_code||'',l.item_name||'',l.uom||'',l.qty||0,l.scrap||0,l.factor||1,l.total_qty||0,l.currency||'USD',l.price||0,l.landed||0,l.hedging||0,l.total_amt||0,l.total_idr||0,parseFloat(l.usd_rate)||0,li]);
     }
     for (let di=0; di<(g.dlfohLines||[]).length; di++) {
       const d=g.dlfohLines[di];

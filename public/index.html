@@ -1021,15 +1021,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               <div class="flabel">Item Name FG</div>
               <input class="finput" id="bom_item_code_name" readonly placeholder="Nama item FG (auto)">
             </div>
-            <div class="form-group">
-              <div class="flabel" style="display:flex;align-items:center;gap:.4rem">
-                Rate USD/IDR
-                <span style="font-size:.6rem;color:var(--amber);background:rgba(251,191,36,.12);padding:.1rem .35rem;border-radius:3px;border:1px solid rgba(251,191,36,.25)">🔒 Locked at create</span>
-              </div>
-              <input class="finput" id="bom_usd_rate_snap" readonly
-                style="font-family:var(--fm);color:var(--cyan);background:rgba(34,211,238,.05)"
-                placeholder="Auto dari Exchange Rate (USD)">
-            </div>
+            <!-- Rate USD/IDR dipindah ke masing-masing line material -->
           </div>
         </div>
 
@@ -2742,9 +2734,8 @@ function openBomForm(id){try{
     setVal('bom_fiber_qty',rec.fiber_qty||'');
     // Restore product code (hidden) agar pencarian FG konsisten saat edit
     setVal('bom_product_code',rec.product_code||'');
-    // Restore the USD rate snapshot that was locked at BOM creation time
+    // bomUsdRate tetap dipakai untuk usd_rate_snapshot di payload (reference rate)
     bomUsdRate=parseFloat(rec.usd_rate_snapshot)||getLatestRate('USD');
-    setVal('bom_usd_rate_snap',bomUsdRate);
     // Restore item_code FG dan routing snapshot
     setVal('bom_item_code', rec.item_code||'');
     setVal('bom_item_code_name', rec.item_code ? (DB.kap.find(k=>k.item_code===rec.item_code)||{item_name:''}).item_name||'' : '');
@@ -2803,6 +2794,8 @@ function openBomForm(id){try{
           price: parseFloat(l.price)||0,
           landed: parseFloat(l.landed)||0,
           hedging: parseFloat(l.hedging)||0,
+          // usd_rate per line: rate USD/IDR spesifik untuk konversi IDR di line ini
+          usd_rate: parseFloat(l.usd_rate)||getLatestRate('USD'),
           total_amt: parseFloat(l.total_amt)||0,
           total_idr: parseFloat(l.total_idr)||0,
           modified_by: l.modified_by||'',
@@ -2814,9 +2807,8 @@ function openBomForm(id){try{
     setText('bom_form_title','COGS Calculated Baru');
     const newBomId='BOM-'+(++bomSeq).toString().padStart(4,'0');
     setVal('bom_id_disp',newBomId);
-    // Snapshot current USD rate — will be fixed for this BOM's IDR calculations
+    // Snapshot current USD rate — dipakai sebagai default per-line rate
     bomUsdRate=getLatestRate('USD');
-    setVal('bom_usd_rate_snap',bomUsdRate);
   }
   renderBomGroups();
   renderBomRouting();
@@ -2911,7 +2903,8 @@ function removeMachineLineGroup(gIdx){
 }
 
 function addBomLine(gIdx){
-  bomGroups[gIdx].lines.push({item_code:'',item_name:'',uom:'',qty:0,scrap:0,factor:1,currency:'USD',price:0,landed:0,hedging:0,total_qty:0,total_amt:0,total_idr:0});
+  // usd_rate default ke rate USD/IDR terkini dari master exchange rate
+  bomGroups[gIdx].lines.push({item_code:'',item_name:'',uom:'',qty:0,scrap:0,factor:1,currency:'USD',price:0,landed:0,hedging:0,usd_rate:getLatestRate('USD'),total_qty:0,total_amt:0,total_idr:0});
   renderBomGroups();
 }
 
@@ -2954,7 +2947,7 @@ function renderBomGroups(){
               <th>Item Code</th><th>Item Name</th><th>UOM</th>
               <th>Qty</th><th>Scrap%</th><th>Factor</th><th>Total Qty</th>
               <th>Currency</th><th>Price</th><th>Landed%</th><th>Hedging%</th>
-              <th>Total(USD)</th><th>Total(IDR)</th><th></th>
+              <th>Rate USD/IDR</th><th>Total(USD)</th><th>Total(IDR)</th><th></th>
             </tr></thead>
             <tbody id="bom_lines_body_${gIdx}">
               ${g.lines.map((l,lIdx)=>renderBomLineRow(gIdx,lIdx,l)).join('')}
@@ -3057,6 +3050,8 @@ function renderBomLineRow(gIdx,lIdx,l){
       <td><input class="li-input bom-line-price" type="number" style="width:74px" value="${l.price||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-landed" type="number" style="width:52px" value="${l.landed||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-hedging" type="number" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <!-- Rate USD/IDR per line: dipakai untuk konversi total_amt (USD) → total_idr -->
+      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${l.usd_rate||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,2)}" readonly></td>
       <td><input class="li-input bom-line-totalidr" style="width:98px" value="${fmt_num(l.total_idr||0,0)}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
@@ -3141,20 +3136,20 @@ function recalcBomLine(gIdx,lIdx){
   const landed=parseFloat(row.querySelector('.bom-line-landed').value)||0;
   const hedging=parseFloat(row.querySelector('.bom-line-hedging').value)||0;
   const currency=(row.querySelector('.bom-line-currency').value||'USD').trim();
+  // lineUsdRate: rate USD/IDR spesifik per line (input oleh user)
+  const lineUsdRate=parseFloat(row.querySelector('.bom-line-rate').value)||getLatestRate('USD');
   const totalQty=qty*factor*(1+scrap/100);
   // rateConv: converts price in [currency] to USD
   // e.g. if currency=IDR: rateConv = 1/IDR_rate_in_IDR = 1/16000 → price_USD = price_IDR / 16000
   const rateConv=getLatestConversion(currency);
   // totalAmt = total cost in USD
   const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv;
-  // totalIdr = totalAmt (USD) × USD rate in IDR
-  // totalIdr = totalAmt (USD) × USD rate locked at BOM creation time
-  const usdRateIdr = bomUsdRate > 0 ? bomUsdRate : getLatestRate('USD');
-  const totalIdr=totalAmt*usdRateIdr;
+  // totalIdr = totalAmt (USD) × rate USD/IDR per line (bukan global snapshot)
+  const totalIdr=totalAmt*lineUsdRate;
   row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,4);
   row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,2);
   row.querySelector('.bom-line-totalidr').value=fmt_num(totalIdr,0);
-  Object.assign(l,{qty,scrap,factor,price,landed,hedging,currency,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
+  Object.assign(l,{qty,scrap,factor,price,landed,hedging,currency,usd_rate:lineUsdRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
   recalcAllGroups();
 }
 
@@ -4442,7 +4437,7 @@ function onMasterBomSelect(mbomId){
         item_code:l.item_code, item_name:l.item_name,
         uom:l.uom||(DB_itemPrices.find(p=>p.item_code===l.item_code)||{}).uom||'',
         qty:parseFloat(l.qty)||0, scrap:parseFloat(l.scrap)||0, factor:parseFloat(l.factor)||1, total_qty:parseFloat(l.total_qty)||0,
-        currency:'USD', price:0, landed:0, hedging:0, total_amt:0, total_idr:0,
+        currency:'USD', price:0, landed:0, hedging:0, usd_rate:getLatestRate('USD'), total_amt:0, total_idr:0,
         fromMaster:true, // field qty/scrap/factor/item_code dari master, tidak boleh diedit
       })),
       dlfohLines:(g.dlfohLines||[]).map(dl=>({
@@ -4466,7 +4461,7 @@ function onMasterBomSelect(mbomId){
           item_code:l.item_code, item_name:l.item_name,
           uom:l.uom||(DB_itemPrices.find(p=>p.item_code===l.item_code)||{}).uom||'',
           qty:l.qty, scrap:l.scrap, factor:l.factor, total_qty:l.total_qty,
-          currency:'USD', price:0, landed:0, hedging:0, total_amt:0, total_idr:0,
+          currency:'USD', price:0, landed:0, hedging:0, usd_rate:getLatestRate('USD'), total_amt:0, total_idr:0,
         })),
         dlfohLines:[],
       });
@@ -5532,6 +5527,7 @@ function viewBomDetail(id, src){try{
       <td class="mono" style="text-align:right">${fmt_num(l.price||0,4)}</td>
       <td class="mono" style="text-align:right">${fmt_num(l.landed||0,2)}%</td>
       <td class="mono" style="text-align:right">${fmt_num(l.hedging||0,2)}%</td>
+      <td class="mono" style="text-align:right;color:var(--cyan)">${Number((l.usd_rate||0).toFixed(0)).toLocaleString('id-ID')}</td>
       <td class="mono" style="text-align:right;color:var(--cyan)">${fmt_num(l.total_amt||0,2)}</td>
       <td class="mono" style="text-align:right;color:var(--amber)">${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}</td>
     </tr>`).join('');
@@ -5576,9 +5572,10 @@ function viewBomDetail(id, src){try{
               <th style="text-align:right">Factor</th><th style="text-align:right">Total Qty</th>
               <th style="text-align:center">Currency</th><th style="text-align:right">Price</th>
               <th style="text-align:right">Landed%</th><th style="text-align:right">Hedging%</th>
+              <th style="text-align:right">Rate USD/IDR</th>
               <th style="text-align:right">Total(USD)</th><th style="text-align:right">Total(IDR)</th>
             </tr></thead>
-            <tbody>${matRows||'<tr><td colspan="13" style="text-align:center;color:var(--t3)">Tidak ada material</td></tr>'}</tbody>
+            <tbody>${matRows||'<tr><td colspan="14" style="text-align:center;color:var(--t3)">Tidak ada material</td></tr>'}</tbody>
           </table>
         </div>
 
