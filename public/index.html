@@ -3266,6 +3266,7 @@ function recalcBomTotal(){ recalcAllGroups(); }
 function onBomLineItemCode(gIdx,lIdx,code,forcedName){
   // Lookup item dari DB_itemPrices
   const item=DB_itemPrices.find(p=>p.item_code===code);
+  console.log('[BOMLine] item_code='+code+' found='+!!item+(item?' price='+item.price:''));
   const row=document.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
   if(!row) return;
   const l=bomGroups[gIdx].lines[lIdx];
@@ -3284,7 +3285,12 @@ function onBomLineItemCode(gIdx,lIdx,code,forcedName){
       row.querySelector('.bom-line-price').value=l.price;
       row.querySelector('.bom-line-hedging').value=l.hedging;
       row.querySelector('.bom-line-landed').value=l.landed;
+      console.log('[BOMLine] price filled from item_prices: '+l.price);
+    } else {
+      console.log('[BOMLine] item found but price=0 in item_prices, trying autoFillPrice');
     }
+  } else {
+    console.log('[BOMLine] item NOT found in DB_itemPrices (total items: '+DB_itemPrices.length+')');
   }
   if(forcedName){row.querySelector('.bom-line-name').value=forcedName;l.item_name=forcedName;}
   // Override dari purchase price record jika ada (prioritas lebih tinggi)
