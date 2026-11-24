@@ -4398,11 +4398,17 @@ function viewMBomDetail(id){try{
     if(!b){toast('Data tidak ditemukan.','error');modal.style.display='none';return;}
     if(title) title.textContent='Detail Master BOM — '+b.bomid;
 
+    // Sync Loose Tube & Fiber/Tube dari kap (Master FG) agar sesuai master, bukan nilai lama
+    var kapRec=DB.kap&&DB.kap.find(function(k){return k.item_code===(b.product_code||'').toUpperCase();});
+    var looseTube=kapRec?parseInt(kapRec.tube)||0:(parseInt(b.fiber_cnt)||0);
+    var fiberPerTube=kapRec?parseInt(kapRec.fiber)||0:(parseInt(b.buffer_qty)||0);
+    var totalFiber=looseTube*fiberPerTube||b.fiber_qty||'—';
+
     var hdr='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem 1.5rem;margin-bottom:1rem">';
-    var fields=[['BOM ID',b.bomid],['Product',b.product],['Customer',b.customer||'—'],
-      ['Project',b.project||'—'],['Loose Tube Qty',b.fiber_cnt||'—'],['Fiber / Tube',b.buffer_qty||'—'],
-      ['Total Fiber Qty',b.fiber_qty||'—'],['Created By',b.created_by||'—'],['Created',b.created_dt||b.created||'—'],
-      ['Modified By',b.modified_by||'—'],['Modified',b.modified_dt||b.updated||'—']];
+    var fields=[['BOM ID',b.bomid],['Item Code',b.product_code||'—'],['Product',b.product||'—'],
+      ['Loose Tube Qty',looseTube||'—'],['Fiber / Tube',fiberPerTube||'—'],['Total Fiber Qty',totalFiber],
+      ['Created By',b.created_by||'—'],['Created',b.created_dt||b.created||'—'],['Modified By',b.modified_by||'—'],
+      ['Modified',b.modified_dt||b.updated||'—']];
     fields.forEach(function(f){hdr+='<div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">'+f[0]+'</div><div style="font-weight:600;font-size:.85rem;margin-top:.15rem">'+f[1]+'</div></div>';});
     hdr+='</div>';
 
