@@ -2758,6 +2758,8 @@ function openBomForm(id){try{
     setVal('bom_product_code',rec.product_code||'');
     // bomUsdRate tetap dipakai untuk usd_rate_snapshot di payload (reference rate)
     bomUsdRate=parseFloat(rec.usd_rate_snapshot)||getLatestRate('USD');
+    // Restore price_id agar autoFillPrice bisa jalan saat renderBomGroups
+    setVal('bom_price_id', rec.price_id||'');
     // Restore item_code FG dan routing snapshot
     setVal('bom_item_code', rec.item_code||'');
     setVal('bom_item_code_name', rec.item_code ? (DB.kap.find(k=>k.item_code===rec.item_code)||{item_name:''}).item_name||'' : '');
@@ -3259,18 +3261,7 @@ function recalcAllGroups(){
 function recalcBomTotal(){ recalcAllGroups(); }
 
 function onBomLineItemCode(gIdx,lIdx,code,forcedName){
-  // Autofill price from item_prices (default = latest price)
-  if(typeof DB_itemPrices!=='undefined' && bomGroups[gIdx] && bomGroups[gIdx].lines[lIdx]){
-    var ip=DB_itemPrices.find(function(p){return p.item_code===code;});
-    if(ip){
-      var bline=bomGroups[gIdx].lines[lIdx];
-      bline.currency=ip.currency||'USD';
-      bline.price=parseFloat(ip.price)||0;
-      bline.hedging=parseFloat(ip.hedging)||0;
-      bline.landed=parseFloat(ip.landed)||0;
-    }
-  }
-  // Lookup dari DB_itemPrices — Master Item sudah dihapus
+  // Lookup item dari DB_itemPrices
   const item=DB_itemPrices.find(p=>p.item_code===code);
   const row=document.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
   if(!row) return;
@@ -3280,8 +3271,20 @@ function onBomLineItemCode(gIdx,lIdx,code,forcedName){
     row.querySelector('.bom-line-name').value=item.item_name||'';
     row.querySelector('.bom-line-uom').value=item.uom||item.item_uom||'';
     l.item_name=item.item_name||''; l.uom=item.uom||item.item_uom||'';
+    // Autofill price, currency, hedging, landed dari item_prices ke DOM dan data object
+    if((parseFloat(item.price)||0)>0){
+      l.currency=item.currency||'USD';
+      l.price=parseFloat(item.price)||0;
+      l.hedging=parseFloat(item.hedging)||0;
+      l.landed=parseFloat(item.landed)||0;
+      row.querySelector('.bom-line-currency').value=l.currency;
+      row.querySelector('.bom-line-price').value=l.price;
+      row.querySelector('.bom-line-hedging').value=l.hedging;
+      row.querySelector('.bom-line-landed').value=l.landed;
+    }
   }
   if(forcedName){row.querySelector('.bom-line-name').value=forcedName;l.item_name=forcedName;}
+  // Override dari purchase price record jika ada (prioritas lebih tinggi)
   autoFillPrice(gIdx,lIdx,row,l);
   recalcBomLine(gIdx,lIdx);
 }
