@@ -4059,6 +4059,8 @@ function openMBomForm(id){try{
             total_hour:parseFloat(d.total_hour)||0};
         });
       });
+      // Sync prosesTime & setupTime dari kapasitas.notes SETELAH mbomGroups terisi
+      syncMBomGroupsFromKap(rec.product_code||'');
       renderMBomGroups();
       const sec=ge('mbom_form_section');if(sec)sec.scrollIntoView({behavior:'smooth'});
     };
@@ -4109,10 +4111,12 @@ function onMBomProductCodeInput(val){
   if(codeEl) codeEl.value=code;
   // Sync Loose Tube Qty & Fiber/Tube dari Master FG (kap) berdasarkan item_code
   fillMBomFiberFromKap(code);
+  // Sync prosesTime & setupTime tiap group yang sudah ada dari kapasitas.notes
+  syncMBomGroupsFromKap(code);
+  if(mbomGroups.length) renderMBomGroups();
 }
 
 // Isi mbom_fiber_cnt (Loose Tube) & mbom_buffer_qty (Fiber/Tube) dari data kap yang sesuai item_code
-// Juga sync prosesTime & setupTime tiap group dari kapasitas.notes agar sama dengan COGS Calculated
 function fillMBomFiberFromKap(code){
   // Ambil record kap pertama yang cocok dengan item_code
   const kap=DB.kap&&DB.kap.find(function(k){return k.item_code===(code||'').toUpperCase();});
@@ -4121,31 +4125,32 @@ function fillMBomFiberFromKap(code){
   setVal('mbom_fiber_cnt',tube||'');
   setVal('mbom_buffer_qty',fiber||'');
   calcMBomTotalFiber();
+}
 
-  // Sync prosesTime & setupTime per machine_line dari kapasitas.notes
-  // agar nilai Master FG konsisten dengan COGS Calculated
-  if(kap && mbomGroups.length){
-    let kapLines=[];
-    try{kapLines=JSON.parse(kap.notes||'[]');}catch(e){kapLines=[];}
-    if(kapLines.length){
-      mbomGroups.forEach(function(g){
-        const kl=kapLines.find(function(l){return l.machine_line===g.machine_line;});
-        if(!kl) return;
-        const pt=parseFloat(kl.duration)||0;
-        const st=parseFloat(kl.setup)||0;
-        // Hanya update jika belum di-manual-override oleh user
-        g.prosesTime=pt;
-        g.setupTime=st;
-        // Sync ke dlfohLines yang belum manual
-        g.dlfohLines.forEach(function(dl){
-          if(!dl.index_manual) dl.index=pt;
-          if(!dl.setup_manual) dl.setup=st;
-          dl.total_hour=dl.index*(dl.factor||1)+(dl.setup||0);
-        });
-      });
-      renderMBomGroups();
-    }
-  }
+// Sync prosesTime & setupTime seluruh mbomGroups dari kapasitas.notes
+// Harus dipanggil SETELAH mbomGroups terisi (bukan sebelumnya)
+function syncMBomGroupsFromKap(code){
+  if(!code||!mbomGroups.length) return;
+  const kap=DB.kap&&DB.kap.find(function(k){return k.item_code===(code||'').toUpperCase();});
+  if(!kap) return;
+  let kapLines=[];
+  try{kapLines=JSON.parse(kap.notes||'[]');}catch(e){return;}
+  if(!kapLines.length) return;
+  mbomGroups.forEach(function(g){
+    const kl=kapLines.find(function(l){return l.machine_line===g.machine_line;});
+    if(!kl) return;
+    const pt=parseFloat(kl.duration)||0;
+    const st=parseFloat(kl.setup)||0;
+    // Selalu override dari kapasitas.notes agar konsisten dengan COGS Calculated
+    g.prosesTime=pt;
+    g.setupTime=st;
+    // Update dlfohLines yang belum di-manual-override
+    g.dlfohLines.forEach(function(dl){
+      if(!dl.index_manual) dl.index=pt;
+      if(!dl.setup_manual) dl.setup=st;
+      dl.total_hour=dl.index*(dl.factor||1)+(dl.setup||0);
+    });
+  });
 }
 
 // ── Group management ──
