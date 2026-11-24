@@ -2988,8 +2988,8 @@ function renderBomGroups(){
           <div class="line-tbl-wrap">
             <table class="line-tbl">
               <thead><tr>
-                <th>Category</th><th>Type</th><th>Index</th><th>Set Up</th>
-                <th>Factor</th><th>Total Hour</th><th>Total Cost (IDR)</th><th></th>
+                <th>Category</th><th>Type</th><th>Process</th><th>Set Up</th>
+                <th>Total Hour</th><th>Rate</th><th>Total Cost (IDR)</th><th></th>
               </tr></thead>
               <tbody id="dlfoh_body_${gIdx}">
                 ${g.dlfohLines.map((dl,dIdx)=>renderDlfohRow(gIdx,dIdx,dl)).join('')}
@@ -3100,7 +3100,7 @@ function renderDlfohRow(gIdx,dIdx,dl){
         </div>
       </td>
       <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
-      <td><input class="li-input dlfoh-idx-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,5)}"
+      <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,5)}"
         data-manual="${dl.index_manual?'1':'0'}"
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
         </td>
@@ -3108,11 +3108,8 @@ function renderDlfohRow(gIdx,dIdx,dl){
         data-manual="${dl.setup_manual?'1':'0'}"
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
         </td>
-      <td><input class="li-input dlfoh-line-factor dlfoh-factor-cell" type="number" style="width:54px" value="${dl.factor||1}"
-        data-manual="${dl.factor_manual?'1':'0'}"
-        ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].factor=parseFloat(this.value)||1;bomGroups[${gIdx}].dlfohLines[${dIdx}].factor_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
-        </td>
       <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,4)}" readonly></td>
+      <td><input class="li-input dlfoh-rate-cell" style="width:80px" value="${fmt_num(rec?parseFloat(rec.rate)||0:0,0)}" readonly></td>
       <td><input class="li-input dlfoh-cost-cell" style="width:92px" value="${fmt_num(dl.total_cost||0,0)}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="bomGroups[${gIdx}].dlfohLines.splice(${dIdx},1);renderBomGroups()">&#10005;</button>`)}</td>
     </tr>`;
@@ -3189,8 +3186,10 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
   const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
   if(row){
     const hourCell=row.querySelector('.dlfoh-hour-cell');
+    const rateCell=row.querySelector('.dlfoh-rate-cell');
     const costCell=row.querySelector('.dlfoh-cost-cell');
     if(hourCell) hourCell.value=fmt_num(th,4);
+    if(rateCell) rateCell.value=fmt_num(rec?parseFloat(rec.rate)||0:0,0);
     if(costCell) costCell.value=fmt_num(dl.total_cost,0);
   }
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
@@ -3221,15 +3220,15 @@ function recalcGroupDlfoh(gIdx){
     dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*lotMult;
     const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
     if(row){
-      const idxCell=row.querySelector('.dlfoh-idx-cell');
+      const idxCell=row.querySelector('.dlfoh-process-cell');
       const setupCell=row.querySelector('.dlfoh-setup-cell');
-      const factorCell=row.querySelector('.dlfoh-factor-cell');
       const hourCell=row.querySelector('.dlfoh-hour-cell');
+      const rateCell=row.querySelector('.dlfoh-rate-cell');
       const costCell=row.querySelector('.dlfoh-cost-cell');
       if(idxCell&&!dl.index_manual) idxCell.value=fmt_num(idx,5);
       if(setupCell&&!dl.setup_manual) setupCell.value=fmt_num(dl.setup,5);
-      if(factorCell&&!dl.factor_manual) factorCell.value=fmt_num(dl.factor,4);
       if(hourCell) hourCell.value=fmt_num(th,4);
+      if(rateCell) rateCell.value=fmt_num(rec?parseFloat(rec.rate)||0:0,0);
       if(costCell) costCell.value=fmt_num(dl.total_cost,0);
       const t=rec?rec.type:'—';
       // badge color: DL=green, FFOH=violet, VFOH=amber
