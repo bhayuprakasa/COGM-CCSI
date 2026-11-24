@@ -3009,10 +3009,11 @@ function renderBomGroups(){
   });
 
   // Auto-fill price dari item_prices jika price=0 dan item_code ada (misal BOM lama belum terisi)
+  const _bmgCont=document.getElementById('bom_machine_groups')||document;
   bomGroups.forEach((g,gIdx)=>{
     g.lines.forEach((l,lIdx)=>{
       if(l.item_code && (parseFloat(l.price)||0)===0){
-        const row=document.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
+        const row=_bmgCont.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
         // 1. Coba dari purchase price record yang dipilih di BOM
         autoFillPrice(gIdx,lIdx,row,l);
         // 2. Fallback: dari master item_prices jika masih 0
@@ -3146,8 +3147,11 @@ function deleteBomLine(gIdx,lIdx){
 }
 
 function recalcBomLine(gIdx,lIdx){
-  const row=document.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
-  if(!row) return;
+  // Scope ke container BOM agar tidak salah ambil row dari tabel lain (misal Master BOM)
+  const container=document.getElementById('bom_machine_groups')||document;
+  const row=container.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
+  // Pastikan row ini benar-benar dari BOM material line (bukan dari tabel Master BOM)
+  if(!row||!row.querySelector('.bom-line-price')) return;
   const l=bomGroups[gIdx].lines[lIdx];
   const qty=parseFloat(row.querySelector('.bom-line-qty').value)||0;
   const scrap=parseFloat(row.querySelector('.bom-line-scrap').value)||0;
@@ -3264,7 +3268,8 @@ function onBomLineItemCode(gIdx,lIdx,code,forcedName){
   // Lookup item dari DB_itemPrices
   const item=DB_itemPrices.find(p=>p.item_code===code);
   console.log('[BOMLine] item_code='+code+' found='+!!item+(item?' price='+item.price:''));
-  const row=document.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
+  const _bmg=document.getElementById('bom_machine_groups')||document;
+  const row=_bmg.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
   if(!row) return;
   const l=bomGroups[gIdx].lines[lIdx];
   l.item_code=code;
@@ -3296,7 +3301,8 @@ function onBomLineItemCode(gIdx,lIdx,code,forcedName){
 }
 
 function onBomLineCurrencyChange(gIdx,lIdx,cur){
-  const row=document.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
+  const _bmg=document.getElementById('bom_machine_groups')||document;
+  const row=_bmg.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
   if(row) row.querySelector('.bom-line-currency').value=cur;
   const l=bomGroups[gIdx].lines[lIdx]; if(l) l.currency=cur;
   autoFillPrice(gIdx,lIdx,row,l);
