@@ -435,7 +435,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div class="nav-item active" onclick="goPage('price')"><span class="ni">💲</span> Item Price</div>
   <div class="nav-item" onclick="goPage('exrate')"><span class="ni">💱</span> Exchange Rate</div>
   <div class="nav-item" onclick="goPage('dlfoh')"><span class="ni">🏭</span> DL-FOH</div>
-  <div class="nav-item" id="nav_fgroute" onclick="goPage('fgroute')"><span class="ni">🔄</span> FG Routing</div>
   <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master FG (Route)</div>
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
@@ -930,61 +929,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           </tr></thead>
           <tbody id="mbom_tbody"></tbody>
         </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ PAGE: MASTER FG ROUTING ══════════ -->
-<div class="page" id="page_fgroute">
-  <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total FG Item</span><span class="sp-val" id="fgroute_count">0</span></div>
-    </div>
-    <button class="btn btn-primary" onclick="openFGRouteForm()">+ Tambah Routing FG</button>
-  </div>
-  <div class="card" style="margin-bottom:.75rem">
-    <input type="text" id="fgrouteSearch" class="finput" placeholder="Cari item code / nama..." oninput="filterFGRoute()" style="max-width:300px">
-  </div>
-  <div id="fgrouteList"></div>
-
-  <!-- Form tambah/edit FG Route -->
-  <div id="fgrouteForm" style="display:none;margin-top:.75rem">
-    <div class="card">
-      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-        <h3 id="fgrouteFormTitle" style="margin:0">Routing FG</h3>
-        <button onclick="closeFGRouteForm()" class="btn btn-ghost btn-sm">Tutup</button>
-      </div>
-      <div class="card-body">
-        <div class="form-row">
-          <div class="form-group">
-            <div class="flabel req">Item Code FG</div>
-            <div class="search-field-wrap">
-              <input class="finput" id="fgrItemCode" placeholder="Cari item FG..." readonly>
-              <span class="search-icon clickable" onclick="openSearchModal('fg_item','fgrItemCode','fgrItemName')">🔍</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <div class="flabel">Item Name</div>
-            <input class="finput" id="fgrItemName" readonly placeholder="Auto dari item code">
-          </div>
-        </div>
-        <div style="margin:.5rem 0;display:flex;justify-content:space-between;align-items:center">
-          <strong>Routing Lines</strong>
-          <button type="button" onclick="addFGRouteLine()" class="btn btn-secondary btn-sm">+ Tambah Line</button>
-        </div>
-        <div style="overflow-x:auto">
-          <table class="tbl" style="min-width:600px;font-size:.82rem">
-            <thead><tr>
-              <th>#</th><th>CAT DL-FOH</th><th>Deskripsi</th><th>Type</th>
-              <th>Process Time</th><th>Setup Time</th><th>Factor</th><th>Aksi</th>
-            </tr></thead>
-            <tbody id="fgrLinesTbody"></tbody>
-          </table>
-        </div>
-        <div style="margin-top:.75rem;text-align:right">
-          <button onclick="saveFGRoute()" class="btn btn-primary">Simpan Routing</button>
-        </div>
       </div>
     </div>
   </div>
@@ -1736,7 +1680,7 @@ window.serverLogout = async function() {
 
 // ── Load ALL data from server → fully replace in-memory DB ──
 window.loadAllData = async function() {
-  const [itemPrices, fgItems, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs, cogs, fgRoutes] = await Promise.all([
+  const [itemPrices, fgItems, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs, cogs] = await Promise.all([
     apiGet('/item-prices'),  // item_prices sekarang menggantikan items sebagai master data
     apiGet('/items/fg'),     // master FG (is_fg=1) untuk dropdown item code di Master BOM
     apiGet('/prices'),
@@ -1749,7 +1693,6 @@ window.loadAllData = async function() {
     apiGet('/bom/history'),
     apiGet('/sequences'),
     apiGet('/cogs'),
-    apiGet('/fg-routes'),    // master routing per FG item
   ]);
 
   // Fully replace — never merge with seed/sample data
@@ -1764,7 +1707,6 @@ window.loadAllData = async function() {
   DB.bom        = bom        || [];
   DB.bomHistory = history    || [];
   DB.cogs       = cogs       || [];
-  DB.fgRoutes   = fgRoutes   || [];
 
   // Sync sequence counters to avoid ID collisions
   if (seqs) {
@@ -1839,12 +1781,6 @@ window.API = {
     update: (id, d)   => apiPut('/cogs/' + id, d),
     delete: id        => apiDelete('/cogs/' + id),
   },
-  fgRoutes: {
-    list:    ()     => apiGet('/fg-routes'),
-    byItem:  (code) => apiGet('/fg-routes/by-item/' + encodeURIComponent(code)),
-    save:    (data) => apiPost('/fg-routes', data),
-    del:     (code) => apiDelete('/fg-routes/by-item/' + encodeURIComponent(code)),
-  },
   users: {
     list:   ()     => apiGet('/users'),
     create: d      => apiPost('/users', d),
@@ -1897,7 +1833,6 @@ const DB = {
   masterbom:[],
   bomHistory: [],
   cogs:       [],
-  fgRoutes:   [],  // master routing per FG item (dari fg_routes)
   itemHistory: {},
 };
 
@@ -1930,7 +1865,6 @@ const pageTitles={
   price:'💲 Master Data <span>Item Price</span>',
   exrate:'💱 Master Data <span>Exchange Rate</span>',
   dlfoh:'🏭 Master Data <span>DL-FOH</span>',
-  fgroute:'🔄 Master Data <span>FG Routing</span>',
   mesin:'🔧 Master Data <span>Mesin</span>',
   kapasitas:'⚡ Master Data <span>Master FG (Route)</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
@@ -1957,7 +1891,6 @@ function goPage(id){
   if(id==='history') renderHistory();
   if(id==='cogs') onPageCogs();
   if(id==='roles'){ renderRoles(); renderWorkflowConfig(); }
-  if(id==='fgroute') renderFGRouteList();
 }
 setInterval(()=>{setText('page_time',nowStr());},60000);
 
@@ -1991,10 +1924,10 @@ function buildSearchData(type){
   else if(type==='kap') sm_data=DB.kap.map(k=>({code:k.id,name:k.item_name,sub:k.proses+' | '+(DB.mesin.find(m=>m.machine_id===k.mesin)||{machine_name:k.mesin}).machine_name}));
   else if(type==='masterbom') sm_data=DB.masterbom.map(b=>({code:b.bomid,name:b.product,sub:b.machine_line+' | '+(b.lines||[]).length+' items'}));
   else if(type==='fgrl') {
-    // FG items yang punya routing — unique by item_code
+    // FG items dari DB.kap (Master FG Route) — unique by item_code
     const seen=new Set();
-    sm_data=DB.fgRoutes.filter(r=>{if(seen.has(r.item_code))return false;seen.add(r.item_code);return true;})
-      .map(r=>({code:r.item_code,name:r.item_name||r.item_code,sub:DB.fgRoutes.filter(x=>x.item_code===r.item_code).length+' routes'}));
+    sm_data=DB.kap.filter(k=>{if(seen.has(k.item_code))return false;seen.add(k.item_code);return true;})
+      .map(k=>({code:k.item_code,name:k.item_name||k.item_code,sub:''}));
   }
 }
 function latestRate(e){
@@ -2093,13 +2026,12 @@ function selectSearchResult(code,name){
     sm_extra_g=null;
     closeSearchModal(); return;
   }
-  // DL-FOH select untuk FG Route lines
+  // DL-FOH select untuk FG Route lines (blok ini sudah tidak dipakai, dijaga agar tidak error)
   if(sm_type==='dlfoh'&&sm_extra&&sm_extra.g==='fgr'){
     const i=sm_extra.l;
-    if(fgrLines[i]){
+    if(typeof fgrLines!=='undefined'&&fgrLines[i]){
       fgrLines[i].cat=code;
       fgrLines[i].cat_desc=name||'';
-      // Set type dari dlfoh master
       const dm=DB.dlfoh.find(d=>d.catid===code);
       fgrLines[i].type=dm?dm.type||'':'';
       const ci=ge('fgrCat'+i); if(ci) ci.value=code;
@@ -2700,7 +2632,7 @@ function renderKap(){try{
 // ═══════════════════════════════════════════
 // bomGroups = [{machine_line, lines:[{...}], dlfohLines:[{...}], speed, kapPct, dlLot, fohLot}]
 let bomGroups=[];
-let bomRouting=[];  // routing snapshot dari fg_routes saat BOM dibuat/diedit
+let bomRouting=[];  // routing snapshot dari kapasitas (Master FG Route) saat BOM dibuat/diedit
 let bomUsdRate=0; // USD rate snapshot at time of BOM creation — fixed for this BOM session
 
 // ── helpers ──
@@ -2727,18 +2659,33 @@ function getLatestConversion(currencyId){
   return currRate/usdRate;
 }
 
+// Routing preview di BOM form — sumber dari kapasitas.notes per item_code
+// Nilai aktual (total_hour, total_cost) dihitung server saat BOM disimpan
 function autoLoadBomRouting(itemCode) {
   if (!itemCode) { bomRouting = []; renderBomRouting(); return; }
-  const routes = DB.fgRoutes.filter(r => r.item_code === itemCode);
-  if (routes.length) {
-    bomRouting = routes.map(r => ({
-      cat: r.cat||'', cat_desc: r.cat_desc||'', type: r.type||'',
-      process_time: parseFloat(r.process_time)||0,
-      setup_time: parseFloat(r.setup_time)||0,
-      factor: parseFloat(r.factor)||1,
-      total_hour: parseFloat(r.process_time||0)*parseFloat(r.factor||1)+parseFloat(r.setup_time||0),
-      total_cost: parseFloat(r.total_cost)||0,
-    }));
+  const kap = DB.kap.find(k => k.item_code === itemCode);
+  if (kap) {
+    let lines = [];
+    try { lines = JSON.parse(kap.notes || '[]'); } catch(e) { lines = []; }
+    bomRouting = lines
+      .filter(l => l.dlfoh_cat)
+      .map(l => {
+        const dlfohRec = DB.dlfoh.find(d => d.catid === l.dlfoh_cat);
+        const processTime = parseFloat(l.duration) || 0;
+        const setupTime   = parseFloat(l.setup)    || 0;
+        const totalHour   = processTime + setupTime;
+        const rate        = dlfohRec ? parseFloat(dlfohRec.rate) || 0 : 0;
+        return {
+          cat: l.dlfoh_cat,
+          cat_desc: dlfohRec ? dlfohRec.desc || '' : '',
+          type: dlfohRec ? dlfohRec.type || '' : '',
+          process_time: processTime,
+          setup_time: setupTime,
+          factor: 1,
+          total_hour: totalHour,
+          total_cost: totalHour * rate,
+        };
+      });
   } else { bomRouting = []; }
   renderBomRouting();
 }
@@ -2797,7 +2744,7 @@ function openBomForm(id){try{
     setVal('bom_usd_rate_snap',bomUsdRate);
     // Restore item_code FG dan routing snapshot
     setVal('bom_item_code', rec.item_code||'');
-    setVal('bom_item_code_name', rec.item_code ? (DB.fgRoutes.find(r=>r.item_code===rec.item_code)||{item_name:''}).item_name||'' : '');
+    setVal('bom_item_code_name', rec.item_code ? (DB.kap.find(k=>k.item_code===rec.item_code)||{item_name:''}).item_name||'' : '');
     bomRouting = (rec.routing||[]).map(r=>({
       cat: r.cat||'', cat_desc: r.cat_desc||'', type: r.type||'',
       process_time: parseFloat(r.process_time)||0,
@@ -3464,7 +3411,7 @@ function saveBom(){try{
     item_code:(ge('bom_item_code')||{value:''}).value,
     usd_rate_snapshot: bomUsdRate||getLatestRate('USD'),
     groups:JSON.parse(JSON.stringify(validGroups)),
-    routing:JSON.parse(JSON.stringify(bomRouting)),
+    // routing tidak dikirim — server otomatis ambil dari kapasitas Master FG (Route)
   };
   console.log('saveBom payload:', {editId, product, groupCount:validGroups.length});
   if(typeof API!=='undefined'){
@@ -5100,16 +5047,16 @@ function showUploadResult(msg, added, updated, skipped){
 // AUTH & ROLES
 // ═══════════════════════════════════════════
 const ROLES_CONFIG = {
-  admin:             {label:'Administrator',          pages:['price','exrate','dlfoh','fgroute','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
-  editor:            {label:'Editor',                 pages:['price','exrate','dlfoh','fgroute','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
-  finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
-  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
-  vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
-  approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
-  viewer:            {label:'Viewer',                  pages:['price','exrate','dlfoh','fgroute','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
+  admin:             {label:'Administrator',          pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
+  editor:            {label:'Editor',                 pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
+  finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                 canApprove:true,  canEdit:false},
+  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                 canApprove:true,  canEdit:false},
+  vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                 canApprove:true,  canEdit:false},
+  approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                 canApprove:true,  canEdit:false},
+  viewer:            {label:'Viewer',                  pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
 };
 
-const ALL_PAGES = ['price','exrate','dlfoh','fgroute','kapasitas','masterbom','bom','history','cogs','roles'];
+const ALL_PAGES = ['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles'];
 
 let USERS = [
   {id:'u1', username:'admin',    password:'admin123',  nama:'Administrator',       role:'admin',            customPages:[]},
@@ -6924,142 +6871,19 @@ function onPageCogs(){
   renderCogsList();
 }
 
-// ═══════════════════════════════════════════
-// MASTER FG ROUTING
-// ═══════════════════════════════════════════
-let fgrLines=[];     // lines untuk FG route yang sedang diedit
-let fgrEditCode=null; // item_code yang sedang diedit (null = baru)
-
-function openFGRouteForm(itemCode){
-  fgrEditCode=itemCode||null;
-  fgrLines=[];
-  setVal('fgrItemCode',''); setVal('fgrItemName','');
-  if(itemCode){
-    setVal('fgrItemCode',itemCode);
-    const routes=DB.fgRoutes.filter(r=>r.item_code===itemCode);
-    if(routes.length){
-      setVal('fgrItemName',routes[0].item_name||'');
-      fgrLines=routes.map(r=>({
-        cat:r.cat||'',cat_desc:r.cat_desc||'',type:r.type||'',
-        process_time:parseFloat(r.process_time)||0,
-        setup_time:parseFloat(r.setup_time)||0,
-        factor:parseFloat(r.factor)||1,
-      }));
-    }
-  }
-  renderFGRLines();
-  setDisp('fgrouteForm','');
-  setText('fgrouteFormTitle',itemCode?'Edit Routing: '+itemCode:'Tambah Routing FG');
-  ge('fgrouteForm')&&ge('fgrouteForm').scrollIntoView({behavior:'smooth'});
-}
-
-function closeFGRouteForm(){ setDisp('fgrouteForm','none'); }
-
-function addFGRouteLine(){
-  fgrLines.push({cat:'',cat_desc:'',type:'',process_time:0,setup_time:0,factor:1});
-  renderFGRLines();
-}
-
-function renderFGRLines(){
-  const tbody=ge('fgrLinesTbody'); if(!tbody) return;
-  tbody.innerHTML='';
-  if(!fgrLines.length){
-    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#888;font-style:italic">Belum ada routing line</td></tr>';
-    return;
-  }
-  fgrLines.forEach(function(r,i){
-    const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+(i+1)+'</td>'
-      +'<td><div style="display:flex;gap:2px">'
-      +'<input type="text" value="'+escHtml(r.cat||'')+'" id="fgrCat'+i+'" style="width:80px" readonly>'
-      +'<span class="search-icon clickable" title="Cari DL-FOH" onclick="openSearchModal(\'dlfoh\',\'fgrCat'+i+'\',\'fgrCatDesc'+i+'\',{g:\'fgr\',l:'+i+'})">🔍</span>'
-      +'</div></td>'
-      +'<td><input type="text" id="fgrCatDesc'+i+'" value="'+escHtml(r.cat_desc||'')+'" style="width:120px" readonly></td>'
-      +'<td><input type="text" id="fgrType'+i+'" value="'+escHtml(r.type||'')+'" style="width:60px" readonly></td>'
-      +'<td><input type="number" id="fgrPT'+i+'" value="'+(r.process_time||0)+'" step="0.0001" style="width:90px" oninput="syncFGRLine('+i+')"></td>'
-      +'<td><input type="number" id="fgrST'+i+'" value="'+(r.setup_time||0)+'" step="0.0001" style="width:80px" oninput="syncFGRLine('+i+')"></td>'
-      +'<td><input type="number" id="fgrFactor'+i+'" value="'+(r.factor||1)+'" step="0.0001" style="width:70px" oninput="syncFGRLine('+i+')"></td>'
-      +'<td><button type="button" onclick="removeFGRLine('+i+')" class="btn btn-danger btn-xs">✕</button></td>';
-    tbody.appendChild(tr);
-  });
-}
-
-function syncFGRLine(i){
-  if(!fgrLines[i]) return;
-  fgrLines[i].process_time=parseFloat(ge('fgrPT'+i)?.value||0);
-  fgrLines[i].setup_time=parseFloat(ge('fgrST'+i)?.value||0);
-  fgrLines[i].factor=parseFloat(ge('fgrFactor'+i)?.value||1);
-}
-
-function removeFGRLine(i){ fgrLines.splice(i,1); renderFGRLines(); }
-
-function saveFGRoute(){
-  const itemCode=(ge('fgrItemCode')||{value:''}).value.trim();
-  const itemName=(ge('fgrItemName')||{value:''}).value.trim();
-  if(!itemCode){toast('Item Code FG wajib.','error');return;}
-  if(!fgrLines.length){toast('Minimal 1 routing line.','error');return;}
-  // Sync all lines from DOM
-  fgrLines.forEach(function(_,i){
-    syncFGRLine(i);
-    fgrLines[i].cat=(ge('fgrCat'+i)||{value:fgrLines[i].cat}).value||fgrLines[i].cat;
-    fgrLines[i].cat_desc=(ge('fgrCatDesc'+i)||{value:fgrLines[i].cat_desc}).value||fgrLines[i].cat_desc;
-    fgrLines[i].type=(ge('fgrType'+i)||{value:fgrLines[i].type}).value||fgrLines[i].type;
-  });
-  apiSave(API.fgRoutes.save({item_code:itemCode,item_name:itemName,routes:fgrLines}),function(){
-    toast('FG Routing disimpan.','success');
-    loadAllData().then(function(){renderFGRouteList();updateCounts();});
-    closeFGRouteForm();
-  });
-}
-
-function deleteFGRoute(itemCode){
-  if(!confirm('Hapus semua routing untuk item '+itemCode+'?')) return;
-  apiSave(API.fgRoutes.del(itemCode),function(){
-    DB.fgRoutes=DB.fgRoutes.filter(r=>r.item_code!==itemCode);
-    renderFGRouteList(); updateCounts();
-    toast('FG Routing dihapus.','info');
-  });
-}
-
-function filterFGRoute(){ renderFGRouteList(); }
-
-function renderFGRouteList(){
-  const q=(ge('fgrouteSearch')?.value||'').toLowerCase();
-  // Group by item_code
-  const grouped={};
-  for(const r of DB.fgRoutes){
-    if(!grouped[r.item_code]) grouped[r.item_code]={item_code:r.item_code,item_name:r.item_name||'',routes:[]};
-    grouped[r.item_code].routes.push(r);
-  }
-  let items=Object.values(grouped);
-  if(q) items=items.filter(it=>it.item_code.toLowerCase().includes(q)||it.item_name.toLowerCase().includes(q));
-  setText('fgroute_count',Object.keys(grouped).length);
-  const container=ge('fgrouteList'); if(!container) return;
-  if(!items.length){container.innerHTML='<div class="empty-state">Belum ada data FG Routing.</div>';return;}
-  container.innerHTML=items.map(function(it){
-    const rows=it.routes.map(function(r,i){
-      return '<tr><td>'+(i+1)+'</td><td>'+escHtml(r.cat||'')+'</td><td>'+escHtml(r.cat_desc||'')+'</td>'
-        +'<td>'+escHtml(r.type||'')+'</td>'
-        +'<td style="text-align:right">'+parseFloat(r.process_time||0).toFixed(4)+'</td>'
-        +'<td style="text-align:right">'+parseFloat(r.setup_time||0).toFixed(4)+'</td>'
-        +'<td style="text-align:right">'+parseFloat(r.factor||1).toFixed(4)+'</td></tr>';
-    }).join('');
-    return '<div class="card" style="margin-bottom:.5rem">'
-      +'<div class="card-header" style="display:flex;justify-content:space-between;align-items:center">'
-      +'<div><strong>'+escHtml(it.item_code)+'</strong>'
-      +'<span style="color:#888;margin-left:.5rem">'+escHtml(it.item_name)+'</span>'
-      +'<span style="font-size:.7rem;background:rgba(34,211,238,.12);padding:.1rem .35rem;border-radius:3px;margin-left:.5rem">'+it.routes.length+' routes</span>'
-      +'</div>'
-      +'<div style="display:flex;gap:.25rem">'
-      +'<button onclick="openFGRouteForm(\''+escHtml(it.item_code)+'\')" class="btn btn-secondary btn-xs">Edit</button>'
-      +'<button onclick="deleteFGRoute(\''+escHtml(it.item_code)+'\')" class="btn btn-danger btn-xs">Hapus</button>'
-      +'</div></div>'
-      +'<div style="overflow-x:auto"><table class="tbl" style="font-size:.78rem;min-width:500px">'
-      +'<thead><tr><th>#</th><th>CAT</th><th>Deskripsi</th><th>Type</th>'
-      +'<th>Process Time</th><th>Setup Time</th><th>Factor</th></tr></thead>'
-      +'<tbody>'+rows+'</tbody></table></div></div>';
-  }).join('');
-}
+// FG Routing dihapus — routing DL-FOH kini dikelola di Master FG (Route) / kapasitas
+let fgrLines=[];
+let fgrEditCode=null;
+function openFGRouteForm(){}
+function closeFGRouteForm(){}
+function addFGRouteLine(){}
+function renderFGRLines(){}
+function syncFGRLine(){}
+function removeFGRLine(){}
+function saveFGRoute(){}
+function deleteFGRoute(){}
+function filterFGRoute(){}
+function renderFGRouteList(){}
 </script>
 <script>
 // ══════════════════════════════════════════════════════
