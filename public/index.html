@@ -3005,6 +3005,35 @@ function renderBomGroups(){
     g.dlfohLines.forEach((_,dIdx)=>wireDlfohHiddenInputs(gIdx,dIdx));
     recalcGroupDlfoh(gIdx);
   });
+
+  // Auto-fill price dari item_prices jika price=0 dan item_code ada (misal BOM lama belum terisi)
+  bomGroups.forEach((g,gIdx)=>{
+    g.lines.forEach((l,lIdx)=>{
+      if(l.item_code && (parseFloat(l.price)||0)===0){
+        const row=document.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
+        // 1. Coba dari purchase price record yang dipilih di BOM
+        autoFillPrice(gIdx,lIdx,row,l);
+        // 2. Fallback: dari master item_prices jika masih 0
+        if((parseFloat(l.price)||0)===0 && typeof DB_itemPrices!=='undefined'){
+          const ip=DB_itemPrices.find(p=>p.item_code===l.item_code);
+          if(ip && (parseFloat(ip.price)||0)>0){
+            l.currency=ip.currency||l.currency||'USD';
+            l.price=parseFloat(ip.price)||0;
+            l.hedging=parseFloat(ip.hedging)||0;
+            l.landed=parseFloat(ip.landed)||0;
+            if(row){
+              row.querySelector('.bom-line-currency').value=l.currency;
+              row.querySelector('.bom-line-price').value=l.price;
+              row.querySelector('.bom-line-hedging').value=l.hedging;
+              row.querySelector('.bom-line-landed').value=l.landed;
+            }
+          }
+        }
+        recalcBomLine(gIdx,lIdx);
+      }
+    });
+  });
+
   recalcAllGroups();
 }
 
