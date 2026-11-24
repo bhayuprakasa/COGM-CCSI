@@ -542,26 +542,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <input class="finput" type="number" id="ip_landed" placeholder="Wajib diisi" step="0.01">
         </div>
       </div>
-      <!-- Fiber spec row: loose tube qty × fiber/tube qty = total qty fiber (auto-calculated, disabled) -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;margin-bottom:.75rem">
-        <div class="form-group">
-          <div class="flabel">Loose Tube Qty</div>
-          <input class="finput" type="number" id="ip_loose_tube_qty" placeholder="0" step="1" min="0"
-            oninput="calcTotalFiberQty()">
-        </div>
-        <div class="form-group">
-          <div class="flabel">Fiber/Tube Qty</div>
-          <input class="finput" type="number" id="ip_fiber_per_tube_qty" placeholder="0" step="1" min="0"
-            oninput="calcTotalFiberQty()">
-        </div>
-        <div class="form-group">
-          <!-- Total Qty Fiber dihitung otomatis: Loose Tube Qty × Fiber/Tube Qty, tidak bisa diedit -->
-          <div class="flabel">Total Qty Fiber</div>
-          <input class="finput" type="number" id="ip_total_fiber_qty" placeholder="0" disabled
-            style="background:var(--bg2,#1a1a2e);color:var(--t3,#8888aa);cursor:not-allowed">
-        </div>
-        <div></div>
-      </div>
     </div>
   </div>
 
@@ -583,9 +563,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <th style="text-align:right">Hedging (%)</th>
             <th style="text-align:right">Landed (%)</th>
             <th>Effective Date</th>
-            <th style="text-align:right">Loose Tube</th>
-            <th style="text-align:right">Fiber/Tube</th>
-            <th style="text-align:right">Total Fiber</th>
             <th>Modified By</th>
             <th>Modified</th>
             <th>Aksi</th>
@@ -787,6 +764,24 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <div class="flabel req">Item Name</div>
           <!-- Input langsung, bukan auto-fill dari lookup -->
           <input class="finput" id="kap_item_name" placeholder="Masukkan nama item">
+        </div>
+        <div class="form-group">
+          <div class="flabel">Loose Tube Qty</div>
+          <!-- Jumlah tube dalam kabel fiber -->
+          <input class="finput" type="number" id="kap_loose_tube_qty" placeholder="0" step="1" min="0"
+            oninput="calcKapTotalFiber()">
+        </div>
+        <div class="form-group">
+          <div class="flabel">Fiber/Tube Qty</div>
+          <!-- Jumlah fiber per tube; Total Fiber = Loose Tube × Fiber/Tube -->
+          <input class="finput" type="number" id="kap_fiber_per_tube_qty" placeholder="0" step="1" min="0"
+            oninput="calcKapTotalFiber()">
+        </div>
+        <div class="form-group">
+          <div class="flabel">Total Fiber (auto)</div>
+          <!-- Dihitung otomatis: Loose Tube × Fiber/Tube, tidak bisa diedit -->
+          <input class="finput" type="number" id="kap_total_fiber_qty" placeholder="0" disabled
+            style="background:var(--bg2,#1a1a2e);color:var(--t3,#8888aa);cursor:not-allowed">
         </div>
       </div>
       <!-- Section Line: bisa tambah lebih dari 1 baris -->
@@ -2519,6 +2514,9 @@ function openKapForm(id){try{
   setVal('kap_edit_id','');
   setVal('kap_item_code','');
   setVal('kap_item_name','');
+  setVal('kap_loose_tube_qty','0');
+  setVal('kap_fiber_per_tube_qty','0');
+  setVal('kap_total_fiber_qty','0');
   // Reset baris line
   document.getElementById('kap_lines_container').innerHTML='';
   if(id){
@@ -2530,6 +2528,10 @@ function openKapForm(id){try{
       (function(){const _e=ge('kap_created');if(_e)_e.value=rec.created_dt||rec.created||'';})();
       (function(){const _e=ge('kap_item_code');if(_e)_e.value=rec.item_code;})();
       (function(){const _e=ge('kap_item_name');if(_e)_e.value=rec.item_name;})();
+      // Load fiber spec dari kolom tube/fiber DB
+      setVal('kap_loose_tube_qty',rec.tube||0);
+      setVal('kap_fiber_per_tube_qty',rec.fiber||0);
+      setVal('kap_total_fiber_qty',(parseInt(rec.tube)||0)*(parseInt(rec.fiber)||0));
       // Parse lines dari notes (disimpan sebagai JSON)
       var lines=[];
       try{lines=JSON.parse(rec.notes||'[]');}catch(e){lines=[];}
@@ -2563,10 +2565,13 @@ function saveKap(){try{
   if(!item_name){toast('Item Name wajib diisi.','error');return;}
   const lines=getKapLines();
   if(!lines.length){toast('Tambahkan minimal 1 baris Line.','error');return;}
+  // Ambil nilai fiber spec dari form
+  const looseTube=parseInt((ge('kap_loose_tube_qty')||{value:'0'}).value)||0;
+  const fiberPerTube=parseInt((ge('kap_fiber_per_tube_qty')||{value:'0'}).value)||0;
   // Simpan lines sebagai JSON di field notes
   const notes=JSON.stringify(lines);
-  // Kirim ke API (field lama dikirim kosong/0 agar kompatibel dengan schema DB)
-  const kpay={item_code,item_name,proses:'',machine_id:'',machine_name:'',tube:0,fiber:0,kecepatan:0,dl:0,efisiensi:0,notes};
+  // tube = Loose Tube Qty, fiber = Fiber/Tube Qty (sesuai kolom DB kapasitas)
+  const kpay={item_code,item_name,proses:'',machine_id:'',machine_name:'',tube:looseTube,fiber:fiberPerTube,kecepatan:0,dl:0,efisiensi:0,notes};
   if(typeof API!=='undefined'){
     if(editId){apiSave(API.kapasitas.update(editId,kpay),function(){toast('Kapasitas diupdate.','success');closeKapForm();loadAllData().then(function(){renderKap();updateCounts();});});return;}
     else{apiSave(API.kapasitas.create(Object.assign({kapid},kpay)),function(){toast('Kapasitas disimpan.','success');closeKapForm();loadAllData().then(function(){renderKap();updateCounts();});});return;}
@@ -2594,6 +2599,9 @@ function renderKap(){try{
   if(thead) thead.innerHTML='<tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll(\'kap\',this.checked)" title="Pilih Semua"></th>'+[
     col('kap','kapid')&&'<th>Kap. ID</th>',col('kap','created')&&'<th>Created</th>',
     col('kap','icode')&&'<th>Item Code</th>',col('kap','iname')&&'<th>Item Name</th>',
+    col('kap','ltube')&&'<th style="text-align:right">Loose Tube</th>',
+    col('kap','ftube')&&'<th style="text-align:right">Fiber/Tube</th>',
+    col('kap','tfiber')&&'<th style="text-align:right">Total Fiber</th>',
     col('kap','lines')&&'<th>Lines</th>',col('kap','action')&&'<th>Aksi</th>'
   ].filter(Boolean).join('')+'</tr>';
   const tbody=document.getElementById('kap_tbody');
@@ -2614,6 +2622,9 @@ function renderKap(){try{
     ${col('kap','created')?`<td class="muted mono" style="font-size:.7rem;white-space:nowrap">${k.created_dt||k.created||'—'}</td>`:''}
     ${col('kap','icode')?(_ge?`<td><input class="ge-input" id="ge_kap_code_${k.id}" value="${geEsc(k.item_code)}" style="width:110px" placeholder="Item code"></td>`:`<td class="mono">${k.item_code}</td>`):''}
     ${col('kap','iname')?(_ge?`<td><input class="ge-input" id="ge_kap_name_${k.id}" value="${geEsc(k.item_name)}" style="width:160px" placeholder="Item name"></td>`:`<td style="white-space:nowrap">${k.item_name}</td>`):''}
+    ${col('kap','ltube')?`<td style="text-align:right;font-family:var(--fm)">${k.tube||0}</td>`:''}
+    ${col('kap','ftube')?`<td style="text-align:right;font-family:var(--fm)">${k.fiber||0}</td>`:''}
+    ${col('kap','tfiber')?`<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">${(parseInt(k.tube)||0)*(parseInt(k.fiber)||0)}</td>`:''}
     ${col('kap','lines')?`<td style="font-size:.72rem">${linesSummary}</td>`:''}
     ${col('kap','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveKap('${k.id}')">💾 Simpan</button>${GE.kap!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('kap')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openKapForm('${k.id}')">✏</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`):''}
   </tr>`;}).join('');
@@ -5789,6 +5800,9 @@ const COL_DEFS = {
     {key:'created', label:'Created'},
     {key:'icode',   label:'Item Code'},
     {key:'iname',   label:'Item Name'},
+    {key:'ltube',   label:'Loose Tube'},
+    {key:'ftube',   label:'Fiber/Tube'},
+    {key:'tfiber',  label:'Total Fiber'},
     {key:'lines',   label:'Lines'},
     {key:'action',  label:'Aksi',         always:true},
   ],
@@ -6014,6 +6028,9 @@ function viewKapDetail(id){try{
       <div><span style="color:var(--t3);font-size:.7rem">Created</span><div style="font-size:.75rem;margin-top:.15rem">${rec.created_dt||rec.created||'—'}</div></div>
       <div><span style="color:var(--t3);font-size:.7rem">Item Code</span><div class="mono" style="color:var(--cyan);margin-top:.15rem">${rec.item_code||'—'}</div></div>
       <div><span style="color:var(--t3);font-size:.7rem">Item Name</span><div style="margin-top:.15rem">${rec.item_name||'—'}</div></div>
+      <div><span style="color:var(--t3);font-size:.7rem">Loose Tube Qty</span><div style="font-family:var(--fm);margin-top:.15rem">${rec.tube||0}</div></div>
+      <div><span style="color:var(--t3);font-size:.7rem">Fiber/Tube Qty</span><div style="font-family:var(--fm);margin-top:.15rem">${rec.fiber||0}</div></div>
+      <div><span style="color:var(--t3);font-size:.7rem">Total Fiber</span><div style="font-family:var(--fm);color:var(--cyan);margin-top:.15rem">${(parseInt(rec.tube)||0)*(parseInt(rec.fiber)||0)}</div></div>
     </div>
     <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.75rem">
       <div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem">Line</div>
@@ -7049,13 +7066,12 @@ function onIpCurrencyChange(currency){
   ipSetDefaultsByCurrency(currency);
 }
 
-// Hitung total_fiber_qty otomatis dari perkalian loose_tube_qty × fiber_per_tube_qty
-function calcTotalFiberQty(){
-  var loose=parseInt((ge('ip_loose_tube_qty')||{value:'0'}).value)||0;
-  var fpt=parseInt((ge('ip_fiber_per_tube_qty')||{value:'0'}).value)||0;
-  var total=loose*fpt;
-  var el=ge('ip_total_fiber_qty');
-  if(el) el.value=total||0;
+// Hitung total_fiber_qty otomatis di form Master FG (Route)
+function calcKapTotalFiber(){
+  var loose=parseInt((ge('kap_loose_tube_qty')||{value:'0'}).value)||0;
+  var fpt=parseInt((ge('kap_fiber_per_tube_qty')||{value:'0'}).value)||0;
+  var el=ge('kap_total_fiber_qty');
+  if(el) el.value=loose*fpt||0;
 }
 
 function openItemPriceForm(itemCode){
@@ -7073,10 +7089,6 @@ function openItemPriceForm(itemCode){
   setVal('ip_landed','');
   setVal('ip_note','');
   setVal('ip_effective_date',new Date().toISOString().slice(0,10));
-  // Reset fiber spec fields
-  setVal('ip_loose_tube_qty','0');
-  setVal('ip_fiber_per_tube_qty','0');
-  setVal('ip_total_fiber_qty','0');
 
   if(itemCode){
     setText('item_price_form_title','Edit Harga: '+itemCode);
@@ -7092,10 +7104,6 @@ function openItemPriceForm(itemCode){
       setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
       setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
       setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
-      // Load fiber spec dari data existing
-      setVal('ip_loose_tube_qty',existing.loose_tube_qty||0);
-      setVal('ip_fiber_per_tube_qty',existing.fiber_per_tube_qty||0);
-      setVal('ip_total_fiber_qty',existing.total_fiber_qty||0);
     }
   } else {
     setText('item_price_form_title','Set Harga Item');
@@ -7135,9 +7143,6 @@ function onIpItemCodeChange(code){
     setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
     setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
     setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
-    setVal('ip_loose_tube_qty',existing.loose_tube_qty||0);
-    setVal('ip_fiber_per_tube_qty',existing.fiber_per_tube_qty||0);
-    setVal('ip_total_fiber_qty',existing.total_fiber_qty||0);
     toast('Harga lama dimuat — ubah nilai dan simpan untuk update.','info');
   } else {
     var cur=(ge('ip_currency')||{value:'USD'}).value;
@@ -7166,13 +7171,9 @@ function saveItemPrice(){
   if(landed===null||isNaN(landed)){toast('Landed (%) wajib diisi.','error');return;}
   landed=parseFloat(landed)||0;
 
-  var looseTubeQty=parseInt((ge('ip_loose_tube_qty')||{value:'0'}).value)||0;
-  var fiberPerTubeQty=parseInt((ge('ip_fiber_per_tube_qty')||{value:'0'}).value)||0;
-
-  // Payload termasuk item_name, uom, dan fiber spec — tidak lagi JOIN ke items master
+  // Payload untuk item price (fiber spec dikelola di Master FG Route)
   var payload={item_code:itemCode,item_name:itemName,uom:uom,currency:currency,price:price,
-    hedging:hedging,landed:landed,effective_date:effective_date,note:note,
-    loose_tube_qty:looseTubeQty,fiber_per_tube_qty:fiberPerTubeQty};
+    hedging:hedging,landed:landed,effective_date:effective_date,note:note};
 
   if(typeof API!=='undefined'){
     var editCode=(ge('ip_edit_code')||{value:''}).value;
@@ -7302,7 +7303,7 @@ function renderItemPrices(){
   });
   if(countEl) countEl.textContent=DB_itemPrices.length;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:2rem">'
+    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:2rem">'
       +(DB_itemPrices.length?'Tidak ada item yang cocok pencarian.':'Belum ada raw material.')
       +'</td></tr>';
     return;
@@ -7362,26 +7363,6 @@ function renderItemPrices(){
       +'</td>'
       // Effective Date
       +'<td class="muted mono" style="font-size:.75rem">'+(p.effective_date||'—')+'</td>'
-      // Loose Tube — editable di GE; oninput auto-hitung total fiber
-      +'<td style="text-align:right">'
-      +(_ge
-        ? '<input class="ge-input" type="number" id="ge_ip_ltq_'+p.item_code+'" value="'+(p.loose_tube_qty||0)+'" min="0" step="1" style="width:70px;text-align:right"'
-          +' oninput="var t=document.getElementById(\'ge_ip_tfq_'+p.item_code+'\');if(t)t.value=(parseInt(this.value)||0)*(parseInt((document.getElementById(\'ge_ip_ftq_'+p.item_code+'\')||{}).value)||0)">'
-        : '<span style="font-family:var(--fm)">'+(p.loose_tube_qty||0)+'</span>')
-      +'</td>'
-      // Fiber/Tube — editable di GE; oninput auto-hitung total fiber
-      +'<td style="text-align:right">'
-      +(_ge
-        ? '<input class="ge-input" type="number" id="ge_ip_ftq_'+p.item_code+'" value="'+(p.fiber_per_tube_qty||0)+'" min="0" step="1" style="width:70px;text-align:right"'
-          +' oninput="var t=document.getElementById(\'ge_ip_tfq_'+p.item_code+'\');if(t)t.value=(parseInt(this.value)||0)*(parseInt((document.getElementById(\'ge_ip_ltq_'+p.item_code+'\')||{}).value)||0)">'
-        : '<span style="font-family:var(--fm)">'+(p.fiber_per_tube_qty||0)+'</span>')
-      +'</td>'
-      // Total Fiber — dihitung otomatis, readonly di GE
-      +'<td style="text-align:right">'
-      +(_ge
-        ? '<input class="ge-input" type="number" id="ge_ip_tfq_'+p.item_code+'" value="'+((p.loose_tube_qty||0)*(p.fiber_per_tube_qty||0))+'" style="width:70px;text-align:right;background:var(--bg2);color:var(--t3);cursor:not-allowed" disabled>'
-        : '<span style="font-family:var(--fm);color:var(--cyan)">'+(p.total_fiber_qty||0)+'</span>')
-      +'</td>'
       +'<td class="muted" style="font-size:.72rem">'+(p.modified_by||'—')+'</td>'
       +'<td class="muted mono" style="font-size:.72rem">'+(p.modified_dt||'—')+'</td>'
       // Aksi
@@ -7403,7 +7384,7 @@ function renderItemPrices(){
       // Update form hanya untuk price, currency, hedging, landed
       // Loose Tube & Fiber diedit via Edit Grid
       updateRow = '<tr style="background:rgba(34,211,238,.04);border-top:1px dashed rgba(34,211,238,.2)">'
-        +'<td colspan="14" style="padding:.7rem 1rem">'
+        +'<td colspan="11" style="padding:.7rem 1rem">'
         +'<div style="display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap">'
         // Currency
         +'<div style="display:flex;flex-direction:column;gap:.25rem">'
@@ -7433,7 +7414,6 @@ function renderItemPrices(){
         +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Effective Date</label>'
         +'<input class="ge-input" type="date" id="ipu_edate_'+p.item_code+'" value="'+(p.effective_date||'')+'" style="width:138px">'
         +'</div>'
-        // Loose Tube & Fiber diedit via Edit Grid, bukan di sini
         // Tombol
         +'<div style="display:flex;gap:.35rem;padding-bottom:.05rem">'
         +'<button class="btn btn-primary btn-xs" onclick="ipSaveUpdate(\''+p.item_code+'\')">💾 Simpan</button>'
@@ -7530,8 +7510,8 @@ function geCancel(page) {
 // geSaveItem dihapus — Master Item sudah tidak ada
 
 // ── Save Edit Grid: Item Prices ──
-// PUT /item-prices/:code → { item_name, uom, currency, price, hedging, landed, loose_tube_qty, fiber_per_tube_qty }
-// Edit Grid item price: update nama, UOM, price, currency, hedging, landed, loose tube, dan fiber per tube
+// PUT /item-prices/:code → { item_name, uom, currency, price, hedging, landed }
+// Edit Grid item price: update nama, UOM, price, currency, hedging, landed
 function geSaveItemPriceGE(code) {
   var nameEl  = document.getElementById('ge_ip_name_'+code);
   var uomEl   = document.getElementById('ge_ip_uom_'+code);
@@ -7539,8 +7519,6 @@ function geSaveItemPriceGE(code) {
   var priceEl = document.getElementById('ge_ip_price_'+code);
   var hedEl   = document.getElementById('ge_ip_hed_'+code);
   var landEl  = document.getElementById('ge_ip_land_'+code);
-  var ltqEl   = document.getElementById('ge_ip_ltq_'+code);
-  var ftqEl   = document.getElementById('ge_ip_ftq_'+code);
 
   if(!nameEl){ toast('Input tidak ditemukan','error'); return; }
   var name = nameEl.value.trim();
@@ -7552,13 +7530,10 @@ function geSaveItemPriceGE(code) {
   var finalPrice    = priceEl ? parseIdNum(priceEl.value) : (priceRec ? priceRec.price : 0);
   var finalHedging  = hedEl   ? parseIdNum(hedEl.value)   : (priceRec ? priceRec.hedging : 0);
   var finalLanded   = landEl  ? parseIdNum(landEl.value)  : (priceRec ? priceRec.landed : 0);
-  var finalLtq      = ltqEl   ? (parseInt(ltqEl.value)||0) : (priceRec ? priceRec.loose_tube_qty : 0);
-  var finalFtq      = ftqEl   ? (parseInt(ftqEl.value)||0) : (priceRec ? priceRec.fiber_per_tube_qty : 0);
 
   apiSave(API.itemPrice.update(code, {
     item_name: name, uom: finalUom,
-    currency: finalCurr, price: finalPrice, hedging: finalHedging, landed: finalLanded,
-    loose_tube_qty: finalLtq, fiber_per_tube_qty: finalFtq
+    currency: finalCurr, price: finalPrice, hedging: finalHedging, landed: finalLanded
   }), function(){
     if(GE.itemprice!=='__all__') GE.itemprice=null;
     // Sinkronkan cache lokal DB_itemPrices
@@ -7566,8 +7541,6 @@ function geSaveItemPriceGE(code) {
       priceRec.item_name=name; priceRec.item_uom=finalUom;
       priceRec.currency=finalCurr; priceRec.price=finalPrice;
       priceRec.hedging=finalHedging; priceRec.landed=finalLanded;
-      priceRec.loose_tube_qty=finalLtq; priceRec.fiber_per_tube_qty=finalFtq;
-      priceRec.total_fiber_qty=finalLtq*finalFtq;
     }
     renderItemPrices();
     toast('Item berhasil disimpan','success');
