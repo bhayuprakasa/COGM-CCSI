@@ -988,12 +988,14 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               <input class="finput" id="bom_project" placeholder="Nama project">
             </div>
             <div class="form-group">
-              <div class="flabel">Loose Tube Qty</div>
-              <input class="finput" type="number" id="bom_fiber_cnt" placeholder="0">
+              <div class="flabel">Loose Tube Qty <span style="font-size:.6rem;color:var(--cyan)">(dari Master BOM)</span></div>
+              <!-- Readonly: hanya diisi otomatis dari Master BOM, tidak boleh diedit manual -->
+              <input class="finput" type="number" id="bom_fiber_cnt" placeholder="0" readonly style="background:var(--s2);color:var(--t3);cursor:default">
             </div>
             <div class="form-group">
-              <div class="flabel">Fiber / Tube</div>
-              <input class="finput" type="number" id="bom_buffer_qty" placeholder="0">
+              <div class="flabel">Fiber / Tube <span style="font-size:.6rem;color:var(--cyan)">(dari Master BOM)</span></div>
+              <!-- Readonly: hanya diisi otomatis dari Master BOM, tidak boleh diedit manual -->
+              <input class="finput" type="number" id="bom_buffer_qty" placeholder="0" readonly style="background:var(--s2);color:var(--t3);cursor:default">
             </div>
             <div class="form-group">
               <div class="flabel req">Length Qty</div>
@@ -1940,12 +1942,7 @@ function selectSearchResult(code,name){
       if(codeEl) codeEl.value=code;
       const nameEl=document.getElementById('bom_product');
       if(nameEl) nameEl.value=name;
-      // Auto-fill Loose Tube Qty dan Fiber/Tube dari data item FG
-      const fgRec=DB_fgItems.find(p=>p.code===code);
-      if(fgRec){
-        const lt=ge('bom_fiber_cnt');   if(lt) lt.value=fgRec.loose_tube_qty||0;
-        const ft=ge('bom_buffer_qty');  if(ft) ft.value=fgRec.fiber_qty||0;
-      }
+      // Loose Tube Qty dan Fiber/Tube hanya diisi dari Master BOM, bukan dari FG item
       closeSearchModal(); return;
     }
     // Master BOM product search — code ke mbom_product_code (visible), name ke mbom_product (readonly auto-fill)
@@ -4460,13 +4457,9 @@ function onMasterBomSelect(mbomId){
   setVal('bom_product',rec.product||'');
   setVal('bom_customer',rec.customer||'');  // boleh diubah user
   setVal('bom_project',rec.project||'');   // boleh diubah user
+  // Loose Tube Qty dan Fiber/Tube selalu readonly, hanya diisi dari Master BOM
   setVal('bom_fiber_cnt',rec.fiber_cnt||'');
   setVal('bom_buffer_qty',rec.buffer_qty||'');
-  // Kunci Loose Tube Qty dan Fiber/Tube karena diambil dari master BOM
-  ['bom_fiber_cnt','bom_buffer_qty'].forEach(id=>{
-    const el=ge(id);
-    if(el){el.readOnly=true;el.style.background='var(--s2)';el.style.color='var(--t3)';}
-  });
   // bom_fiber_qty = Length Qty — diisi user, tidak diambil dari master BOM
 
   // Rebuild bomGroups from master BOM groups
