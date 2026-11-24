@@ -859,13 +859,13 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           </div>
           <div class="form-group">
             <div class="flabel">Loose Tube Qty</div>
-            <!-- Loose Tube count; triggers auto-calc of Total Fiber Qty -->
-            <input class="finput" type="number" id="mbom_fiber_cnt" placeholder="0" min="0" oninput="calcMBomTotalFiber()">
+            <!-- Auto-fill dari Master FG (kap) berdasarkan item_code — readonly -->
+            <input class="finput" type="number" id="mbom_fiber_cnt" placeholder="0" readonly style="background:var(--s2);color:var(--t2);cursor:default">
           </div>
           <div class="form-group">
             <div class="flabel">Fiber / Tube</div>
-            <!-- Fiber per tube; triggers auto-calc of Total Fiber Qty -->
-            <input class="finput" type="number" id="mbom_buffer_qty" placeholder="0" min="0" oninput="calcMBomTotalFiber()">
+            <!-- Auto-fill dari Master FG (kap) berdasarkan item_code — readonly -->
+            <input class="finput" type="number" id="mbom_buffer_qty" placeholder="0" readonly style="background:var(--s2);color:var(--t2);cursor:default">
           </div>
           <div class="form-group">
             <div class="flabel">Total Fiber Qty</div>
@@ -1941,11 +1941,12 @@ function selectSearchResult(code,name){
       // Loose Tube Qty dan Fiber/Tube hanya diisi dari Master BOM, bukan dari FG item
       closeSearchModal(); return;
     }
-    // Master BOM product search — code ke mbom_product_code (visible), name ke mbom_product (readonly auto-fill)
+    // Master BOM product search — code ke mbom_product_code, name ke mbom_product, lalu sync dari kap
     const codeEl=document.getElementById('mbom_product_code');
     if(codeEl) codeEl.value=code;
     const nameEl=document.getElementById('mbom_product');
     if(nameEl) nameEl.value=name;
+    fillMBomFiberFromKap(code);
     closeSearchModal(); return;
   }
   // Master BOM select for BOM header
@@ -4009,10 +4010,8 @@ function openMBomForm(id){try{
       setVal('mbom_id_disp',rec.bomid);
       setVal('mbom_product_code',rec.product_code||'');
       setVal('mbom_product',rec.product||'');
-      setVal('mbom_fiber_cnt',rec.fiber_cnt||'');
-      setVal('mbom_buffer_qty',rec.buffer_qty||'');
-      // Recalculate Total Fiber Qty from stored values (Loose Tube × Fiber/Tube)
-      calcMBomTotalFiber();
+      // Sync Loose Tube & Fiber/Tube dari Master FG (kap) agar selalu sesuai master
+      fillMBomFiberFromKap(rec.product_code||'');
       mbomGroups=JSON.parse(JSON.stringify(rec.groups||[]));
       mbomGroups.forEach(function(g){
         if(!g.dlfohLines) g.dlfohLines=[];
@@ -4074,13 +4073,27 @@ function calcMBomTotalFiber(){
 }
 // Auto-fill Product Name dari Item Code yang diketik manual (sama seperti kap_item_code di Master Route)
 function onMBomProductCodeInput(val){
-  // Lookup dari master FG (is_fg=1) — bukan dari item_prices
-  const item=DB_fgItems.find(p=>p.code===(val||'').trim().toUpperCase());
+  // Lookup nama produk dari master FG (is_fg=1)
+  const code=(val||'').trim().toUpperCase();
+  const item=DB_fgItems.find(p=>p.code===code);
   const nameEl=ge('mbom_product');
   if(nameEl) nameEl.value=item?(item.name||''):'';
   // Uppercase item code input
   const codeEl=ge('mbom_product_code');
-  if(codeEl) codeEl.value=(val||'').toUpperCase();
+  if(codeEl) codeEl.value=code;
+  // Sync Loose Tube Qty & Fiber/Tube dari Master FG (kap) berdasarkan item_code
+  fillMBomFiberFromKap(code);
+}
+
+// Isi mbom_fiber_cnt (Loose Tube) & mbom_buffer_qty (Fiber/Tube) dari data kap yang sesuai item_code
+function fillMBomFiberFromKap(code){
+  // Ambil record kap pertama yang cocok dengan item_code
+  const kap=DB.kap&&DB.kap.find(function(k){return k.item_code===(code||'').toUpperCase();});
+  const tube=kap?parseInt(kap.tube)||0:0;
+  const fiber=kap?parseInt(kap.fiber)||0:0;
+  setVal('mbom_fiber_cnt',tube||'');
+  setVal('mbom_buffer_qty',fiber||'');
+  calcMBomTotalFiber();
 }
 
 // ── Group management ──
