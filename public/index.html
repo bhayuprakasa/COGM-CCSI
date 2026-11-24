@@ -2967,6 +2967,7 @@ function renderBomGroups(){
           <span class="badge badge-violet">&#9881; ${g.machine_line}</span>
           ${g.machine_id?`<span class="badge badge-cyan" style="font-size:.6rem">🔧 ${g.machine_id}</span>`:''}
           ${g.kap_id?`<span class="badge badge-blue" style="font-size:.6rem;background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.2)">⚡ Kap: ${g.kap_id}</span>`:''}
+          ${g.fromMaster?`<span style="font-size:.6rem;color:var(--cyan);background:var(--cyan3);padding:.1rem .35rem;border-radius:3px;border:1px solid rgba(34,211,238,.2)">📋 dari Master BOM</span>`:''}
           <span style="font-size:.7rem;color:var(--t3)">${g.lines.length} item &middot; ${g.dlfohLines.length} DL-FOH</span>
         </div>
         <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
@@ -2974,7 +2975,7 @@ function renderBomGroups(){
           <span style="font-family:var(--fm);font-size:.8rem;color:var(--cyan)" id="grp_usd_${gIdx}">0.00</span>
           <span style="font-size:.7rem;color:var(--t3)">IDR:</span>
           <span style="font-family:var(--fm);font-size:.8rem;color:var(--amber)" id="grp_idr_${gIdx}">0</span>
-          <button class="btn btn-danger btn-xs" onclick="removeMachineLineGroup(${gIdx})">&#10005; Hapus</button>
+          ${g.fromMaster?'':(`<button class="btn btn-danger btn-xs" onclick="removeMachineLineGroup(${gIdx})">&#10005; Hapus</button>`)}
         </div>
       </div>
       <div style="padding:.85rem 1rem;background:var(--s1)">
@@ -2992,7 +2993,7 @@ function renderBomGroups(){
             </tbody>
           </table>
         </div>
-        <button class="btn btn-ghost btn-sm" style="margin-top:.4rem" onclick="addBomLine(${gIdx})">+ Tambah Item</button>
+        ${g.fromMaster?'':(`<button class="btn btn-ghost btn-sm" style="margin-top:.4rem" onclick="addBomLine(${gIdx})">+ Tambah Item</button>`)}
 
         <div style="margin-top:.85rem">
           <div style="font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.4rem">DL-FOH &amp; Kapasitas</div>
@@ -3035,7 +3036,7 @@ function renderBomGroups(){
             </table>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.4rem">
-            <button class="btn btn-ghost btn-sm" onclick="addDlfohLineToGroup(${gIdx})">+ Tambah Category</button>
+            ${g.fromMaster?'':(`<button class="btn btn-ghost btn-sm" onclick="addDlfohLineToGroup(${gIdx})">+ Tambah Category</button>`)}
             <div class="stat-pill"><span class="sp-label">Total DL-FOH IDR</span><span class="sp-val" id="grp_dlfoh_idr_${gIdx}">0</span></div>
           </div>
         </div>
@@ -3052,23 +3053,29 @@ function renderBomGroups(){
 }
 
 function renderBomLineRow(gIdx,lIdx,l){
+  // Field struktur (item_code, qty, scrap, factor) dikunci jika line dari Master BOM
+  const fm=!!l.fromMaster;
+  const rdStr=fm?'readonly style="background:var(--s2);color:var(--t3);cursor:default"':'';
   return `
     <tr data-g="${gIdx}" data-l="${lIdx}">
       <td>
         <div style="display:flex;gap:.2rem;align-items:center">
-          <input class="li-input bom-line-code" style="width:75px" value="${l.item_code||''}" placeholder="Code"
-            oninput="onBomLineItemCode(${gIdx},${lIdx},this.value)">
-          <button class="btn btn-ghost" style="padding:.15rem .25rem;font-size:.62rem"
-            onclick="setBomLineExtra(${gIdx},${lIdx});openSearchModal('item','__bc_${gIdx}_${lIdx}','__bn_${gIdx}_${lIdx}')">&#128269;</button>
+          <input class="li-input bom-line-code" style="width:75px${fm?';background:var(--s2);color:var(--t3)':''}" value="${l.item_code||''}" placeholder="Code"
+            ${fm?'readonly':''} ${fm?'':(`oninput="onBomLineItemCode(${gIdx},${lIdx},this.value)"`)}>
+          ${fm?'':(`<button class="btn btn-ghost" style="padding:.15rem .25rem;font-size:.62rem"
+            onclick="setBomLineExtra(${gIdx},${lIdx});openSearchModal('item','__bc_${gIdx}_${lIdx}','__bn_${gIdx}_${lIdx}')">&#128269;</button>`)}
           <input type="hidden" id="__bc_${gIdx}_${lIdx}" value="${l.item_code||''}">
           <input type="hidden" id="__bn_${gIdx}_${lIdx}" value="${l.item_name||''}">
         </div>
       </td>
       <td><input class="li-input bom-line-name" style="width:105px" value="${l.item_name||''}" readonly></td>
       <td><input class="li-input bom-line-uom" style="width:44px" value="${l.uom||''}" readonly></td>
-      <td><input class="li-input bom-line-qty" type="number" style="width:54px" value="${l.qty||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
-      <td><input class="li-input bom-line-scrap" type="number" style="width:48px" value="${l.scrap||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
-      <td><input class="li-input bom-line-factor" type="number" style="width:48px" value="${l.factor||1}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-qty" type="number" style="width:54px" value="${l.qty||0}" ${fm?rdStr:(`oninput="recalcBomLine(${gIdx},${lIdx})"`)}>
+        ${fm?'':''}</td>
+      <td><input class="li-input bom-line-scrap" type="number" style="width:48px" value="${l.scrap||0}" ${fm?rdStr:(`oninput="recalcBomLine(${gIdx},${lIdx})"`)}>
+        </td>
+      <td><input class="li-input bom-line-factor" type="number" style="width:48px" value="${l.factor||1}" ${fm?rdStr:(`oninput="recalcBomLine(${gIdx},${lIdx})"`)}>
+        </td>
       <td><input class="li-input bom-line-totalqty" style="width:70px" value="${fmt_num(l.total_qty||0,4)}" readonly></td>
       <td>
         <div style="display:flex;gap:.2rem;align-items:center">
@@ -3084,39 +3091,44 @@ function renderBomLineRow(gIdx,lIdx,l){
       <td><input class="li-input bom-line-hedging" type="number" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,2)}" readonly></td>
       <td><input class="li-input bom-line-totalidr" style="width:98px" value="${fmt_num(l.total_idr||0,0)}" readonly></td>
-      <td><button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button></td>
+      <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
     </tr>`;
 }
 
 function renderDlfohRow(gIdx,dIdx,dl){
   const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
   const t=rec?rec.type:'—';
-  // badge color: DL=green, FFOH=violet, VFOH=amber
   const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
+  // Field cat/index/setup/factor dikunci jika line dari Master BOM
+  const fm=!!dl.fromMaster;
+  const rdStyle='readonly style="background:var(--s2);color:var(--t3);cursor:default"';
   return `
     <tr data-dg="${gIdx}" data-di="${dIdx}">
       <td>
         <div style="display:flex;gap:.2rem;align-items:center">
-          <input class="li-input dlfoh-line-cat" style="width:70px" value="${dl.cat||''}" placeholder="Cat ID"
-            oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].cat=this.value;recalcGroupDlfoh(${gIdx})">
-          <button class="btn btn-ghost" style="padding:.15rem .25rem;font-size:.62rem"
-            onclick="sm_extra_g=${gIdx};sm_extra=${dIdx};openSearchModal('dlfoh','__dcat_${gIdx}_${dIdx}',null)">&#128269;</button>
+          <input class="li-input dlfoh-line-cat" style="width:70px${fm?';background:var(--s2);color:var(--t3)':''}" value="${dl.cat||''}" placeholder="Cat ID"
+            ${fm?'readonly':(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].cat=this.value;recalcGroupDlfoh(${gIdx})"`)}>
+          ${fm?'':(`<button class="btn btn-ghost" style="padding:.15rem .25rem;font-size:.62rem"
+            onclick="sm_extra_g=${gIdx};sm_extra=${dIdx};openSearchModal('dlfoh','__dcat_${gIdx}_${dIdx}',null)">&#128269;</button>`)}
           <input type="hidden" id="__dcat_${gIdx}_${dIdx}" value="${dl.cat||''}">
         </div>
       </td>
       <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
       <td><input class="li-input dlfoh-idx-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,5)}"
         data-manual="${dl.index_manual?'1':'0'}"
-        oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"></td>
+        ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
+        </td>
       <td><input class="li-input dlfoh-line-setup dlfoh-setup-cell" type="number" style="width:54px" value="${dl.setup||0}"
         data-manual="${dl.setup_manual?'1':'0'}"
-        oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"></td>
+        ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
+        </td>
       <td><input class="li-input dlfoh-line-factor dlfoh-factor-cell" type="number" style="width:54px" value="${dl.factor||1}"
         data-manual="${dl.factor_manual?'1':'0'}"
-        oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].factor=parseFloat(this.value)||1;bomGroups[${gIdx}].dlfohLines[${dIdx}].factor_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"></td>
+        ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].factor=parseFloat(this.value)||1;bomGroups[${gIdx}].dlfohLines[${dIdx}].factor_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
+        </td>
       <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,4)}" readonly></td>
       <td><input class="li-input dlfoh-cost-cell" style="width:92px" value="${fmt_num(dl.total_cost||0,0)}" readonly></td>
-      <td><button class="btn btn-danger btn-xs" onclick="bomGroups[${gIdx}].dlfohLines.splice(${dIdx},1);renderBomGroups()">&#10005;</button></td>
+      <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="bomGroups[${gIdx}].dlfohLines.splice(${dIdx},1);renderBomGroups()">&#10005;</button>`)}</td>
     </tr>`;
 }
 
@@ -3181,11 +3193,13 @@ function recalcBomLine(gIdx,lIdx){
 function recalcGroupDlfohFromRow(gIdx,dIdx){
   // Recalc only total_hour and total_cost for a single row (index or setup was manually edited)
   const g=bomGroups[gIdx];
-  const fohLot=g.fohLot||1;
   const dl=g.dlfohLines[dIdx];
   const th=dl.index*(dl.factor||1)+(dl.setup||0);
   dl.total_hour=th;
-  dl.total_cost=(DB.dlfoh.find(d=>d.catid===dl.cat)?parseFloat(DB.dlfoh.find(d=>d.catid===dl.cat).rate)||0:0)*th*fohLot;
+  const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
+  // DL type pakai dlLot, FOH type pakai fohLot
+  const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
+  dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*lotMult;
   const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
   if(row){
     const hourCell=row.querySelector('.dlfoh-hour-cell');
@@ -3205,7 +3219,6 @@ function recalcGroupDlfoh(gIdx){
   const prosesTime=g.prosesTime||0;
   const setupTime=g.setupTime||0;
   const lengthQty=g.lengthQty||1; // production length/qty - multiplied with prosesTime
-  const fohLot=g.fohLot||1;
   g.dlfohLines.forEach((dl,dIdx)=>{
     // Only overwrite index if user has NOT manually edited it
     if(!dl.index_manual) dl.index=prosesTime;
@@ -3217,7 +3230,9 @@ function recalcGroupDlfoh(gIdx){
     const th=idx*(dl.factor||1)+(dl.setup||0);
     dl.total_hour=th;
     const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
-    dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*fohLot;
+    // DL type pakai dlLot, FOH type (FFOH/VFOH) pakai fohLot
+    const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
+    dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*lotMult;
     const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
     if(row){
       const idxCell=row.querySelector('.dlfoh-idx-cell');
@@ -4422,14 +4437,19 @@ function renderMBom(){try{
 function onMasterBomSelect(mbomId){
   const rec=DB.masterbom.find(b=>b.id===mbomId||b.bomid===mbomId);
   if(!rec){toast('Master BOM tidak ditemukan.','error');return;}
-  // Fill header fields (except Price ID)
+  // Fill header fields (except Price ID, Customer, Project, Length Qty)
   setVal('bom_master_bom_id',rec.bomid);
   setVal('bom_product',rec.product||'');
-  setVal('bom_customer',rec.customer||'');
-  setVal('bom_project',rec.project||'');
+  setVal('bom_customer',rec.customer||'');  // boleh diubah user
+  setVal('bom_project',rec.project||'');   // boleh diubah user
   setVal('bom_fiber_cnt',rec.fiber_cnt||'');
   setVal('bom_buffer_qty',rec.buffer_qty||'');
-  setVal('bom_fiber_qty',rec.fiber_qty||'');
+  // Kunci Loose Tube Qty dan Fiber/Tube karena diambil dari master BOM
+  ['bom_fiber_cnt','bom_buffer_qty'].forEach(id=>{
+    const el=ge(id);
+    if(el){el.readOnly=true;el.style.background='var(--s2)';el.style.color='var(--t3)';}
+  });
+  // bom_fiber_qty = Length Qty (km per job) — tidak diambil dari master, diisi user per BOM
 
   // Rebuild bomGroups from master BOM groups
   bomGroups=[];
@@ -4449,12 +4469,13 @@ function onMasterBomSelect(mbomId){
       machine_id:g.machine_id||'', kap_id:g.kap_id||'',
       prosesTime:gProsesTime, setupTime:gSetupTime, lengthQty:gLengthQty,
       dlLot:dlLot, fohLot:fohLot,
+      fromMaster:true, // grup ini dari Master BOM — lines tidak boleh ditambah/hapus/ubah struktur
       lines:(g.lines||[]).map(l=>({
         item_code:l.item_code, item_name:l.item_name,
-        // UOM: use stored value, fallback ke DB_itemPrices
         uom:l.uom||(DB_itemPrices.find(p=>p.item_code===l.item_code)||{}).uom||'',
         qty:parseFloat(l.qty)||0, scrap:parseFloat(l.scrap)||0, factor:parseFloat(l.factor)||1, total_qty:parseFloat(l.total_qty)||0,
         currency:'USD', price:0, landed:0, hedging:0, total_amt:0, total_idr:0,
+        fromMaster:true, // field qty/scrap/factor/item_code dari master, tidak boleh diedit
       })),
       dlfohLines:(g.dlfohLines||[]).map(dl=>({
         cat:dl.cat||'', type:dl.type||'',
@@ -4462,6 +4483,7 @@ function onMasterBomSelect(mbomId){
         index_manual:!!(dl.index_manual),
         setup:parseFloat(dl.setup)||0, factor:parseFloat(dl.factor)||1,
         total_hour:parseFloat(dl.total_hour)||0, total_cost:0,
+        fromMaster:true, // cat/index/setup/factor dari master, tidak boleh diedit
       })),
     });
   });
