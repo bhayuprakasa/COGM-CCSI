@@ -4291,7 +4291,7 @@ function recalcMBomGroupDlfoh(gIdx){
     if(row){
       const ic=row.querySelector('.mbom-dl-idx'); if(ic&&!dl.index_manual) ic.value=parseFloat(dl.index||0).toFixed(3);
       const sc=row.querySelector('.mbom-dl-setup'); if(sc&&!dl.setup_manual) sc.value=parseFloat(dl.setup||0).toFixed(3);
-      const fc=row.querySelector('.mbom-dl-factor'); if(fc&&!dl.factor_manual) fc.value=fmt_num(dl.factor,3);
+      const fc=row.querySelector('.mbom-dl-factor'); if(fc&&!dl.factor_manual) fc.value=parseFloat(dl.factor||1).toFixed(3);
       const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,3);
       const cls=displayType==='Machine'?'badge-violet':displayType==='Labour'?'badge-green':displayType==='Overhead'?'badge-amber':'';
       const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
