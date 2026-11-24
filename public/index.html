@@ -2674,6 +2674,8 @@ function autoLoadBomRouting(itemCode) {
 
     // Update prosesTime & setupTime tiap bomGroup dari kapasitas.notes per machine_line
     // lalu regenerasi dlfohLines sesuai master DL-FOH (DL, FFOH, VFOH)
+    const _fQty=parseFloat((ge('bom_fiber_qty')||{value:'0'}).value)||1;
+    const _ltQty=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
     bomGroups.forEach(g => {
       const kapLine = lines.find(l => l.machine_line === g.machine_line);
       if (!kapLine) return;
@@ -2681,17 +2683,19 @@ function autoLoadBomRouting(itemCode) {
       const setupTime   = parseFloat(kapLine.setup)    || 0;
       g.prosesTime = processTime;
       g.setupTime  = setupTime;
+      // Set lengthQty sesuai machine line:
+      // Colouring=total fiber, Buffering=jumlah tube, lainnya=1
+      g.lengthQty = getLengthQtyForMachineLine(g.machine_line, _fQty, _ltQty);
       // Regenerasi dlfohLines: semua kategori DL-FOH untuk machine_line ini
-      // (index = prosesTime, setup = setupTime, factor = lengthQty)
       g.dlfohLines = DB.dlfoh
         .filter(d => d.machine_line === g.machine_line)
         .map(d => ({
           cat: d.catid, type: d.type || '',
           index: processTime, index_manual: false,
           setup: setupTime,   setup_manual: false,
-          factor: g.lengthQty || 1, factor_manual: false,
-          total_hour: processTime * (g.lengthQty || 1) + setupTime,
-          total_cost: (processTime * (g.lengthQty || 1) + setupTime) * (parseFloat(d.rate) || 0),
+          factor: g.lengthQty, factor_manual: false,
+          total_hour: processTime * g.lengthQty + setupTime,
+          total_cost: (processTime * g.lengthQty + setupTime) * (parseFloat(d.rate) || 0),
           fromMaster: !!g.fromMaster,
         }));
     });
@@ -2798,7 +2802,13 @@ function openBomForm(id){try{
         g.prosesTime=spd>0&&kap>0?parseFloat((1000/(spd*60*kap)).toFixed(5)):0;
       }
       if(g.setupTime===undefined) g.setupTime=0;
-      if(g.lengthQty===undefined) g.lengthQty=1;
+      // Re-derive lengthQty dari machine_line dan nilai header form (fiber_qty, fiber_cnt)
+      // agar data lama yang tersimpan salah bisa dikoreksi saat edit
+      {
+        const _fq=parseFloat((ge('bom_fiber_qty')||{value:'0'}).value)||1;
+        const _ltq=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
+        g.lengthQty=getLengthQtyForMachineLine(g.machine_line,_fq,_ltq);
+      }
       // Normalize dlfohLines: idx→index from MySQL
       g.dlfohLines=g.dlfohLines.map(function(dl){
         return {
@@ -2917,10 +2927,15 @@ function addMachineLineGroup(){
     prosesTime=parseFloat(matchLine.duration)||0;
     setupTime=parseFloat(matchLine.setup)||0;
   }
+  // Hitung lengthQty sesuai machine line dari nilai header form saat ini
+  const _fqAdd=parseFloat((ge('bom_fiber_qty')||{value:'0'}).value)||1;
+  const _ltqAdd=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
   bomGroups.push({
     machine_line:ml, machine_id, kap_id:kapId,
     lines:[], dlfohLines:[],
-    prosesTime, setupTime, lengthQty:1, dlLot:1, fohLot:1
+    prosesTime, setupTime,
+    lengthQty:getLengthQtyForMachineLine(ml,_fqAdd,_ltqAdd),
+    dlLot:1, fohLot:1
   });
   sel.value='';
   setVal('new_machine_id_sel','');
@@ -3252,12 +3267,26 @@ function recalcGroupDlfoh(gIdx){
   recalcAllGroups();
 }
 
+// Tentukan factor lengthQty per machine line:
+// Colouring → total fiber qty (proses per serat)
+// Buffering → jumlah loose tube / bom_fiber_cnt (proses per tube)
+// Lainnya   → 1 (satu kali proses assembly kabel)
+function getLengthQtyForMachineLine(ml, totalFiberQty, looseTubeQty){
+  if(ml==='Colouring') return totalFiberQty;
+  if(ml==='Buffering') return looseTubeQty||1;
+  return 1;
+}
+
 // Dipanggil saat user mengubah Length Qty di header BOM
-// Update g.lengthQty semua group dan recalc DL-FOH agar total_hour ikut berubah
+// Set lengthQty tiap group sesuai machine line-nya, lalu recalc DL-FOH
 function onBomLengthQtyChange(val){
-  const lq=parseFloat(val)||0;
-  if(lq<=0) return;
-  bomGroups.forEach((g,gIdx)=>{g.lengthQty=lq;recalcGroupDlfoh(gIdx);});
+  const fiberQty=parseFloat(val)||0;
+  if(fiberQty<=0) return;
+  const looseTubeQty=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
+  bomGroups.forEach((g,gIdx)=>{
+    g.lengthQty=getLengthQtyForMachineLine(g.machine_line,fiberQty,looseTubeQty);
+    recalcGroupDlfoh(gIdx);
+  });
 }
 
 function recalcAllGroups(){
