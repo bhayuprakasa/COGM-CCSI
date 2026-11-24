@@ -27,7 +27,7 @@ app.get('/api/health', async (req, res) => {
       try { const [r] = await query(`SELECT COUNT(*) as c FROM ${t}`); counts[t] = r.c; }
       catch(e) { counts[t] = '?'; }
     }
-    res.json({ status:'ok', time:new Date().toLocaleString('id-ID'), version:'2.0.1', build: '2026-11-18', db:counts });
+    res.json({ status:'ok', time:new Date().toLocaleString('id-ID'), version:'2.0.1', build: '2026-11-24', db:counts });
   } catch(e) {
     res.json({ status:'error', error:e.message });
   }
@@ -40,6 +40,15 @@ app.use('/api', require('./routes/item_prices'));
 
 // ── Static frontend ──
 const PUBLIC = path.join(__dirname, 'public');
+// index.html selalu fresh — jangan cache di browser supaya fix langsung berlaku
+app.get('/', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.sendFile(path.join(PUBLIC, 'index.html'));
+});
+app.get('/index.html', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.sendFile(path.join(PUBLIC, 'index.html'));
+});
 app.use(express.static(PUBLIC));
 
 // ── Fallback ──
