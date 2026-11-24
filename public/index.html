@@ -4153,6 +4153,9 @@ function onMBomItemCode(gIdx,lIdx,code,forcedName){
   if(!row) return;
   const l=mbomGroups[gIdx].lines[lIdx];
   l.item_code=code;
+  // Update visible code input (diperlukan saat dipilih dari search modal, bukan diketik langsung)
+  const codeInput=row.querySelector('.mbom-line-code');
+  if(codeInput && codeInput.value!==code) codeInput.value=code;
   if(item){
     row.querySelector('.mbom-line-name').value=item.item_name||'';
     row.querySelector('.mbom-line-uom').value=item.uom||item.item_uom||'';
