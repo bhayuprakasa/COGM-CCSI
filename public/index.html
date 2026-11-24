@@ -2754,9 +2754,13 @@ function openBomForm(id){try{
     setVal('bom_product',rec.product);
     setVal('bom_customer',rec.customer||'');
     setVal('bom_project',rec.project||'');
-    setVal('bom_fiber_cnt',rec.fiber_cnt||'');
-    setVal('bom_buffer_qty',rec.buffer_qty||'');
+    // Loose Tube Qty & Fiber/Tube: ambil dari Master BOM jika ada, fallback ke nilai tersimpan di record
+    var mbomRec=rec.master_bom_id?DB.masterbom.find(b=>b.id===rec.master_bom_id||b.bomid===rec.master_bom_id):null;
+    setVal('bom_fiber_cnt',mbomRec?mbomRec.fiber_cnt||'':rec.fiber_cnt||'');
+    setVal('bom_buffer_qty',mbomRec?mbomRec.buffer_qty||'':rec.buffer_qty||'');
     setVal('bom_fiber_qty',rec.fiber_qty||'');
+    // Restore Master BOM ID di field header
+    setVal('bom_master_bom_id',rec.master_bom_id||'');
     // Restore product code (hidden) agar pencarian FG konsisten saat edit
     setVal('bom_product_code',rec.product_code||'');
     // bomUsdRate tetap dipakai untuk usd_rate_snapshot di payload (reference rate)
