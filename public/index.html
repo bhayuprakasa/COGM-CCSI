@@ -4039,6 +4039,16 @@ function openMBomForm(id){try{
       // Sync Loose Tube & Fiber/Tube dari Master FG (kap) agar selalu sesuai master
       fillMBomFiberFromKap(rec.product_code||'');
       mbomGroups=JSON.parse(JSON.stringify(rec.groups||[]));
+
+      // Ambil kapasitas.notes sekali di luar loop untuk lookup per machine_line
+      var _kapRec2=null,_kapLines2=[];
+      if(rec.product_code){
+        // Case-insensitive lookup agar cocok dengan autoLoadBomRouting di BOM
+        var _code2=(rec.product_code||'').toUpperCase();
+        _kapRec2=DB.kap&&DB.kap.find(function(k){return (k.item_code||'').toUpperCase()===_code2;});
+        if(_kapRec2){try{_kapLines2=JSON.parse(_kapRec2.notes||'[]');}catch(e){_kapLines2=[];}}
+      }
+
       mbomGroups.forEach(function(g){
         if(!g.dlfohLines) g.dlfohLines=[];
         var kapPct=parseFloat(g.kapPct||g.kap_pct)||100;
@@ -4046,21 +4056,36 @@ function openMBomForm(id){try{
         var fohLot=parseFloat(g.fohLot||g.foh_lot)||1;
         g.kapPct=kapPct; g.dlLot=dlLot; g.fohLot=fohLot;
         if(!g.speed) g.speed=1;
-        // Proses/setup time: use stored or derive from legacy speed/kapPct
-        if(g.prosesTime===undefined){var spd2=g.speed||1,kap2=(g.kapPct||100)/100;g.prosesTime=spd2>0&&kap2>0?parseFloat((1000/(spd2*60*kap2)).toFixed(5)):0;}
-        if(g.setupTime===undefined) g.setupTime=parseFloat(g.setup_time)||0;
         if(g.lengthQty===undefined) g.lengthQty=1;
         if(!g.lines) g.lines=[];
+
+        // Prioritas: kapasitas.notes → speed/kapPct legacy
+        var _kl2=_kapLines2.find(function(l){return l.machine_line===g.machine_line;});
+        if(_kl2){
+          // Ambil langsung dari kapasitas.notes agar sama dengan COGS Calculated
+          g.prosesTime=parseFloat(_kl2.duration)||0;
+          g.setupTime=parseFloat(_kl2.setup)||0;
+        } else {
+          // Fallback: hitung dari speed/kapPct jika tidak ada di kapasitas
+          if(g.prosesTime===undefined){var spd2=g.speed||1,kap2=(g.kapPct||100)/100;g.prosesTime=spd2>0&&kap2>0?parseFloat((1000/(spd2*60*kap2)).toFixed(5)):0;}
+          if(g.setupTime===undefined) g.setupTime=parseFloat(g.setup_time)||0;
+        }
+
+        // Map dlfohLines: index dari kapasitas (kecuali sudah manual override)
         g.dlfohLines=g.dlfohLines.map(function(d){
+          var idxManual=!!(d.index_manual);
+          var storedIdx=parseFloat(d.index!==undefined?d.index:(d.idx||0));
+          // Jika tidak manual, pakai prosesTime dari kapasitas
+          var finalIdx=idxManual?storedIdx:g.prosesTime;
+          var finalSetup=parseFloat(d.setup)||0;
+          if(!d.setup_manual && _kl2) finalSetup=g.setupTime;
           return {cat:d.cat||'',type:d.type||'',
-            index:parseFloat(d.index!==undefined?d.index:(d.idx||0)),
-            index_manual:!!(d.index_manual),
-            setup:parseFloat(d.setup)||0,factor:parseFloat(d.factor)||1,
-            total_hour:parseFloat(d.total_hour)||0};
+            index:finalIdx,
+            index_manual:idxManual,
+            setup:finalSetup,factor:parseFloat(d.factor)||1,
+            total_hour:finalIdx*(parseFloat(d.factor)||1)+finalSetup};
         });
       });
-      // Sync prosesTime & setupTime dari kapasitas.notes SETELAH mbomGroups terisi
-      syncMBomGroupsFromKap(rec.product_code||'');
       renderMBomGroups();
       const sec=ge('mbom_form_section');if(sec)sec.scrollIntoView({behavior:'smooth'});
     };
@@ -4131,7 +4156,9 @@ function fillMBomFiberFromKap(code){
 // Harus dipanggil SETELAH mbomGroups terisi (bukan sebelumnya)
 function syncMBomGroupsFromKap(code){
   if(!code||!mbomGroups.length) return;
-  const kap=DB.kap&&DB.kap.find(function(k){return k.item_code===(code||'').toUpperCase();});
+  // Case-insensitive lookup agar konsisten dengan autoLoadBomRouting di BOM
+  var _uc=(code||'').toUpperCase();
+  const kap=DB.kap&&DB.kap.find(function(k){return (k.item_code||'').toUpperCase()===_uc;});
   if(!kap) return;
   let kapLines=[];
   try{kapLines=JSON.parse(kap.notes||'[]');}catch(e){return;}
