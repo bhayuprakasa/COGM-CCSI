@@ -858,22 +858,14 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <input class="finput" id="mbom_product" readonly placeholder="Auto dari item code" style="background:var(--s2);color:var(--t2);cursor:default">
           </div>
           <div class="form-group">
-            <div class="flabel">Customer Name</div>
-            <input class="finput" id="mbom_customer" placeholder="Nama customer">
-          </div>
-          <div class="form-group">
-            <div class="flabel">Project Name</div>
-            <input class="finput" id="mbom_project" placeholder="Nama project">
-          </div>
-          <div class="form-group">
             <div class="flabel">Loose Tube Qty</div>
-            <!-- Loose Tube count; triggers auto-calc of Total Fiber Qty -->
-            <input class="finput" type="number" id="mbom_fiber_cnt" placeholder="0" min="0" oninput="calcMBomTotalFiber()">
+            <!-- Auto-fill dari Master FG (kap) berdasarkan item_code — readonly -->
+            <input class="finput" type="number" id="mbom_fiber_cnt" placeholder="0" readonly style="background:var(--s2);color:var(--t2);cursor:default">
           </div>
           <div class="form-group">
             <div class="flabel">Fiber / Tube</div>
-            <!-- Fiber per tube; triggers auto-calc of Total Fiber Qty -->
-            <input class="finput" type="number" id="mbom_buffer_qty" placeholder="0" min="0" oninput="calcMBomTotalFiber()">
+            <!-- Auto-fill dari Master FG (kap) berdasarkan item_code — readonly -->
+            <input class="finput" type="number" id="mbom_buffer_qty" placeholder="0" readonly style="background:var(--s2);color:var(--t2);cursor:default">
           </div>
           <div class="form-group">
             <div class="flabel">Total Fiber Qty</div>
@@ -1024,7 +1016,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 
         <!-- TOTALS ROW -->
         <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:.75rem;flex-wrap:wrap">
-          <div class="stat-pill"><span class="sp-label">Total Amount (IDR)</span><span class="sp-val" id="bom_total_idr_mat">0</span></div>
+          <div class="stat-pill"><span class="sp-label">Total Material (IDR)</span><span class="sp-val" id="bom_total_idr_mat">0</span></div>
         </div>
 
         <!-- DL-FOH PER HOUR SECTION -->
@@ -1038,6 +1030,10 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             </tr></thead>
             <tbody id="dlfoh_perhour_body"></tbody>
           </table>
+        </div>
+        <!-- Total Amount = Material + DL-FOH, diupdate oleh recalcDlfohPerHour() -->
+        <div style="display:flex;justify-content:flex-end;margin-top:.5rem">
+          <div class="stat-pill"><span class="sp-label">Total Amount (IDR)</span><span class="sp-val" id="bom_grand_total_idr">0</span></div>
         </div>
 
         <!-- ROUTING DL-FOH (otomatis dari Master FG Route) -->
@@ -1838,7 +1834,7 @@ function toast(msg,type='info'){
   setTimeout(()=>t.remove(),3000);
 }
 function fmt_idr(n){return 'Rp '+Number(n||0).toLocaleString('id-ID');}
-function fmt_num(n,d=2){return Number(n||0).toFixed(d);}
+function fmt_num(n,d=3){return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});}
 
 // ═══════════════════════════════════════════
 // NAVIGATION
@@ -1950,7 +1946,7 @@ function selectSearchResult(code,name){
       }
       closeSearchModal(); return;
     }
-    // Master BOM product search — code ke mbom_product_code (visible), name ke mbom_product (readonly auto-fill)
+    // Master BOM product search — code ke mbom_product_code, name ke mbom_product, lalu sync dari kap
     const codeEl=document.getElementById('mbom_product_code');
     if(codeEl) codeEl.value=code;
     const nameEl=document.getElementById('mbom_product');
@@ -2167,8 +2163,8 @@ function updateExrateConv(i){
   var curId=(ge('exrate_currency_id')||{value:''}).value.toUpperCase().trim();
   var rateVal=exrateLines[i]?parseFloat(exrateLines[i].rate)||0:0;
   var conv='—';
-  if(curId==='USD'){conv='1.000000';}
-  else if(usdR>0&&rateVal>0){conv=(rateVal/usdR).toFixed(6);}
+  if(curId==='USD'){conv=(1).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3});}
+  else if(usdR>0&&rateVal>0){conv=(rateVal/usdR).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3});}
   var el=document.getElementById('er_conv_'+i);
   if(el) el.textContent=conv;
 }
@@ -2281,8 +2277,8 @@ function renderExrateLines(){
     // Rate Conversion = this currency rate / USD rate
     // If this IS USD, conversion = 1
     let conv='—';
-    if(curId==='USD'){conv='1.000000';}
-    else if(usdRateForConv>0 && rateVal>0){conv=(rateVal/usdRateForConv).toFixed(6);}
+    if(curId==='USD'){conv=(1).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3});}
+    else if(usdRateForConv>0 && rateVal>0){conv=(rateVal/usdRateForConv).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3});}
     return `
     <tr>
       <td><input class="li-input" type="date" value="${l.tanggal}" onchange="exrateLines[${i}].tanggal=this.value"></td>
@@ -2645,6 +2641,7 @@ function renderKap(){try{
 let bomGroups=[];
 let bomRouting=[];  // routing snapshot dari kapasitas (Master FG Route) saat BOM dibuat/diedit
 let bomUsdRate=0; // USD rate snapshot at time of BOM creation — fixed for this BOM session
+let _bomMaterialTotalIDR=0; // cache total material IDR, diupdate recalcAllGroups, dibaca recalcDlfohPerHour
 
 // ── helpers ──
 function getLatestRate(currencyId){
@@ -2681,6 +2678,8 @@ function autoLoadBomRouting(itemCode) {
 
     // Update prosesTime & setupTime tiap bomGroup dari kapasitas.notes per machine_line
     // lalu regenerasi dlfohLines sesuai master DL-FOH (DL, FFOH, VFOH)
+    const _fQty=parseFloat((ge('bom_fiber_qty')||{value:'0'}).value)||1;
+    const _ltQty=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
     bomGroups.forEach(g => {
       const kapLine = lines.find(l => l.machine_line === g.machine_line);
       if (!kapLine) return;
@@ -2688,17 +2687,19 @@ function autoLoadBomRouting(itemCode) {
       const setupTime   = parseFloat(kapLine.setup)    || 0;
       g.prosesTime = processTime;
       g.setupTime  = setupTime;
+      // Set lengthQty sesuai machine line:
+      // Colouring=total fiber, Buffering=jumlah tube, lainnya=1
+      g.lengthQty = getLengthQtyForMachineLine(g.machine_line, _fQty, _ltQty);
       // Regenerasi dlfohLines: semua kategori DL-FOH untuk machine_line ini
-      // (index = prosesTime, setup = setupTime, factor = lengthQty)
       g.dlfohLines = DB.dlfoh
         .filter(d => d.machine_line === g.machine_line)
         .map(d => ({
           cat: d.catid, type: d.type || '',
           index: processTime, index_manual: false,
           setup: setupTime,   setup_manual: false,
-          factor: g.lengthQty || 1, factor_manual: false,
-          total_hour: processTime * (g.lengthQty || 1) + setupTime,
-          total_cost: (processTime * (g.lengthQty || 1) + setupTime) * (parseFloat(d.rate) || 0),
+          factor: g.lengthQty, factor_manual: false,
+          total_hour: processTime * g.lengthQty + setupTime,
+          total_cost: (processTime * g.lengthQty + setupTime) * (parseFloat(d.rate) || 0),
           fromMaster: !!g.fromMaster,
         }));
     });
@@ -2735,11 +2736,11 @@ function renderBomRouting() {
     const totalH = parseFloat(r.process_time||0)*parseFloat(r.factor||1)+parseFloat(r.setup_time||0);
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${i+1}</td><td>${r.cat||''}</td><td>${r.cat_desc||''}</td><td>${r.type||''}</td>`
-      +`<td class="text-right">${parseFloat(r.process_time||0).toFixed(4)}</td>`
-      +`<td class="text-right">${parseFloat(r.setup_time||0).toFixed(4)}</td>`
-      +`<td class="text-right">${parseFloat(r.factor||1).toFixed(4)}</td>`
-      +`<td class="text-right">${totalH.toFixed(6)}</td>`
-      +`<td class="text-right">${parseFloat(r.total_cost||0).toLocaleString('id-ID',{minimumFractionDigits:2})}</td>`;
+      +`<td class="text-right">${parseFloat(r.process_time||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>`
+      +`<td class="text-right">${parseFloat(r.setup_time||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>`
+      +`<td class="text-right">${parseFloat(r.factor||1).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>`
+      +`<td class="text-right">${totalH.toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>`
+      +`<td class="text-right">${parseFloat(r.total_cost||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -2809,7 +2810,13 @@ function openBomForm(id){try{
         g.prosesTime=spd>0&&kap>0?parseFloat((1000/(spd*60*kap)).toFixed(5)):0;
       }
       if(g.setupTime===undefined) g.setupTime=0;
-      if(g.lengthQty===undefined) g.lengthQty=1;
+      // Re-derive lengthQty dari machine_line dan nilai header form (fiber_qty, fiber_cnt)
+      // agar data lama yang tersimpan salah bisa dikoreksi saat edit
+      {
+        const _fq=parseFloat((ge('bom_fiber_qty')||{value:'0'}).value)||1;
+        const _ltq=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
+        g.lengthQty=getLengthQtyForMachineLine(g.machine_line,_fq,_ltq);
+      }
       // Normalize dlfohLines: idx→index from MySQL
       g.dlfohLines=g.dlfohLines.map(function(dl){
         return {
@@ -2846,6 +2853,26 @@ function openBomForm(id){try{
         };
       });
     });
+
+    // Restore prosesTime & setupTime dari kapasitas.notes agar PROCESS & SET UP tampil benar
+    // bom_groups tidak menyimpan kolom ini, jadi harus di-lookup dari DB.kap saat edit
+    if(rec.item_code){
+      const _kapRec=DB.kap.find(k=>k.item_code===rec.item_code);
+      if(_kapRec){
+        let _kapLines=[];
+        try{_kapLines=JSON.parse(_kapRec.notes||'[]');}catch(e){_kapLines=[];}
+        bomGroups.forEach(g=>{
+          const _kl=_kapLines.find(l=>l.machine_line===g.machine_line);
+          if(_kl){
+            // Gunakan kapasitas.duration sebagai processTime (lebih akurat dari speed/kapPct)
+            const _pt=parseFloat(_kl.duration)||0;
+            const _st=parseFloat(_kl.setup)||0;
+            if(_pt>0) g.prosesTime=_pt;
+            if(_st>0) g.setupTime=_st;
+          }
+        });
+      }
+    }
   } else {
     setText('bom_form_title','COGS Calculated Baru');
     const newBomId='BOM-'+(++bomSeq).toString().padStart(4,'0');
@@ -2928,10 +2955,15 @@ function addMachineLineGroup(){
     prosesTime=parseFloat(matchLine.duration)||0;
     setupTime=parseFloat(matchLine.setup)||0;
   }
+  // Hitung lengthQty sesuai machine line dari nilai header form saat ini
+  const _fqAdd=parseFloat((ge('bom_fiber_qty')||{value:'0'}).value)||1;
+  const _ltqAdd=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
   bomGroups.push({
     machine_line:ml, machine_id, kap_id:kapId,
     lines:[], dlfohLines:[],
-    prosesTime, setupTime, lengthQty:1, dlLot:1, fohLot:1
+    prosesTime, setupTime,
+    lengthQty:getLengthQtyForMachineLine(ml,_fqAdd,_ltqAdd),
+    dlLot:1, fohLot:1
   });
   sel.value='';
   setVal('new_machine_id_sel','');
@@ -3075,7 +3107,7 @@ function renderBomLineRow(gIdx,lIdx,l){
       </td>
       <td><input class="li-input bom-line-name" style="width:105px" value="${l.item_name||''}" readonly></td>
       <td><input class="li-input bom-line-uom" style="width:44px" value="${l.uom||''}" readonly></td>
-      <td><input class="li-input bom-line-totalqty" style="width:70px" value="${fmt_num(l.total_qty||0,4)}" readonly></td>
+      <td><input class="li-input bom-line-totalqty" style="width:70px" value="${fmt_num(l.total_qty||0,3)}" readonly></td>
       <td>
         <div style="display:flex;gap:.2rem;align-items:center">
           <input class="li-input bom-line-currency" style="width:48px" value="${l.currency||'USD'}"
@@ -3090,7 +3122,7 @@ function renderBomLineRow(gIdx,lIdx,l){
       <td><input class="li-input bom-line-hedging" type="number" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <!-- Rate USD/IDR per line: dipakai untuk konversi total_amt (USD) → total_idr -->
       <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${l.usd_rate||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
-      <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,2)}" readonly></td>
+      <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,3)}" readonly></td>
       <td><input class="li-input bom-line-totalidr" style="width:98px" value="${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
     </tr>`;
@@ -3115,7 +3147,7 @@ function renderDlfohRow(gIdx,dIdx,dl){
         </div>
       </td>
       <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
-      <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,5)}"
+      <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,3)}"
         data-manual="${dl.index_manual?'1':'0'}"
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
         </td>
@@ -3123,7 +3155,7 @@ function renderDlfohRow(gIdx,dIdx,dl){
         data-manual="${dl.setup_manual?'1':'0'}"
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
         </td>
-      <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,4)}" readonly></td>
+      <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,3)}" readonly></td>
       <!-- Rate & Total Cost: format locale ID agar tampil titik-koma ribuan -->
       <td><input class="li-input dlfoh-rate-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
       <td><input class="li-input dlfoh-cost-cell" style="width:92px" value="${Number(dl.total_cost||0).toLocaleString('id-ID')}" readonly></td>
@@ -3187,8 +3219,8 @@ function recalcBomLine(gIdx,lIdx){try{
   const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv;
   // totalIdr = totalAmt (USD) × rate USD/IDR per line
   const totalIdr=totalAmt*lineUsdRate;
-  if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,4);
-  if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,2);
+  if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,3);
+  if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,3);
   if(row.querySelector('.bom-line-totalidr')) row.querySelector('.bom-line-totalidr').value=Number(totalIdr.toFixed(0)).toLocaleString('id-ID');
   Object.assign(l,{price,landed,hedging,currency,usd_rate:lineUsdRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
   recalcAllGroups();
@@ -3209,7 +3241,7 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
     const hourCell=row.querySelector('.dlfoh-hour-cell');
     const rateCell=row.querySelector('.dlfoh-rate-cell');
     const costCell=row.querySelector('.dlfoh-cost-cell');
-    if(hourCell) hourCell.value=fmt_num(th,4);
+    if(hourCell) hourCell.value=fmt_num(th,3);
     if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
     if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
   }
@@ -3246,9 +3278,9 @@ function recalcGroupDlfoh(gIdx){
       const hourCell=row.querySelector('.dlfoh-hour-cell');
       const rateCell=row.querySelector('.dlfoh-rate-cell');
       const costCell=row.querySelector('.dlfoh-cost-cell');
-      if(idxCell&&!dl.index_manual) idxCell.value=fmt_num(idx,5);
-      if(setupCell&&!dl.setup_manual) setupCell.value=fmt_num(dl.setup,5);
-      if(hourCell) hourCell.value=fmt_num(th,4);
+      if(idxCell&&!dl.index_manual) idxCell.value=fmt_num(idx,3);
+      if(setupCell&&!dl.setup_manual) setupCell.value=fmt_num(dl.setup,3);
+      if(hourCell) hourCell.value=fmt_num(th,3);
       if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
       if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
       const t=rec?rec.type:'—';
@@ -3263,12 +3295,26 @@ function recalcGroupDlfoh(gIdx){
   recalcAllGroups();
 }
 
+// Tentukan factor lengthQty per machine line:
+// Colouring → total fiber qty (proses per serat)
+// Buffering → jumlah loose tube / bom_fiber_cnt (proses per tube)
+// Lainnya   → 1 (satu kali proses assembly kabel)
+function getLengthQtyForMachineLine(ml, totalFiberQty, looseTubeQty){
+  if(ml==='Colouring') return totalFiberQty;
+  if(ml==='Buffering') return looseTubeQty||1;
+  return 1;
+}
+
 // Dipanggil saat user mengubah Length Qty di header BOM
-// Update g.lengthQty semua group dan recalc DL-FOH agar total_hour ikut berubah
+// Set lengthQty tiap group sesuai machine line-nya, lalu recalc DL-FOH
 function onBomLengthQtyChange(val){
-  const lq=parseFloat(val)||0;
-  if(lq<=0) return;
-  bomGroups.forEach((g,gIdx)=>{g.lengthQty=lq;recalcGroupDlfoh(gIdx);});
+  const fiberQty=parseFloat(val)||0;
+  if(fiberQty<=0) return;
+  const looseTubeQty=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
+  bomGroups.forEach((g,gIdx)=>{
+    g.lengthQty=getLengthQtyForMachineLine(g.machine_line,fiberQty,looseTubeQty);
+    recalcGroupDlfoh(gIdx);
+  });
 }
 
 function recalcAllGroups(){
@@ -3279,13 +3325,14 @@ function recalcAllGroups(){
     grandUSD+=subUSD; grandIDR+=subIDR;
     const eu=document.getElementById('grp_usd_'+gIdx);
     const ei=document.getElementById('grp_idr_'+gIdx);
-    if(eu) eu.textContent=fmt_num(subUSD,2);
+    if(eu) eu.textContent=fmt_num(subUSD,3);
     if(ei) ei.textContent=Number(subIDR.toFixed(0)).toLocaleString('id-ID');
   });
   const tu=document.getElementById('bom_total_usd');
   const ti=document.getElementById('bom_total_idr_mat');
-  if(tu) tu.textContent=fmt_num(grandUSD,2);
+  if(tu) tu.textContent=fmt_num(grandUSD,3);
   if(ti) ti.textContent=Number(grandIDR.toFixed(0)).toLocaleString('id-ID');
+  _bomMaterialTotalIDR=grandIDR; // simpan untuk dipakai recalcDlfohPerHour
   recalcSummaries();
 }
 
@@ -3398,15 +3445,27 @@ function recalcDlfohPerHour(){try{
   ];
   const tbody=document.getElementById('dlfoh_perhour_body');
   if(!tbody) return;
+  // Hitung total DL-FOH IDR dari semua tipe
+  const totalDlfohIDR=totals.DL+totals.FFOH+totals.VFOH;
+  const totalDlfohUSD=usdRate>0?totalDlfohIDR/usdRate:0;
   tbody.innerHTML=rows.map(r=>{
     const idr=totals[r.key]||0;
     const usd=usdRate>0?idr/usdRate:0;
     return '<tr>'
       +'<td>'+r.label+'</td>'
       +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem">'+Number(idr.toFixed(0)).toLocaleString('id-ID')+'</td>'
-      +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(usd,4)+'</td>'
+      +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(usd,3)+'</td>'
       +'</tr>';
-  }).join('');
+  }).join('')
+  // Total row di bawah DL-FOH Per Hour
+  +'<tr style="border-top:1px solid var(--b2);font-weight:600">'
+  +'<td>Total DL-FOH</td>'
+  +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--amber)">'+Number(totalDlfohIDR.toFixed(0)).toLocaleString('id-ID')+'</td>'
+  +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(totalDlfohUSD,3)+'</td>'
+  +'</tr>';
+  // Update grand total pill = Material + DL-FOH
+  const gtEl=document.getElementById('bom_grand_total_idr');
+  if(gtEl) gtEl.textContent=Number((_bomMaterialTotalIDR+totalDlfohIDR).toFixed(0)).toLocaleString('id-ID');
 }catch(e){console.warn("recalcDlfohPerHour:",e);}}
 
 function recalcSummaryMaterial(){try{
@@ -3434,7 +3493,7 @@ function recalcSummaryMaterial(){try{
   const varUSD=usdRate>0?varTotalIDR/usdRate:0;
   const totalCogsUSD=totalFiberUSD+totalMatWoFiberUSD+dlUSD+fixedUSD+varUSD;
   const totalCogsIDR=totalCogsUSD*usdRate;
-  const pct=(v)=>totalCogsUSD>0?((v/totalCogsUSD)*100).toFixed(1)+'%':'—';
+  const pct=(v)=>totalCogsUSD>0?((v/totalCogsUSD)*100).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})+'%':'—';
   const rows=[
     {label:'Total Fiber',                usd:totalFiberUSD},
     {label:'Total Material tanpa Fiber', usd:totalMatWoFiberUSD},
@@ -3446,14 +3505,14 @@ function recalcSummaryMaterial(){try{
     '<tr>'
     +'<td>'+r.label+'</td>'
     +'<td style="text-align:center"><span class="badge badge-green">USD</span></td>'
-    +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(r.usd,2)+'</td>'
+    +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(r.usd,3)+'</td>'
     +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--t2)">'+pct(r.usd)+'</td>'
     +'</tr>'
   ).join('')
   +'<tr style="border-top:1px solid var(--b2)">'
   +'<td style="font-weight:600">Total COGS per Ckm</td>'
   +'<td style="text-align:center"><span class="badge badge-green">USD</span></td>'
-  +'<td style="text-align:right;font-family:var(--fm);font-size:.82rem;font-weight:600;color:var(--cyan)">'+fmt_num(totalCogsUSD,2)+'</td>'
+  +'<td style="text-align:right;font-family:var(--fm);font-size:.82rem;font-weight:600;color:var(--cyan)">'+fmt_num(totalCogsUSD,3)+'</td>'
   +'<td></td></tr>'
   +'<tr>'
   +'<td style="font-weight:600">Total COGS IDR per Ckm</td>'
@@ -3969,7 +4028,7 @@ let mbomSeq=0;
 function openMBomForm(id){try{
   mbomGroups=[];
   setVal('mbom_edit_id','');
-  ['mbom_product','mbom_product_code','mbom_customer','mbom_project'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['mbom_product','mbom_product_code'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['mbom_fiber_cnt','mbom_buffer_qty','mbom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   setVal('mbom_new_ml_sel','');
 
@@ -3986,12 +4045,8 @@ function openMBomForm(id){try{
       setVal('mbom_id_disp',rec.bomid);
       setVal('mbom_product_code',rec.product_code||'');
       setVal('mbom_product',rec.product||'');
-      setVal('mbom_customer',rec.customer||'');
-      setVal('mbom_project',rec.project||'');
-      setVal('mbom_fiber_cnt',rec.fiber_cnt||'');
-      setVal('mbom_buffer_qty',rec.buffer_qty||'');
-      // Recalculate Total Fiber Qty from stored values (Loose Tube × Fiber/Tube)
-      calcMBomTotalFiber();
+      // Sync Loose Tube & Fiber/Tube dari Master FG (kap) agar selalu sesuai master
+      fillMBomFiberFromKap(rec.product_code||'');
       mbomGroups=JSON.parse(JSON.stringify(rec.groups||[]));
       mbomGroups.forEach(function(g){
         if(!g.dlfohLines) g.dlfohLines=[];
@@ -4013,6 +4068,8 @@ function openMBomForm(id){try{
             total_hour:parseFloat(d.total_hour)||0};
         });
       });
+      // Sync prosesTime & setupTime dari kapasitas.notes SETELAH mbomGroups terisi
+      syncMBomGroupsFromKap(rec.product_code||'');
       renderMBomGroups();
       const sec=ge('mbom_form_section');if(sec)sec.scrollIntoView({behavior:'smooth'});
     };
@@ -4053,8 +4110,9 @@ function calcMBomTotalFiber(){
 }
 // Auto-fill Product Name dari Item Code yang diketik manual (sama seperti kap_item_code di Master Route)
 function onMBomProductCodeInput(val){
-  // Lookup dari master FG (is_fg=1) — bukan dari item_prices
-  const item=DB_fgItems.find(p=>p.code===(val||'').trim().toUpperCase());
+  // Lookup nama produk dari master FG (is_fg=1)
+  const code=(val||'').trim().toUpperCase();
+  const item=DB_fgItems.find(p=>p.code===code);
   const nameEl=ge('mbom_product');
   if(nameEl) nameEl.value=item?(item.name||''):'';
   // Uppercase item code input
@@ -4078,8 +4136,21 @@ function addMBomGroup(){
   const ml=sel?sel.value:'';
   if(!ml){toast('Pilih Machine Line terlebih dahulu.','error');return;}
   if(mbomGroups.find(g=>g.machine_line===ml)){toast('Machine Line "'+ml+'" sudah ditambahkan.','error');return;}
-  // machine_id dan kap_id dihapus dari Master BOM
-  mbomGroups.push({machine_line:ml,machine_id:'',kap_id:'',lines:[],dlfohLines:[],prosesTime:0,setupTime:0,lengthQty:1,dlLot:1,fohLot:1});
+
+  // Auto-fill prosesTime & setupTime dari kapasitas.notes sesuai machine_line
+  var prosesTime=0,setupTime=0;
+  const curCode=(ge('mbom_product_code')||{value:''}).value.trim().toUpperCase();
+  if(curCode){
+    const kap=DB.kap&&DB.kap.find(function(k){return k.item_code===curCode;});
+    if(kap){
+      let kapLines=[];
+      try{kapLines=JSON.parse(kap.notes||'[]');}catch(e){kapLines=[];}
+      const kl=kapLines.find(function(l){return l.machine_line===ml;});
+      if(kl){prosesTime=parseFloat(kl.duration)||0;setupTime=parseFloat(kl.setup)||0;}
+    }
+  }
+
+  mbomGroups.push({machine_line:ml,machine_id:'',kap_id:'',lines:[],dlfohLines:[],prosesTime:prosesTime,setupTime:setupTime,lengthQty:1,dlLot:1,fohLot:1});
   if(sel) sel.value='';
   renderMBomGroups();
 }
@@ -4145,7 +4216,7 @@ function renderMBomLineRow(gIdx,lIdx,l){
     +'<td><input class="li-input mbom-line-qty" type="number" style="width:58px" value="'+(l.qty||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
     +'<td><input class="li-input mbom-line-scrap" type="number" style="width:50px" value="'+(l.scrap||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
     +'<td><input class="li-input mbom-line-factor" type="number" style="width:50px" value="'+(l.factor||1)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
-    +'<td><input class="li-input mbom-line-totalqty" style="width:75px" value="'+fmt_num(l.total_qty||0,4)+'" readonly></td>'
+    +'<td><input class="li-input mbom-line-totalqty" style="width:75px" value="'+fmt_num(l.total_qty||0,3)+'" readonly></td>'
     +'<td><button class="btn btn-danger btn-xs" onclick="deleteMBomLine('+gIdx+','+lIdx+')">&#10005;</button></td>'
     +'</tr>';
 }
@@ -4172,6 +4243,9 @@ function onMBomItemCode(gIdx,lIdx,code,forcedName){
   if(!row) return;
   const l=mbomGroups[gIdx].lines[lIdx];
   l.item_code=code;
+  // Update visible code input (diperlukan saat dipilih dari search modal, bukan diketik langsung)
+  const codeInput=row.querySelector('.mbom-line-code');
+  if(codeInput && codeInput.value!==code) codeInput.value=code;
   if(item){
     row.querySelector('.mbom-line-name').value=item.item_name||'';
     row.querySelector('.mbom-line-uom').value=item.uom||item.item_uom||'';
@@ -4188,7 +4262,7 @@ function recalcMBomLine(gIdx,lIdx){
   const scrap=parseFloat(row.querySelector('.mbom-line-scrap').value)||0;
   const factor=parseFloat(row.querySelector('.mbom-line-factor').value)||1;
   const totalQty=qty*factor*(1+scrap/100);
-  row.querySelector('.mbom-line-totalqty').value=fmt_num(totalQty,4);
+  row.querySelector('.mbom-line-totalqty').value=fmt_num(totalQty,3);
   Object.assign(mbomGroups[gIdx].lines[lIdx],{qty,scrap,factor,total_qty:totalQty});
 }
 
@@ -4205,11 +4279,11 @@ function renderMBomDlfohRow(gIdx,dIdx,dl){
     +'<button class="btn btn-ghost" style="padding:.15rem .25rem;font-size:.62rem" onclick="sm_extra={g:\'mbom_dlfoh\',gi:'+gIdx+',l:'+dIdx+'};openSearchModal(\'dlfoh\',\'__mdc_'+gIdx+'_'+dIdx+'\',null)">&#128269;</button>'
     +'<input type="hidden" id="__mdc_'+gIdx+'_'+dIdx+'" value="'+(dl.cat||'')+'"></div></td>'
     +'<td><span class="badge '+cls+'" style="font-size:.6rem" id="mbom_dtype_'+gIdx+'_'+dIdx+'">'+t+'</span></td>'
-    +'<td><input class="li-input mbom-dl-idx" type="number" style="width:72px" value="'+fmt_num(dl.index||0,5)+'" '
+    +'<td><input class="li-input mbom-dl-idx" type="number" style="width:72px" value="'+fmt_num(dl.index||0,3)+'" '
     +'oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index_manual=true;recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
     +'<td><input class="li-input mbom-dl-setup" type="number" style="width:56px" value="'+(dl.setup||0)+'" data-manual="'+(dl.setup_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
     +'<td><input class="li-input mbom-dl-factor" type="number" style="width:56px" value="'+(dl.factor||1)+'" data-manual="'+(dl.factor_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor=parseFloat(this.value)||1;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
-    +'<td><input class="li-input mbom-dl-hour" style="width:70px" value="'+fmt_num(dl.total_hour||0,4)+'" readonly></td>'
+    +'<td><input class="li-input mbom-dl-hour" style="width:70px" value="'+fmt_num(dl.total_hour||0,3)+'" readonly></td>'
     +'<td><button class="btn btn-danger btn-xs" onclick="deleteMBomDlfohLine('+gIdx+','+dIdx+')">&#10005;</button></td>'
     +'</tr>';
 }
@@ -4251,10 +4325,10 @@ function recalcMBomGroupDlfoh(gIdx){
     const displayType=dl.type||'—';
     const row=document.querySelector('tr[data-mdg="'+gIdx+'"][data-mdi="'+dIdx+'"]');
     if(row){
-      const ic=row.querySelector('.mbom-dl-idx'); if(ic&&!dl.index_manual) ic.value=fmt_num(dl.index,5);
-      const sc=row.querySelector('.mbom-dl-setup'); if(sc&&!dl.setup_manual) sc.value=fmt_num(dl.setup,5);
-      const fc=row.querySelector('.mbom-dl-factor'); if(fc&&!dl.factor_manual) fc.value=fmt_num(dl.factor,4);
-      const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,4);
+      const ic=row.querySelector('.mbom-dl-idx'); if(ic&&!dl.index_manual) ic.value=fmt_num(dl.index,3);
+      const sc=row.querySelector('.mbom-dl-setup'); if(sc&&!dl.setup_manual) sc.value=fmt_num(dl.setup,3);
+      const fc=row.querySelector('.mbom-dl-factor'); if(fc&&!dl.factor_manual) fc.value=fmt_num(dl.factor,3);
+      const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,3);
       const cls=displayType==='Machine'?'badge-violet':displayType==='Labour'?'badge-green':displayType==='Overhead'?'badge-amber':'';
       const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
       if(tb){tb.className='badge '+cls;tb.style.fontSize='.6rem';tb.textContent=displayType;}
@@ -4272,7 +4346,7 @@ function recalcMBomDlfohRow(gIdx,dIdx){
   const displayType=dl.type||'—';
   const row=document.querySelector('tr[data-mdg="'+gIdx+'"][data-mdi="'+dIdx+'"]');
   if(row){
-    const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,4);
+    const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,3);
     const cls=displayType==='Machine'?'badge-violet':displayType==='Labour'?'badge-green':displayType==='Overhead'?'badge-amber':'';
     const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
     if(tb){tb.className='badge '+cls;tb.style.fontSize='.6rem';tb.textContent=displayType;}
@@ -4286,7 +4360,7 @@ function saveMBom(){try{
   if(!product_code){toast('Item Code wajib diisi.','error');return;}
   if(!mbomGroups.length){toast('Tambahkan minimal 1 Machine Line.','error');return;}
   // Kirim product_code dan product (nama) ke API
-  const payload={product_code,product,customer:(ge('mbom_customer')||{value:''}).value,project:(ge('mbom_project')||{value:''}).value,fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,fiber_qty:(ge('mbom_fiber_qty')||{value:''}).value,groups:JSON.parse(JSON.stringify(mbomGroups))};
+  const payload={product_code,product,fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,fiber_qty:(ge('mbom_fiber_qty')||{value:''}).value,groups:JSON.parse(JSON.stringify(mbomGroups))};
   if(typeof API!=='undefined'){
     if(editId){apiSave(API.masterbom.update(editId,payload),function(){toast('Master BOM diupdate.','success');closeMBomForm();loadAllData().then(function(){renderMBom();updateCounts();});});}
     else{apiSave(API.masterbom.create(payload),function(){toast('Master BOM disimpan.','success');closeMBomForm();loadAllData().then(function(){renderMBom();updateCounts();});});}
@@ -4298,8 +4372,6 @@ function saveMBom(){try{
   const data={
     id:editId||('MBOMDOC-'+bomid), bomid, product,
     machine_lines,
-    customer:(ge('mbom_customer')||{value:''}).value,
-    project:(ge('mbom_project')||{value:''}).value,
     fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,
     buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,
     fiber_qty:(ge('mbom_fiber_qty')||{value:''}).value,
@@ -4343,11 +4415,17 @@ function viewMBomDetail(id){try{
     if(!b){toast('Data tidak ditemukan.','error');modal.style.display='none';return;}
     if(title) title.textContent='Detail Master BOM — '+b.bomid;
 
+    // Sync Loose Tube & Fiber/Tube dari kap (Master FG) agar sesuai master, bukan nilai lama
+    var kapRec=DB.kap&&DB.kap.find(function(k){return k.item_code===(b.product_code||'').toUpperCase();});
+    var looseTube=kapRec?parseInt(kapRec.tube)||0:(parseInt(b.fiber_cnt)||0);
+    var fiberPerTube=kapRec?parseInt(kapRec.fiber)||0:(parseInt(b.buffer_qty)||0);
+    var totalFiber=looseTube*fiberPerTube||b.fiber_qty||'—';
+
     var hdr='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem 1.5rem;margin-bottom:1rem">';
-    var fields=[['BOM ID',b.bomid],['Product',b.product],['Customer',b.customer||'—'],
-      ['Project',b.project||'—'],['Loose Tube Qty',b.fiber_cnt||'—'],['Fiber / Tube',b.buffer_qty||'—'],
-      ['Total Fiber Qty',b.fiber_qty||'—'],['Created By',b.created_by||'—'],['Created',b.created_dt||b.created||'—'],
-      ['Modified By',b.modified_by||'—'],['Modified',b.modified_dt||b.updated||'—']];
+    var fields=[['BOM ID',b.bomid],['Item Code',b.product_code||'—'],['Product',b.product||'—'],
+      ['Loose Tube Qty',looseTube||'—'],['Fiber / Tube',fiberPerTube||'—'],['Total Fiber Qty',totalFiber],
+      ['Created By',b.created_by||'—'],['Created',b.created_dt||b.created||'—'],['Modified By',b.modified_by||'—'],
+      ['Modified',b.modified_dt||b.updated||'—']];
     fields.forEach(function(f){hdr+='<div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">'+f[0]+'</div><div style="font-weight:600;font-size:.85rem;margin-top:.15rem">'+f[1]+'</div></div>';});
     hdr+='</div>';
 
@@ -4370,34 +4448,15 @@ function viewMBomDetail(id){try{
           grpsHtml+='<td style="padding:.3rem .5rem"><span class="badge badge-cyan">'+l.item_code+'</span></td>';
           grpsHtml+='<td style="padding:.3rem .5rem">'+l.item_name+'</td>';
           grpsHtml+='<td style="padding:.3rem .5rem">'+l.uom+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.qty,4)+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.scrap,2)+'%</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.factor,4)+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right;font-weight:600;color:var(--cyan)">'+fmt_num(l.total_qty,4)+'</td>';
+          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.qty,3)+'</td>';
+          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.scrap,3)+'%</td>';
+          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.factor,3)+'</td>';
+          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right;font-weight:600;color:var(--cyan)">'+fmt_num(l.total_qty,3)+'</td>';
           grpsHtml+='</tr>';
         });
         grpsHtml+='</tbody></table>';
       }
 
-      if((g.dlfohLines||[]).length){
-        grpsHtml+='<div style="font-size:.72rem;font-weight:600;margin:.6rem 0 .3rem;color:var(--muted)">DL-FOH LINES</div>';
-        grpsHtml+='<table style="width:100%;border-collapse:collapse;font-size:.75rem">';
-        grpsHtml+='<thead><tr style="background:rgba(0,0,0,.3)"><th style="padding:.3rem .5rem;text-align:left">Category</th><th style="padding:.3rem .5rem;text-align:left">Type</th><th style="padding:.3rem .5rem;text-align:right">Index</th><th style="padding:.3rem .5rem;text-align:right">Set Up</th><th style="padding:.3rem .5rem;text-align:right">Factor</th><th style="padding:.3rem .5rem;text-align:right">Total Hour</th></tr></thead><tbody>';
-        (g.dlfohLines||[]).forEach(function(d){
-          // type field comes directly from MySQL masterbom_dlfoh.type column
-          var t=d.type||'—';
-          var cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':t==='Overhead'?'badge-amber':'';
-          grpsHtml+='<tr style="border-bottom:1px solid rgba(255,255,255,.05)">';
-          grpsHtml+='<td style="padding:.3rem .5rem">'+d.cat+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem"><span class="badge '+cls+'">'+t+'</span></td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(d.index||d.idx,6)+(d.index_manual?' <span style="font-size:.65rem;color:var(--amber)">[M]</span>':'')+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(d.setup,4)+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(d.factor,4)+'</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right;font-weight:600;color:var(--cyan)">'+fmt_num(d.total_hour,4)+'</td>';
-          grpsHtml+='</tr>';
-        });
-        grpsHtml+='</tbody></table>';
-      }
       grpsHtml+='</div>';
     });
 
@@ -5604,16 +5663,16 @@ function viewBomDetail(id, src){try{
       <td class="mono" style="white-space:nowrap">${l.item_code||'—'}</td>
       <td style="white-space:nowrap">${l.item_name||'—'}</td>
       <td>${l.uom||'—'}</td>
-      <td class="mono" style="text-align:right">${fmt_num(l.qty||0,2)}</td>
-      <td class="mono" style="text-align:right">${fmt_num(l.scrap||0,1)}%</td>
-      <td class="mono" style="text-align:right">${fmt_num(l.factor||1,2)}</td>
-      <td class="mono" style="text-align:right">${fmt_num(l.total_qty||0,4)}</td>
+      <td class="mono" style="text-align:right">${fmt_num(l.qty||0,3)}</td>
+      <td class="mono" style="text-align:right">${fmt_num(l.scrap||0,3)}%</td>
+      <td class="mono" style="text-align:right">${fmt_num(l.factor||1,3)}</td>
+      <td class="mono" style="text-align:right">${fmt_num(l.total_qty||0,3)}</td>
       <td style="text-align:center"><span class="badge badge-green">${l.currency||'USD'}</span></td>
-      <td class="mono" style="text-align:right">${fmt_num(l.price||0,4)}</td>
-      <td class="mono" style="text-align:right">${fmt_num(l.landed||0,2)}%</td>
-      <td class="mono" style="text-align:right">${fmt_num(l.hedging||0,2)}%</td>
+      <td class="mono" style="text-align:right">${fmt_num(l.price||0,3)}</td>
+      <td class="mono" style="text-align:right">${fmt_num(l.landed||0,3)}%</td>
+      <td class="mono" style="text-align:right">${fmt_num(l.hedging||0,3)}%</td>
       <td class="mono" style="text-align:right;color:var(--cyan)">${Number((l.usd_rate||0).toFixed(0)).toLocaleString('id-ID')}</td>
-      <td class="mono" style="text-align:right;color:var(--cyan)">${fmt_num(l.total_amt||0,2)}</td>
+      <td class="mono" style="text-align:right;color:var(--cyan)">${fmt_num(l.total_amt||0,3)}</td>
       <td class="mono" style="text-align:right;color:var(--amber)">${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}</td>
     </tr>`).join('');
 
@@ -5625,10 +5684,10 @@ function viewBomDetail(id, src){try{
         <td class="mono">${dl.cat||'—'}</td>
         <td>${catRec?catRec.desc:'—'}</td>
         <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
-        <td class="mono" style="text-align:right">${fmt_num(dl.index||0,5)}</td>
+        <td class="mono" style="text-align:right">${fmt_num(dl.index||0,3)}</td>
         <td class="mono" style="text-align:right">${fmt_num(dl.setup||0,3)}</td>
-        <td class="mono" style="text-align:right">${fmt_num(dl.factor||1,2)}</td>
-        <td class="mono" style="text-align:right">${fmt_num(dl.total_hour||0,4)}</td>
+        <td class="mono" style="text-align:right">${fmt_num(dl.factor||1,3)}</td>
+        <td class="mono" style="text-align:right">${fmt_num(dl.total_hour||0,3)}</td>
         <td class="mono" style="text-align:right;color:var(--amber)">${Number((dl.total_cost||0).toFixed(0)).toLocaleString('id-ID')}</td>
       </tr>`;
     }).join('');
@@ -5700,7 +5759,7 @@ function viewBomDetail(id, src){try{
       ${[['Direct Labor','Labour'],['Fixed FOH','Machine'],['Variable FOH','Overhead']].map(([lbl,key])=>{
         const idr=dlfohTotals[key]||0;
         const usd=usdRateView>0?idr/usdRateView:0;
-        return '<tr><td>'+lbl+'</td><td style="text-align:right;font-family:var(--fm);font-size:.78rem">'+Number(idr.toFixed(0)).toLocaleString('id-ID')+'</td><td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(usd,4)+'</td></tr>';
+        return '<tr><td>'+lbl+'</td><td style="text-align:right;font-family:var(--fm);font-size:.78rem">'+Number(idr.toFixed(0)).toLocaleString('id-ID')+'</td><td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(usd,3)+'</td></tr>';
       }).join('')}
     </tbody>
   </table></div></div>`;
@@ -5716,15 +5775,15 @@ function viewBomDetail(id, src){try{
   const varUSD=usdRateView>0?dlfohTotals.Overhead/usdRateView:0;
   const totalCogsUSD=totalFiberUSD+totalMatWoFiberUSD+dlUSD+fixedUSD+varUSD;
   const totalCogsIDR=totalCogsUSD*usdRateView;
-  const pct=(v)=>totalCogsUSD>0?((v/totalCogsUSD)*100).toFixed(1)+'%':'—';
+  const pct=(v)=>totalCogsUSD>0?((v/totalCogsUSD)*100).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})+'%':'—';
   html+=`<div style="margin-top:.75rem">
   <div style="font-family:var(--fm);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem">Summary Material</div>
   <div style="overflow-x:auto">
   <table class="tbl" style="min-width:480px">
     <thead><tr><th style="text-align:left">Item</th><th style="text-align:center">Currency</th><th style="text-align:right">USD</th><th style="text-align:right">%</th></tr></thead>
     <tbody>
-      ${[['Total Fiber',totalFiberUSD],['Total Material tanpa Fiber',totalMatWoFiberUSD],['Total Direct Labour',dlUSD],['Total Fixed FOH',fixedUSD],['Total Variable FOH',varUSD]].map(([lbl,v])=>'<tr><td>'+lbl+'</td><td style="text-align:center"><span class="badge badge-green">USD</span></td><td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(v,2)+'</td><td style="text-align:right;font-size:.75rem;color:var(--t2)">'+pct(v)+'</td></tr>').join('')}
-      <tr style="border-top:2px solid var(--b2)"><td style="font-weight:700">Total COGS per Ckm</td><td style="text-align:center"><span class="badge badge-green">USD</span></td><td style="text-align:right;font-family:var(--fm);font-weight:700;color:var(--cyan)">${fmt_num(totalCogsUSD,2)}</td><td></td></tr>
+      ${[['Total Fiber',totalFiberUSD],['Total Material tanpa Fiber',totalMatWoFiberUSD],['Total Direct Labour',dlUSD],['Total Fixed FOH',fixedUSD],['Total Variable FOH',varUSD]].map(([lbl,v])=>'<tr><td>'+lbl+'</td><td style="text-align:center"><span class="badge badge-green">USD</span></td><td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(v,3)+'</td><td style="text-align:right;font-size:.75rem;color:var(--t2)">'+pct(v)+'</td></tr>').join('')}
+      <tr style="border-top:2px solid var(--b2)"><td style="font-weight:700">Total COGS per Ckm</td><td style="text-align:center"><span class="badge badge-green">USD</span></td><td style="text-align:right;font-family:var(--fm);font-weight:700;color:var(--cyan)">${fmt_num(totalCogsUSD,3)}</td><td></td></tr>
       <tr><td style="font-weight:700">Total COGS IDR per Ckm</td><td style="text-align:center"><span class="badge badge-amber">IDR</span></td><td style="text-align:right;font-family:var(--fm);font-weight:700;color:var(--amber)">${Number(totalCogsIDR.toFixed(0)).toLocaleString('id-ID')}</td><td></td></tr>
     </tbody>
   </table></div></div>`;
@@ -5735,7 +5794,7 @@ function viewBomDetail(id, src){try{
     <div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem">Grand Total Material</div>
     <div style="display:flex;gap:2rem;flex-wrap:wrap">
       <div><div style="font-size:.68rem;color:var(--t3)">Total Amount (USD)</div>
-        <div style="font-family:var(--fm);font-size:1.2rem;font-weight:700;color:var(--cyan)">${fmt_num(grandTotalUSD,2)}</div></div>
+        <div style="font-family:var(--fm);font-size:1.2rem;font-weight:700;color:var(--cyan)">${fmt_num(grandTotalUSD,3)}</div></div>
       <div><div style="font-size:.68rem;color:var(--t3)">Total Cost (IDR)</div>
         <div style="font-family:var(--fm);font-size:1.2rem;font-weight:700;color:var(--amber)">${Number(grandTotalIDR.toFixed(0)).toLocaleString('id-ID')}</div></div>
     </div>
@@ -5928,9 +5987,9 @@ function viewPriceDetail(id){
       <td>${l.item_name||'—'}</td>
       <td class="mono" style="text-align:right">${Number(l.qty||0).toLocaleString('id-ID')}</td>
       <td style="text-align:center"><span class="badge badge-green">${l.currency||'USD'}</span></td>
-      <td class="mono" style="text-align:right">${fmt_num(l.price||0,4)}</td>
-      <td style="text-align:right"><span class="badge badge-amber">${fmt_num(l.hedging||0,2)}%</span></td>
-      <td style="text-align:right"><span class="badge badge-cyan">${fmt_num(l.landed||0,2)}%</span></td>
+      <td class="mono" style="text-align:right">${fmt_num(l.price||0,3)}</td>
+      <td style="text-align:right"><span class="badge badge-amber">${fmt_num(l.hedging||0,3)}%</span></td>
+      <td style="text-align:right"><span class="badge badge-cyan">${fmt_num(l.landed||0,3)}%</span></td>
     </tr>
   `).join('');
 
@@ -5970,14 +6029,15 @@ function viewExrateDetail(id){try{
         <td style="text-align:center">${i===0?'<span class="badge badge-green">Terbaru</span>':'<span class="badge badge-violet" style="font-size:.6rem">#'+(i+1)+'</span>'}</td>
         <td class="mono">${l.tanggal||'—'}</td>
         <td class="mono" style="text-align:right;color:var(--cyan)">Rp ${Number(l.rate||0).toLocaleString('id-ID')}</td>
-        <td class="mono" style="text-align:right;font-size:.72rem;color:var(--t3)">${Number(l.rate_conversion||0).toFixed(6)}</td>
+        <td class="mono" style="text-align:right;font-size:.72rem;color:var(--t3)">${Number(l.rate_conversion||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>
         <td style="text-align:right;color:var(--t3);font-size:.72rem">
           ${i<sorted.length-1?(()=>{
             const diff=(l.rate||0)-(sorted[i+1].rate||0);
-            const pct=sorted[i+1].rate>0?((diff/sorted[i+1].rate)*100).toFixed(2):'—';
+            const pctVal=sorted[i+1].rate>0?((diff/sorted[i+1].rate)*100):null;
+            const pctStr=pctVal!==null?pctVal.toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3}):'—';
             return diff>=0
-              ?'<span style="color:var(--green)">▲ Rp '+Number(Math.abs(diff)).toLocaleString('id-ID')+' ('+pct+'%)</span>'
-              :'<span style="color:var(--red)">▼ Rp '+Number(Math.abs(diff)).toLocaleString('id-ID')+' ('+Math.abs(parseFloat(pct)).toFixed(2)+'%)</span>';
+              ?'<span style="color:var(--green)">▲ Rp '+Number(Math.abs(diff)).toLocaleString('id-ID')+' ('+pctStr+'%)</span>'
+              :'<span style="color:var(--red)">▼ Rp '+Number(Math.abs(diff)).toLocaleString('id-ID')+' ('+(pctVal!==null?Math.abs(pctVal).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3}):'—')+'%)</span>';
           })():'—'}
         </td>
       </tr>`).join('');
@@ -6029,8 +6089,8 @@ function viewKapDetail(id){try{
     </tr></thead>
     <tbody>${klines.map(function(l){return`<tr>
       <td style="padding:.35rem .6rem;border:1px solid var(--b2)"><span class="badge badge-violet">${l.machine_line}</span></td>
-      <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.duration||0).toFixed(3)}</td>
-      <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.setup||0).toFixed(3)}</td>
+      <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.duration||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>
+      <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.setup||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>
     </tr>`;}).join('')}</tbody>
   </table>`:'<div style="color:var(--t3);font-size:.8rem">Tidak ada data line.</div>';
 
@@ -6745,7 +6805,7 @@ function cogsRowSetField(k, field, val){
     var cell=function(cls){return tr.querySelector('.'+cls);};
     if(cell('cg-totalidr')) cell('cg-totalidr').textContent=idFmt(r.totalIDR);
     if(cell('cg-cogsidr'))  cell('cg-cogsidr').textContent=idFmt(r.cogsIDR);
-    if(cell('cg-cogsusd'))  cell('cg-cogsusd').textContent=fmt_num(r.cogsUSD,2);
+    if(cell('cg-cogsusd'))  cell('cg-cogsusd').textContent=fmt_num(r.cogsUSD,3);
   }
 }
 
@@ -6777,15 +6837,15 @@ function renderCogsFormRows(){
       +' oninput="cogsRowSetField('+r._k+',\'estQty\',parseFloat(this.value)||0)"></td>'
       +'<td><input class="li-input" style="width:90px" value="'+escHtml(r.jenisFiber)+'" placeholder="SM G652D"'
       +' oninput="cogsRowSetField('+r._k+',\'jenisFiber\',this.value)"></td>'
-      +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan);font-size:.77rem">'+fmt_num(r.fiberUSD,4)+'</td>'
-      +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan);font-size:.77rem">'+fmt_num(r.rmOthers,4)+'</td>'
+      +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan);font-size:.77rem">'+fmt_num(r.fiberUSD,3)+'</td>'
+      +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan);font-size:.77rem">'+fmt_num(r.rmOthers,3)+'</td>'
       +'<td style="text-align:right;font-family:var(--fm);font-size:.77rem">'+idFmt(r.usdRate)+'</td>'
       +'<td class="cg-totalidr" style="text-align:right;font-family:var(--fm);color:var(--amber);font-size:.77rem">'+idFmt(r.totalIDR)+'</td>'
       +'<td style="text-align:right;font-family:var(--fm);font-size:.77rem">'+idFmt(r.dlIDR)+'</td>'
       +'<td style="text-align:right;font-family:var(--fm);font-size:.77rem">'+idFmt(r.fohfIDR)+'</td>'
       +'<td style="text-align:right;font-family:var(--fm);font-size:.77rem">'+idFmt(r.fohvIDR)+'</td>'
       +'<td class="cg-cogsidr" style="text-align:right;font-family:var(--fm);font-weight:700;color:var(--green);font-size:.77rem">'+idFmt(r.cogsIDR)+'</td>'
-      +'<td class="cg-cogsusd" style="text-align:right;font-family:var(--fm);color:var(--cyan);font-size:.77rem">'+fmt_num(r.cogsUSD,4)+'</td>'
+      +'<td class="cg-cogsusd" style="text-align:right;font-family:var(--fm);color:var(--cyan);font-size:.77rem">'+fmt_num(r.cogsUSD,3)+'</td>'
       +'<td><input class="li-input" style="width:115px" value="'+escHtml(r.note)+'" placeholder="Keterangan"'
       +' oninput="cogsRowSetField('+r._k+',\'note\',this.value)"></td>'
       +'<td><button class="btn btn-danger btn-xs" onclick="delCogsRow('+r._k+')">✕</button></td>'
@@ -6805,15 +6865,15 @@ function updateCogsTotals(){
          idr:sum('totalIDR'),dl:sum('dlIDR'),fohf:sum('fohfIDR'),
          fohv:sum('fohvIDR'),cogsidr:sum('cogsIDR'),cogsusd:sum('cogsUSD')};
   var g=function(id){return document.getElementById(id);};
-  if(g('cft_qty'))    g('cft_qty').textContent=fmt_num(s.qty,0);
-  if(g('cft_fiber'))  g('cft_fiber').textContent=fmt_num(s.fiber,4);
-  if(g('cft_rm'))     g('cft_rm').textContent=fmt_num(s.rm,4);
+  if(g('cft_qty'))    g('cft_qty').textContent=fmt_num(s.qty,3);
+  if(g('cft_fiber'))  g('cft_fiber').textContent=fmt_num(s.fiber,3);
+  if(g('cft_rm'))     g('cft_rm').textContent=fmt_num(s.rm,3);
   if(g('cft_idr'))    g('cft_idr').textContent=idFmt(s.idr);
   if(g('cft_dl'))     g('cft_dl').textContent=idFmt(s.dl);
   if(g('cft_fohf'))   g('cft_fohf').textContent=idFmt(s.fohf);
   if(g('cft_fohv'))   g('cft_fohv').textContent=idFmt(s.fohv);
   if(g('cft_cogsidr'))g('cft_cogsidr').textContent=idFmt(s.cogsidr);
-  if(g('cft_cogsusd'))g('cft_cogsusd').textContent=fmt_num(s.cogsusd,4);
+  if(g('cft_cogsusd'))g('cft_cogsusd').textContent=fmt_num(s.cogsusd,3);
 }
 
 // ── Save document ──
@@ -6872,7 +6932,7 @@ function renderCogsList(){
     +'<td class="mono">'+(d.date||'—')+'</td>'
     +'<td style="text-align:center"><span class="badge badge-violet">'+((d.rows||[]).length)+' BOM</span></td>'
     +'<td style="text-align:right;font-family:var(--fm);color:var(--green)">'+idFmt(d.total_cogs_idr||d.totalCogsIDR||0)+'</td>'
-    +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(d.total_cogs_usd||d.totalCogsUSD||0,4)+'</td>'
+    +'<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(d.total_cogs_usd||d.totalCogsUSD||0,3)+'</td>'
     +'<td class="muted" style="font-size:.72rem">'+(d.note||'—')+'</td>'
     +'<td><div style="display:flex;gap:.3rem">'
     +'<button class="btn btn-ghost btn-xs" onclick="viewCogsDoc(\''+d.id+'\')">👁 Detail</button>'
@@ -6929,31 +6989,31 @@ function viewCogsDoc(id){
     +'<td style="padding:.4rem .5rem"><span class="run-num" style="font-size:.7rem">'+(r.bomId||'—')+'</span></td>'
     +'<td style="padding:.4rem .5rem"><strong style="font-size:.8rem">'+(r.product||'—')+'</strong></td>'
     +'<td style="padding:.4rem .5rem;font-size:.75rem">'+(r.project||'—')+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm)">'+fmt_num(r.estQty||0,0)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm)">'+fmt_num(r.estQty||0,3)+'</td>'
     +'<td style="padding:.4rem .5rem;font-size:.75rem">'+(r.jenisFiber||'—')+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(r.fiberUSD,4)+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(r.rmOthers,4)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(r.fiberUSD,3)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(r.rmOthers,3)+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm)">'+idFmt(r.usdRate)+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm);color:var(--amber)">'+idFmt(r.totalIDR)+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm)">'+idFmt(r.dlIDR)+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm)">'+idFmt(r.fohfIDR)+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm)">'+idFmt(r.fohvIDR)+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm);font-weight:700;color:var(--green)">'+idFmt(r.cogsIDR)+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(r.cogsUSD,4)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;font-family:var(--fm);color:var(--cyan)">'+fmt_num(r.cogsUSD,3)+'</td>'
     +'<td style="padding:.4rem .5rem;font-size:.72rem;color:var(--muted)">'+(r.note||'—')+'</td>'
     +'</tr>';}).join('');
   var totRow='<tr style="background:rgba(99,102,241,.1);font-weight:700;font-size:.76rem">'
     +'<td colspan="4" style="padding:.4rem .5rem;text-align:right;color:var(--muted)">TOTAL</td>'
     +'<td></td><td></td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan)">'+fmt_num(rows.reduce(function(s,r){return s+(r.fiberUSD||0);},0),4)+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan)">'+fmt_num(rows.reduce(function(s,r){return s+(r.rmOthers||0);},0),4)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan)">'+fmt_num(rows.reduce(function(s,r){return s+(r.fiberUSD||0);},0),3)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan)">'+fmt_num(rows.reduce(function(s,r){return s+(r.rmOthers||0);},0),3)+'</td>'
     +'<td></td>'
     +'<td style="padding:.4rem .5rem;text-align:right;color:var(--amber)">'+idFmt(rows.reduce(function(s,r){return s+(r.totalIDR||0);},0))+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right">'+idFmt(rows.reduce(function(s,r){return s+(r.dlIDR||0);},0))+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right">'+idFmt(rows.reduce(function(s,r){return s+(r.fohfIDR||0);},0))+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right">'+idFmt(rows.reduce(function(s,r){return s+(r.fohvIDR||0);},0))+'</td>'
     +'<td style="padding:.4rem .5rem;text-align:right;color:var(--green);font-size:.85rem">'+idFmt(doc.total_cogs_idr||doc.totalCogsIDR||0)+'</td>'
-    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan);font-size:.85rem">'+fmt_num(doc.total_cogs_usd||doc.totalCogsUSD||0,4)+'</td>'
+    +'<td style="padding:.4rem .5rem;text-align:right;color:var(--cyan);font-size:.85rem">'+fmt_num(doc.total_cogs_usd||doc.totalCogsUSD||0,3)+'</td>'
     +'<td></td></tr>';
   body.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:1rem;padding:.75rem;background:var(--s2);border-radius:var(--r)">'
     +'<div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase">Nama</div><div style="font-weight:700">'+escHtml(doc.name)+'</div></div>'
@@ -7245,10 +7305,10 @@ function viewItemPriceHistory(itemCode){
           +'<td style="padding:.4rem .5rem;font-family:var(--fm);font-size:.8rem">'+l.changed_dt+'</td>'
           +'<td style="padding:.4rem .5rem;font-size:.8rem">'+l.changed_by+'</td>'
           +'<td style="padding:.4rem .5rem;font-family:var(--fm);color:'+(currChanged?'var(--amber)':'var(--muted)')+'">'+(l.old_currency||'—')+' → '+l.new_currency+'</td>'
-          +'<td style="padding:.4rem .5rem;font-family:var(--fm);text-align:right;color:'+(priceChanged?'var(--red)':'var(--muted)')+'">'+fmt_num(l.old_price,6)+'</td>'
-          +'<td style="padding:.4rem .5rem;font-family:var(--fm);text-align:right;color:var(--green)">'+fmt_num(l.new_price,6)+'</td>'
-          +'<td style="padding:.4rem .5rem;font-family:var(--fm);text-align:right">'+fmt_num(l.new_hedging,2)+'%</td>'
-          +'<td style="padding:.4rem .5rem;font-family:var(--fm);text-align:right">'+fmt_num(l.new_landed,2)+'%</td>'
+          +'<td style="padding:.4rem .5rem;font-family:var(--fm);text-align:right;color:'+(priceChanged?'var(--red)':'var(--muted)')+'">'+fmt_num(l.old_price,3)+'</td>'
+          +'<td style="padding:.4rem .5rem;font-family:var(--fm);text-align:right;color:var(--green)">'+fmt_num(l.new_price,3)+'</td>'
+          +'<td style="padding:.4rem .5rem;font-family:var(--fm);text-align:right">'+fmt_num(l.new_hedging,3)+'%</td>'
+          +'<td style="padding:.4rem .5rem;font-family:var(--fm);text-align:right">'+fmt_num(l.new_landed,3)+'%</td>'
           +'<td style="padding:.4rem .5rem;font-size:.75rem;color:var(--muted)">'+(l.note||'—')+'</td>'
           +'</tr>';
       }).join('');

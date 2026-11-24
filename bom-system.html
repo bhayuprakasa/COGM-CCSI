@@ -922,14 +922,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             </div>
           </div>
           <div class="form-group">
-            <div class="flabel">Customer Name</div>
-            <input class="finput" id="mbom_customer" placeholder="Nama customer">
-          </div>
-          <div class="form-group">
-            <div class="flabel">Project Name</div>
-            <input class="finput" id="mbom_project" placeholder="Nama project">
-          </div>
-          <div class="form-group">
             <div class="flabel">Jumlah Fiber</div>
             <input class="finput" type="number" id="mbom_fiber_cnt" placeholder="0" min="0">
           </div>
@@ -2842,7 +2834,7 @@ function openMBomForm(id){try{
   setDisp('mbom_form_section','');
   setDisp('mbom_list_card','none');
   setVal('mbom_edit_id','');
-  ['mbom_product','mbom_product_code','mbom_customer','mbom_project'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['mbom_product','mbom_product_code'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['mbom_fiber_cnt','mbom_buffer_qty','mbom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   setVal('mbom_new_ml_sel','');
   const _mmid=ge('mbom_new_mid_sel');if(_mmid)_mmid.innerHTML='<option value="">← Pilih Machine Line dulu</option>';
@@ -2856,8 +2848,6 @@ function openMBomForm(id){try{
     setVal('mbom_id_disp',rec.bomid);
     setVal('mbom_product',rec.product||'');
     setVal('mbom_product_code',rec.product_code||'');
-    setVal('mbom_customer',rec.customer||'');
-    setVal('mbom_project',rec.project||'');
     setVal('mbom_fiber_cnt',rec.fiber_cnt||'');
     setVal('mbom_buffer_qty',rec.buffer_qty||'');
     setVal('mbom_fiber_qty',rec.fiber_qty||'');
