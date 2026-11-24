@@ -2802,14 +2802,8 @@ function openBomForm(id){try{
       if(!g.kapPct) g.kapPct=100;
       if(!g.dlLot)  g.dlLot=1;
       if(!g.fohLot) g.fohLot=1;
-      // Proses/setup time: use stored value or derive from legacy speed/kapPct for backward compat
-      if(g.proses_time!==undefined && g.prosesTime===undefined) g.prosesTime=parseFloat(g.proses_time)||0;
-      if(g.setup_time!==undefined  && g.setupTime===undefined)  g.setupTime =parseFloat(g.setup_time)||0;
-      if(g.prosesTime===undefined){
-        const spd=g.speed||1,kap=(g.kapPct||100)/100;
-        g.prosesTime=spd>0&&kap>0?parseFloat((1000/(spd*60*kap)).toFixed(5)):0;
-      }
-      if(g.setupTime===undefined) g.setupTime=0;
+      // prosesTime & setupTime akan di-derive dari dlfoh lines setelah mapping di bawah
+      // (tidak lagi dari formula speed/kapPct yang menghasilkan nilai tidak akurat)
       // Re-derive lengthQty dari machine_line dan nilai header form (fiber_qty, fiber_cnt)
       // agar data lama yang tersimpan salah bisa dikoreksi saat edit
       {
@@ -2819,10 +2813,11 @@ function openBomForm(id){try{
       }
       // Normalize dlfohLines: idx→index from MySQL
       g.dlfohLines=g.dlfohLines.map(function(dl){
+        var idx=parseFloat(dl.index!==undefined?dl.index:(dl.idx||0));
         return {
           cat: dl.cat||'',
           type: dl.type||'',
-          index: parseFloat(dl.index!==undefined?dl.index:(dl.idx||0)),
+          index: idx,
           index_manual: !!(dl.index_manual),
           setup: parseFloat(dl.setup)||0,
           factor: parseFloat(dl.factor)||1,
@@ -2830,6 +2825,12 @@ function openBomForm(id){try{
           total_cost: parseFloat(dl.total_cost)||0,
         };
       });
+      // Derive prosesTime & setupTime dari dlfoh lines tersimpan agar konsisten
+      // dengan Master FG (tidak pakai formula speed/kapPct yang tidak akurat)
+      {
+        var _firstDl=g.dlfohLines[0];
+        if(_firstDl){g.prosesTime=_firstDl.index;g.setupTime=_firstDl.setup;}
+      }
       // Normalize material lines
       g.lines=(g.lines||[]).map(function(l){
         return {
@@ -4048,16 +4049,6 @@ function openMBomForm(id){try{
       // Sync Loose Tube & Fiber/Tube dari Master FG (kap) agar selalu sesuai master
       fillMBomFiberFromKap(rec.product_code||'');
       mbomGroups=JSON.parse(JSON.stringify(rec.groups||[]));
-
-      // Ambil kapasitas.notes sekali di luar loop untuk lookup per machine_line
-      var _kapRec2=null,_kapLines2=[];
-      if(rec.product_code){
-        // Case-insensitive lookup agar cocok dengan autoLoadBomRouting di BOM
-        var _code2=(rec.product_code||'').toUpperCase();
-        _kapRec2=DB.kap&&DB.kap.find(function(k){return (k.item_code||'').toUpperCase()===_code2;});
-        if(_kapRec2){try{_kapLines2=JSON.parse(_kapRec2.notes||'[]');}catch(e){_kapLines2=[];}}
-      }
-
       mbomGroups.forEach(function(g){
         if(!g.dlfohLines) g.dlfohLines=[];
         var kapPct=parseFloat(g.kapPct||g.kap_pct)||100;
@@ -4068,32 +4059,21 @@ function openMBomForm(id){try{
         if(g.lengthQty===undefined) g.lengthQty=1;
         if(!g.lines) g.lines=[];
 
-        // Prioritas: kapasitas.notes → speed/kapPct legacy
-        var _kl2=_kapLines2.find(function(l){return l.machine_line===g.machine_line;});
-        if(_kl2){
-          // Ambil langsung dari kapasitas.notes agar sama dengan COGS Calculated
-          g.prosesTime=parseFloat(_kl2.duration)||0;
-          g.setupTime=parseFloat(_kl2.setup)||0;
-        } else {
-          // Fallback: hitung dari speed/kapPct jika tidak ada di kapasitas
-          if(g.prosesTime===undefined){var spd2=g.speed||1,kap2=(g.kapPct||100)/100;g.prosesTime=spd2>0&&kap2>0?parseFloat((1000/(spd2*60*kap2)).toFixed(5)):0;}
-          if(g.setupTime===undefined) g.setupTime=parseFloat(g.setup_time)||0;
-        }
-
-        // Map dlfohLines: index dari kapasitas (kecuali sudah manual override)
+        // Map dlfohLines: gunakan index & setup tersimpan di masterbom_dlfoh
         g.dlfohLines=g.dlfohLines.map(function(d){
-          var idxManual=!!(d.index_manual);
-          var storedIdx=parseFloat(d.index!==undefined?d.index:(d.idx||0));
-          // Jika tidak manual, pakai prosesTime dari kapasitas
-          var finalIdx=idxManual?storedIdx:g.prosesTime;
-          var finalSetup=parseFloat(d.setup)||0;
-          if(!d.setup_manual && _kl2) finalSetup=g.setupTime;
+          var idx=parseFloat(d.index!==undefined?d.index:(d.idx||0));
+          var setup=parseFloat(d.setup)||0;
           return {cat:d.cat||'',type:d.type||'',
-            index:finalIdx,
-            index_manual:idxManual,
-            setup:finalSetup,factor:parseFloat(d.factor)||1,
-            total_hour:finalIdx*(parseFloat(d.factor)||1)+finalSetup};
+            index:idx, index_manual:!!(d.index_manual),
+            setup:setup, factor:parseFloat(d.factor)||1,
+            total_hour:parseFloat(d.total_hour)||idx*(parseFloat(d.factor)||1)+setup};
         });
+
+        // Derive prosesTime & setupTime dari dlfoh lines yang tersimpan
+        // (bukan dari formula speed/kapPct yang menghasilkan nilai tidak valid)
+        var firstDl=g.dlfohLines[0];
+        g.prosesTime=firstDl?firstDl.index:0;
+        g.setupTime=firstDl?firstDl.setup:0;
       });
       renderMBomGroups();
       const sec=ge('mbom_form_section');if(sec)sec.scrollIntoView({behavior:'smooth'});
