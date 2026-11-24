@@ -2965,33 +2965,6 @@ function renderBomGroups(){
 
         <div style="margin-top:.85rem">
           <div style="font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.4rem">DL-FOH &amp; Kapasitas</div>
-          <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem;align-items:center">
-            <div style="display:flex;align-items:center;gap:.3rem">
-              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Proses Time (Jam)</span>
-              <input class="li-input" type="number" step="0.0001" style="width:70px" value="${g.prosesTime||0}"
-                oninput="bomGroups[${gIdx}].prosesTime=parseFloat(this.value)||0;recalcGroupDlfoh(${gIdx})">
-            </div>
-            <div style="display:flex;align-items:center;gap:.3rem">
-              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Setup Time (Jam)</span>
-              <input class="li-input" type="number" step="0.0001" style="width:70px" value="${g.setupTime||0}"
-                oninput="bomGroups[${gIdx}].setupTime=parseFloat(this.value)||0;recalcGroupDlfoh(${gIdx})">
-            </div>
-            <div style="display:flex;align-items:center;gap:.3rem">
-              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">Length Qty</span>
-              <input class="li-input" type="number" step="0.01" style="width:65px" value="${g.lengthQty||1}"
-                oninput="bomGroups[${gIdx}].lengthQty=parseFloat(this.value)||1;recalcGroupDlfoh(${gIdx})">
-            </div>
-            <div style="display:flex;align-items:center;gap:.3rem">
-              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">DL Lot</span>
-              <input class="li-input" type="number" style="width:50px" step="0.01" value="${g.dlLot}"
-                oninput="bomGroups[${gIdx}].dlLot=parseFloat(this.value)||1;recalcGroupDlfoh(${gIdx})">
-            </div>
-            <div style="display:flex;align-items:center;gap:.3rem">
-              <span style="font-size:.68rem;color:var(--t3);white-space:nowrap">FOH Lot</span>
-              <input class="li-input" type="number" style="width:50px" step="0.01" value="${g.fohLot}"
-                oninput="bomGroups[${gIdx}].fohLot=parseFloat(this.value)||1;recalcGroupDlfoh(${gIdx})">
-            </div>
-          </div>
           <div class="line-tbl-wrap">
             <table class="line-tbl">
               <thead><tr>
