@@ -351,17 +351,20 @@ async function initSchema() {
       { table:'masterbom',       col:'product_code',      def:"VARCHAR(100) DEFAULT ''" },
       // item_code di tabel bom — FG item yang di-link ke fg_routes
       { table:'bom',             col:'item_code',         def:"VARCHAR(100) DEFAULT ''" },
+      // Machine Line pada DL-FOH category
+      { table:'dlfoh',           col:'machine_line',      def:"VARCHAR(100) DEFAULT ''" },
     ];
 
     // Batch check all columns at once — include all tables and columns being migrated
     const [existing] = await conn.execute(
       `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = ?
-         AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices','masterbom')
-         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code')`,
+         AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices','masterbom','dlfoh')
+         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code','machine_line')`,
       [cfg.database]
     );
     const existSet = new Set(existing.map(r => `${r.TABLE_NAME.toLowerCase()}.${r.COLUMN_NAME.toLowerCase()}`));
+
 
     for (const {table, col, def} of toAdd) {
       if (!existSet.has(table.toLowerCase() + '.' + col.toLowerCase())) {
