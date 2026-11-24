@@ -4112,6 +4112,7 @@ function onMBomProductCodeInput(val){
 }
 
 // Isi mbom_fiber_cnt (Loose Tube) & mbom_buffer_qty (Fiber/Tube) dari data kap yang sesuai item_code
+// Juga sync prosesTime & setupTime tiap group dari kapasitas.notes agar sama dengan COGS Calculated
 function fillMBomFiberFromKap(code){
   // Ambil record kap pertama yang cocok dengan item_code
   const kap=DB.kap&&DB.kap.find(function(k){return k.item_code===(code||'').toUpperCase();});
@@ -4120,6 +4121,31 @@ function fillMBomFiberFromKap(code){
   setVal('mbom_fiber_cnt',tube||'');
   setVal('mbom_buffer_qty',fiber||'');
   calcMBomTotalFiber();
+
+  // Sync prosesTime & setupTime per machine_line dari kapasitas.notes
+  // agar nilai Master FG konsisten dengan COGS Calculated
+  if(kap && mbomGroups.length){
+    let kapLines=[];
+    try{kapLines=JSON.parse(kap.notes||'[]');}catch(e){kapLines=[];}
+    if(kapLines.length){
+      mbomGroups.forEach(function(g){
+        const kl=kapLines.find(function(l){return l.machine_line===g.machine_line;});
+        if(!kl) return;
+        const pt=parseFloat(kl.duration)||0;
+        const st=parseFloat(kl.setup)||0;
+        // Hanya update jika belum di-manual-override oleh user
+        g.prosesTime=pt;
+        g.setupTime=st;
+        // Sync ke dlfohLines yang belum manual
+        g.dlfohLines.forEach(function(dl){
+          if(!dl.index_manual) dl.index=pt;
+          if(!dl.setup_manual) dl.setup=st;
+          dl.total_hour=dl.index*(dl.factor||1)+(dl.setup||0);
+        });
+      });
+      renderMBomGroups();
+    }
+  }
 }
 
 // ── Group management ──
@@ -4132,8 +4158,21 @@ function addMBomGroup(){
   const ml=sel?sel.value:'';
   if(!ml){toast('Pilih Machine Line terlebih dahulu.','error');return;}
   if(mbomGroups.find(g=>g.machine_line===ml)){toast('Machine Line "'+ml+'" sudah ditambahkan.','error');return;}
-  // machine_id dan kap_id dihapus dari Master BOM
-  mbomGroups.push({machine_line:ml,machine_id:'',kap_id:'',lines:[],dlfohLines:[],prosesTime:0,setupTime:0,lengthQty:1,dlLot:1,fohLot:1});
+
+  // Auto-fill prosesTime & setupTime dari kapasitas.notes sesuai machine_line
+  var prosesTime=0,setupTime=0;
+  const curCode=(ge('mbom_product_code')||{value:''}).value.trim().toUpperCase();
+  if(curCode){
+    const kap=DB.kap&&DB.kap.find(function(k){return k.item_code===curCode;});
+    if(kap){
+      let kapLines=[];
+      try{kapLines=JSON.parse(kap.notes||'[]');}catch(e){kapLines=[];}
+      const kl=kapLines.find(function(l){return l.machine_line===ml;});
+      if(kl){prosesTime=parseFloat(kl.duration)||0;setupTime=parseFloat(kl.setup)||0;}
+    }
+  }
+
+  mbomGroups.push({machine_line:ml,machine_id:'',kap_id:'',lines:[],dlfohLines:[],prosesTime:prosesTime,setupTime:setupTime,lengthQty:1,dlLot:1,fohLot:1});
   if(sel) sel.value='';
   renderMBomGroups();
 }
