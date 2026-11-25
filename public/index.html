@@ -3658,14 +3658,57 @@ function getLengthQtyForMachineLine(ml, totalFiberQty, looseTubeQty){
 
 // Dipanggil saat user mengubah Length Qty di header BOM
 // Set lengthQty tiap group sesuai machine line-nya, lalu recalc DL-FOH
+function recalcGroupMaterials(gIdx){
+  const g=bomGroups[gIdx];
+  const lengthQty=g.lengthQty||1;
+  const container=document.getElementById('bom_machine_groups')||document;
+  g.lines.forEach((l,lIdx)=>{
+    // Sync harga dari DOM ke data (user mungkin sudah edit input sebelum length qty diubah)
+    const row0=container.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
+    if(row0&&row0.querySelector('.bom-line-price')){
+      l.price=parseFloat(row0.querySelector('.bom-line-price').value)||l.price||0;
+      l.landed=parseFloat(row0.querySelector('.bom-line-landed').value)||0;
+      l.hedging=parseFloat(row0.querySelector('.bom-line-hedging').value)||0;
+      l.currency=(row0.querySelector('.bom-line-currency')||{value:l.currency||'USD'}).value||l.currency||'USD';
+      l.usd_rate=parseFloat((row0.querySelector('.bom-line-rate')||{value:0}).value)||l.usd_rate||getLatestRate('USD');
+    }
+    const qty=parseFloat(l.qty)||0;
+    const scrap=parseFloat(l.scrap)||0;
+    const factor=parseFloat(l.factor)||1;
+    const price=parseFloat(l.price)||0;
+    const landed=parseFloat(l.landed)||0;
+    const hedging=parseFloat(l.hedging)||0;
+    const currency=(l.currency||'USD').trim()||'USD';
+    const lineUsdRate=parseFloat(l.usd_rate)||getLatestRate('USD');
+    const totalQty=qty*factor*(1+scrap/100);
+    const rateConv=getLatestConversion(currency);
+    const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv*lengthQty;
+    const totalIdr=totalAmt*lineUsdRate;
+    l.total_qty=totalQty; l.total_amt=totalAmt; l.total_idr=totalIdr;
+    const row=container.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
+    if(!row) return;
+    const tqEl=row.querySelector('.bom-line-totalqty');
+    const taEl=row.querySelector('.bom-line-totalamt');
+    const tiEl=row.querySelector('.bom-line-totalidr');
+    if(tqEl) tqEl.value=fmt_num(totalQty,3);
+    if(taEl) taEl.value=fmt_num(totalAmt,3);
+    if(tiEl) tiEl.value=Number(totalIdr.toFixed(0)).toLocaleString('id-ID');
+  });
+  const subUSD=g.lines.reduce((s,l)=>s+(l.total_amt||0),0);
+  const subIDR=g.lines.reduce((s,l)=>s+(l.total_idr||0),0);
+  const eu=document.getElementById('grp_usd_'+gIdx);
+  const ei=document.getElementById('grp_idr_'+gIdx);
+  if(eu) eu.textContent=fmt_num(subUSD,3);
+  if(ei) ei.textContent=Number(subIDR.toFixed(0)).toLocaleString('id-ID');
+}
+
 function onBomLengthQtyChange(val){
   const fiberQty=parseFloat(val)||0;
   if(fiberQty<=0) return;
   const looseTubeQty=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
   bomGroups.forEach((g,gIdx)=>{
     g.lengthQty=getLengthQtyForMachineLine(g.machine_line,fiberQty,looseTubeQty);
-    // Recalc semua material lines agar Total & Total IDR ikut berubah
-    g.lines.forEach((_,lIdx)=>recalcBomLine(gIdx,lIdx));
+    recalcGroupMaterials(gIdx);
     recalcGroupDlfoh(gIdx);
   });
 }
