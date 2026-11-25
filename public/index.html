@@ -1001,8 +1001,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <th>BOM ID</th>
             <th>No Spec</th>
             <th>Product</th>
-            <th>Customer</th>
-            <th>Project</th>
             <th>Machine Lines</th>
             <th>Jumlah Item</th>
             <th>Created By</th>
@@ -4904,10 +4902,6 @@ function renderMBom(){try{
       +'<td class="muted">'+(b.no_spec||'&#8212;')+'</td>'
       +(_ge?'<td><input class="ge-input" id="ge_mb_prod_'+b.id+'" value="'+geEsc(b.product)+'"></td>'
            :'<td><strong>'+b.product+'</strong></td>')
-      +(_ge?'<td><input class="ge-input" id="ge_mb_cust_'+b.id+'" value="'+geEsc(b.customer||'')+'"></td>'
-           :'<td class="muted">'+(b.customer||'&#8212;')+'</td>')
-      +(_ge?'<td><input class="ge-input" id="ge_mb_proj_'+b.id+'" value="'+geEsc(b.project||'')+'"></td>'
-           :'<td class="muted">'+(b.project||'&#8212;')+'</td>')
       +'<td>'+mlines.map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')+'</td>'
       +'<td style="text-align:center"><span class="badge badge-amber">'+itemCount+' item</span></td>'
       +'<td class="audit-cell">'+createdBy+'</td>'
