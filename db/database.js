@@ -111,6 +111,7 @@ async function initSchema() {
       `CREATE TABLE IF NOT EXISTS dlfoh (
         id VARCHAR(100) PRIMARY KEY, catid VARCHAR(100) UNIQUE NOT NULL,
         \`desc\` VARCHAR(255), type VARCHAR(50), rate DECIMAL(20,4) DEFAULT 0,
+        rate_process DECIMAL(20,4) DEFAULT 0, rate_setup DECIMAL(20,4) DEFAULT 0,
         created_by VARCHAR(100), created_dt VARCHAR(50),
         modified_by VARCHAR(100), modified_dt VARCHAR(50)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
@@ -367,6 +368,8 @@ async function initSchema() {
       { table:'dlfoh',           col:'machine_line',      def:"VARCHAR(100) DEFAULT ''" },
       // Setup/Proses pada DL-FOH category
       { table:'dlfoh',           col:'setup_proses',      def:"VARCHAR(50) DEFAULT ''" },
+      { table:'dlfoh',           col:'rate_process',      def:"DECIMAL(20,4) DEFAULT 0" },
+      { table:'dlfoh',           col:'rate_setup',        def:"DECIMAL(20,4) DEFAULT 0" },
       // No Spec di masterbom header
       { table:'masterbom',       col:'no_spec',           def:"VARCHAR(255) DEFAULT ''" },
       // Scrap Fix (nilai tetap) di masterbom_lines
@@ -378,7 +381,7 @@ async function initSchema() {
       `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = ?
          AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices','masterbom','dlfoh')
-         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code','machine_line','usd_rate','no_spec','scrap_fix','master_route_id','setup_proses')`,
+         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code','machine_line','usd_rate','no_spec','scrap_fix','master_route_id','setup_proses','rate_process','rate_setup')`,
       [cfg.database]
     );
     const existSet = new Set(existing.map(r => `${r.TABLE_NAME.toLowerCase()}.${r.COLUMN_NAME.toLowerCase()}`));
