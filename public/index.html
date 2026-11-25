@@ -4566,19 +4566,6 @@ function renderMBomGroups(){
         </div>
         <button class="btn btn-ghost btn-sm" style="margin-top:.4rem" onclick="addMBomLine(${gIdx})">+ Tambah Item</button>
 
-        <!-- DL-FOH Lines (Process Time & Setup per machine line) -->
-        <div style="font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin:.8rem 0 .4rem">DL / FOH Lines</div>
-        <div class="line-tbl-wrap">
-          <table class="line-tbl">
-            <thead><tr>
-              <th>Cat</th><th>Type</th><th>Process (hr)</th><th>Setup (hr)</th><th>Factor</th><th>Total Jam</th><th></th>
-            </tr></thead>
-            <tbody id="mbom_dlfoh_${gIdx}">
-              ${(g.dlfohLines||[]).map((dl,dIdx)=>renderMBomDlfohRow(gIdx,dIdx,dl)).join('')}
-            </tbody>
-          </table>
-        </div>
-        <button class="btn btn-ghost btn-sm" style="margin-top:.4rem" onclick="addMBomDlfohLine(${gIdx})">+ Tambah DL-FOH</button>
       </div>
     </div>
   `).join('');
