@@ -3664,6 +3664,8 @@ function onBomLengthQtyChange(val){
   const looseTubeQty=parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
   bomGroups.forEach((g,gIdx)=>{
     g.lengthQty=getLengthQtyForMachineLine(g.machine_line,fiberQty,looseTubeQty);
+    // Recalc semua material lines agar Total & Total IDR ikut berubah
+    g.lines.forEach((_,lIdx)=>recalcBomLine(gIdx,lIdx));
     recalcGroupDlfoh(gIdx);
   });
 }
