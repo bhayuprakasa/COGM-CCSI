@@ -2855,9 +2855,29 @@ function openBomForm(id){try{
       });
     });
 
-    // Restore prosesTime & setupTime dari kapasitas.notes agar PROCESS & SET UP tampil benar
-    // bom_groups tidak menyimpan kolom ini, jadi harus di-lookup dari DB.kap saat edit
-    if(rec.item_code){
+    // Re-sync prosesTime & setupTime dari Master BOM yang ter-link
+    // Prioritas: 1) Master BOM (linked), 2) kapasitas.notes, 3) nilai tersimpan di bom_dlfoh
+    // Ini memastikan COGS Calculated selalu pakai nilai terkini dari Master FG per lini mesin
+    if(mbomRec && mbomRec.groups && mbomRec.groups.length){
+      bomGroups.forEach(g=>{
+        const _mg=(mbomRec.groups||[]).find(mg=>mg.machine_line===g.machine_line);
+        if(!_mg||!_mg.dlfohLines||!_mg.dlfohLines.length) return;
+        const _mFirstDl=_mg.dlfohLines[0];
+        const _mPT=_mFirstDl?parseFloat(_mFirstDl.index)||0:0;
+        const _mST=_mFirstDl?parseFloat(_mFirstDl.setup)||0:0;
+        if(_mPT>0||_mST>0){
+          g.prosesTime=_mPT;
+          g.setupTime=_mST;
+          // Update index & setup di tiap dlfoh line yang belum di-override manual
+          g.dlfohLines.forEach(dl=>{
+            if(!dl.index_manual) dl.index=_mPT;
+            dl.setup=_mST;
+            dl.total_hour=dl.index*(dl.factor||1)+(dl.setup||0);
+          });
+        }
+      });
+    } else if(rec.item_code){
+      // Fallback: kapasitas.notes (jika ada)
       const _kapRec=DB.kap.find(k=>k.item_code===rec.item_code);
       if(_kapRec){
         let _kapLines=[];
@@ -2865,7 +2885,6 @@ function openBomForm(id){try{
         bomGroups.forEach(g=>{
           const _kl=_kapLines.find(l=>l.machine_line===g.machine_line);
           if(_kl){
-            // Gunakan kapasitas.duration sebagai processTime (lebih akurat dari speed/kapPct)
             const _pt=parseFloat(_kl.duration)||0;
             const _st=parseFloat(_kl.setup)||0;
             if(_pt>0) g.prosesTime=_pt;
@@ -4236,13 +4255,28 @@ function renderMBomGroups(){
           </table>
         </div>
         <button class="btn btn-ghost btn-sm" style="margin-top:.4rem" onclick="addMBomLine(${gIdx})">+ Tambah Item</button>
+
+        <!-- DL-FOH Lines (Process Time & Setup per machine line) -->
+        <div style="font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin:.8rem 0 .4rem">DL / FOH Lines</div>
+        <div class="line-tbl-wrap">
+          <table class="line-tbl">
+            <thead><tr>
+              <th>Cat</th><th>Type</th><th>Process (hr)</th><th>Setup (hr)</th><th>Factor</th><th>Total Jam</th><th></th>
+            </tr></thead>
+            <tbody id="mbom_dlfoh_${gIdx}">
+              ${(g.dlfohLines||[]).map((dl,dIdx)=>renderMBomDlfohRow(gIdx,dIdx,dl)).join('')}
+            </tbody>
+          </table>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:.4rem" onclick="addMBomDlfohLine(${gIdx})">+ Tambah DL-FOH</button>
       </div>
     </div>
   `).join('');
 
-  // wire hidden inputs for material lines only
+  // wire hidden inputs for material lines and dlfoh lines
   mbomGroups.forEach((g,gIdx)=>{
     g.lines.forEach((_,lIdx)=>wireMBomLineInputs(gIdx,lIdx));
+    (g.dlfohLines||[]).forEach((_,dIdx)=>wireMBomDlfohInputs(gIdx,dIdx));
   });
 }
 
@@ -4380,7 +4414,8 @@ function recalcMBomGroupDlfoh(gIdx){
 }
 
 function recalcMBomDlfohRow(gIdx,dIdx){
-  const dl=mbomGroups[gIdx].dlfohLines[dIdx];
+  const g=mbomGroups[gIdx];
+  const dl=g.dlfohLines[dIdx];
   const th=dl.index*(dl.factor||1)+(dl.setup||0);
   dl.total_hour=th;
   const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
@@ -4394,6 +4429,8 @@ function recalcMBomDlfohRow(gIdx,dIdx){
     const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
     if(tb){tb.className='badge '+cls;tb.style.fontSize='.6rem';tb.textContent=displayType;}
   }
+  // Saat baris pertama berubah, update prosesTime & setupTime group agar konsisten
+  if(dIdx===0){g.prosesTime=dl.index;g.setupTime=dl.setup;}
 }
 
 function saveMBom(){try{
