@@ -4578,7 +4578,7 @@ function renderMBomGroups(){
           <table class="line-tbl">
             <thead><tr>
               <th>Item Code</th><th>Item Name</th><th>UOM</th>
-              <th>Qty</th><th>Scrap (%)</th><th>Scrap (Fix)</th><th>Factor</th><th>Total Qty</th><th></th>
+              <th>Qty</th><th>Scrap (%)</th><th>Factor</th><th>Scrap (Fix)</th><th>Total Qty</th><th></th>
             </tr></thead>
             <tbody id="mbom_lines_${gIdx}">
               ${g.lines.map((l,lIdx)=>renderMBomLineRow(gIdx,lIdx,l)).join('')}
@@ -4610,8 +4610,8 @@ function renderMBomLineRow(gIdx,lIdx,l){
     +'<td><input class="li-input mbom-line-uom" style="width:44px" value="'+(l.uom||'')+'" readonly></td>'
     +'<td><input class="li-input mbom-line-qty" type="number" style="width:58px" value="'+(l.qty||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
     +'<td><input class="li-input mbom-line-scrap" type="number" style="width:50px" value="'+(l.scrap||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
-    +'<td><input class="li-input mbom-line-scrapfix" type="number" style="width:60px" value="'+(l.scrap_fix||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')" title="Scrap nilai tetap, ditambahkan ke Total Qty berapapun qty-nya"></td>'
     +'<td><input class="li-input mbom-line-factor" type="number" style="width:50px" value="'+(l.factor||1)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
+    +'<td><input class="li-input mbom-line-scrapfix" type="number" style="width:60px" value="'+(l.scrap_fix||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')" title="Scrap nilai tetap, ditambahkan ke Total Qty berapapun qty-nya"></td>'
     +'<td><input class="li-input mbom-line-totalqty" style="width:75px" value="'+fmt_num(l.total_qty||0,3)+'" readonly></td>'
     +'<td><button class="btn btn-danger btn-xs" onclick="deleteMBomLine('+gIdx+','+lIdx+')">&#10005;</button></td>'
     +'</tr>';
@@ -4844,7 +4844,7 @@ function viewMBomDetail(id){try{
       if((g.lines||[]).length){
         grpsHtml+='<div style="font-size:.72rem;font-weight:600;margin:.4rem 0 .3rem;color:var(--muted)">MATERIAL LINES</div>';
         grpsHtml+='<table style="width:100%;border-collapse:collapse;font-size:.75rem">';
-        grpsHtml+='<thead><tr style="background:rgba(0,0,0,.3)"><th style="padding:.3rem .5rem;text-align:left">Item Code</th><th style="padding:.3rem .5rem;text-align:left">Item Name</th><th style="padding:.3rem .5rem;text-align:left">UOM</th><th style="padding:.3rem .5rem;text-align:right">Qty</th><th style="padding:.3rem .5rem;text-align:right">Scrap (%)</th><th style="padding:.3rem .5rem;text-align:right">Scrap (Fix)</th><th style="padding:.3rem .5rem;text-align:right">Factor</th><th style="padding:.3rem .5rem;text-align:right">Total Qty</th></tr></thead><tbody>';
+        grpsHtml+='<thead><tr style="background:rgba(0,0,0,.3)"><th style="padding:.3rem .5rem;text-align:left">Item Code</th><th style="padding:.3rem .5rem;text-align:left">Item Name</th><th style="padding:.3rem .5rem;text-align:left">UOM</th><th style="padding:.3rem .5rem;text-align:right">Qty</th><th style="padding:.3rem .5rem;text-align:right">Scrap (%)</th><th style="padding:.3rem .5rem;text-align:right">Factor</th><th style="padding:.3rem .5rem;text-align:right">Scrap (Fix)</th><th style="padding:.3rem .5rem;text-align:right">Total Qty</th></tr></thead><tbody>';
         (g.lines||[]).forEach(function(l){
           grpsHtml+='<tr style="border-bottom:1px solid rgba(255,255,255,.05)">';
           grpsHtml+='<td style="padding:.3rem .5rem"><span class="badge badge-cyan">'+l.item_code+'</span></td>';
@@ -4852,8 +4852,8 @@ function viewMBomDetail(id){try{
           grpsHtml+='<td style="padding:.3rem .5rem">'+l.uom+'</td>';
           grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.qty,3)+'</td>';
           grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.scrap,3)+'%</td>';
-          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.scrap_fix||0,3)+'</td>';
           grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.factor,3)+'</td>';
+          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.scrap_fix||0,3)+'</td>';
           grpsHtml+='<td style="padding:.3rem .5rem;text-align:right;font-weight:600;color:var(--cyan)">'+fmt_num(l.total_qty,3)+'</td>';
           grpsHtml+='</tr>';
         });
