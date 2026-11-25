@@ -854,9 +854,9 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         <div class="form-group">
           <div class="flabel req">Item Code</div>
           <!-- Bisa ketik manual atau cari via search modal (FG items) -->
-          <div style="display:flex;gap:.4rem;align-items:center">
+          <div class="search-field-wrap">
             <input class="finput" id="kap_item_code" placeholder="Cari item code FG..."
-              oninput="onKapItemCodeInput(this.value)" style="flex:1">
+              oninput="onKapItemCodeInput(this.value)">
             <span class="search-icon clickable" onclick="openSearchModal('fg_item','kap_item_code','kap_item_name')" title="Cari Item FG">🔍</span>
           </div>
         </div>
@@ -2896,12 +2896,15 @@ function deleteItemFg(id){
 }
 
 // Load data item FG dari server lalu render
+// Juga refresh DB_fgItems agar auto-fill di Kapasitas (Master Route) selalu up-to-date
 function loadItemFg(){
   fetch('/api/item-fg',{headers:{'x-token':getToken()}})
     .then(r=>r.json())
     .then(data=>{
       DB.itemfg = data||[];
       renderItemFg();
+      // Sync DB_fgItems agar lookup loose_tube_qty/fiber_qty di Master Route tidak stale
+      return fetch('/api/items/fg',{headers:{'x-token':getToken()}}).then(r=>r.json()).then(fg=>{ DB_fgItems=fg||[]; }).catch(()=>{});
     }).catch(e=>console.warn('loadItemFg:',e));
 }
 
