@@ -41,21 +41,27 @@ async function buildGroups(groupTable, lineTable, dlfohTable, parentField, paren
   const groups = await query(`SELECT * FROM ${groupTable} WHERE ${parentField}=? ORDER BY sort_order`, [parentId]);
   for (const g of groups) {
     g.lines      = await query(`SELECT * FROM ${lineTable} WHERE group_id=? ORDER BY sort_order`, [g.id]);
-    const dlfoh  = await query(`SELECT * FROM ${dlfohTable} WHERE group_id=? ORDER BY sort_order`, [g.id]);
+    // Load bom_dlfoh untuk BOM biasa (masterbom_dlfoh tidak lagi digunakan — DL-FOH berasal dari Master Route)
+    if (dlfohTable === 'bom_dlfoh') {
+      const dlfoh = await query(`SELECT * FROM ${dlfohTable} WHERE group_id=? ORDER BY sort_order`, [g.id]);
+      g.dlfohLines = dlfoh.map(d => ({
+        ...d,
+        index:        parseFloat(d.idx || 0),
+        index_manual: !!(d.index_manual),
+        setup:        parseFloat(d.setup)  || 0,
+        factor:       parseFloat(d.factor) || 1,
+        total_hour:   parseFloat(d.total_hour) || 0,
+        total_cost:   parseFloat(d.total_cost) || 0,
+      }));
+    } else {
+      // masterbom_dlfoh diabaikan — DL-FOH hanya dari Master Route saat BOM dibuat
+      g.dlfohLines = [];
+    }
     // Normalize: add camelCase aliases for JS frontend compatibility
     g.kapPct     = parseFloat(g.kap_pct) || 100;
     g.dlLot      = parseFloat(g.dl_lot)  || 1;
     g.fohLot     = parseFloat(g.foh_lot) || 1;
     g.speed      = parseFloat(g.speed)   || 1;
-    g.dlfohLines = dlfoh.map(d => ({
-      ...d,
-      index:        parseFloat(d.idx || 0),
-      index_manual: !!(d.index_manual),
-      setup:        parseFloat(d.setup)  || 0,
-      factor:       parseFloat(d.factor) || 1,
-      total_hour:   parseFloat(d.total_hour) || 0,
-      total_cost:   parseFloat(d.total_cost) || 0,
-    }));
   }
   return groups;
 }
@@ -113,7 +119,7 @@ async function deleteMBomGroups(mbomId) {
   const grps = await query(`SELECT id FROM masterbom_groups WHERE masterbom_id=?`,[mbomId]);
   for (const g of grps) {
     await query(`DELETE FROM masterbom_lines WHERE group_id=?`,[g.id]);
-    await query(`DELETE FROM masterbom_dlfoh WHERE group_id=?`,[g.id]);
+    await query(`DELETE FROM masterbom_dlfoh WHERE group_id=?`,[g.id]); // cleanup data lama
   }
   await query(`DELETE FROM masterbom_groups WHERE masterbom_id=?`,[mbomId]);
 }
@@ -129,17 +135,7 @@ async function insertMBomGroups(mbomId, groups) {
       await query(`INSERT INTO masterbom_lines (group_id,item_code,item_name,uom,qty,scrap,scrap_fix,factor,total_qty,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)`,
         [gid,l.item_code||'',l.item_name||'',l.uom||'',l.qty||0,l.scrap||0,l.scrap_fix||0,l.factor||1,l.total_qty||0,li]);
     }
-    for (let di=0; di<(g.dlfohLines||[]).length; di++) {
-      const d=g.dlfohLines[di];
-      // If type is empty, look up from dlfoh master table
-      let dtype = d.type||'';
-      if(!dtype && d.cat) {
-        const dlfohRows = await query(`SELECT type FROM dlfoh WHERE catid=?`, [d.cat]);
-        if(dlfohRows.length) dtype = dlfohRows[0].type||'';
-      }
-      await query(`INSERT INTO masterbom_dlfoh (group_id,cat,type,idx,index_manual,setup,factor,total_hour,sort_order) VALUES (?,?,?,?,?,?,?,?,?)`,
-        [gid,d.cat||'',dtype,d.index||0,d.index_manual?1:0,d.setup||0,d.factor||1,d.total_hour||0,di]);
-    }
+    // masterbom_dlfoh tidak lagi disimpan — DL-FOH berasal dari Master Route saat BOM dibuat
   }
 }
 

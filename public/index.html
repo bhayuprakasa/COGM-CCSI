@@ -4608,10 +4608,9 @@ function renderMBomGroups(){
     </div>
   `).join('');
 
-  // wire hidden inputs for material lines and dlfoh lines
+  // wire hidden inputs for material lines
   mbomGroups.forEach((g,gIdx)=>{
     g.lines.forEach((_,lIdx)=>wireMBomLineInputs(gIdx,lIdx));
-    (g.dlfohLines||[]).forEach((_,dIdx)=>wireMBomDlfohInputs(gIdx,dIdx));
   });
 }
 
@@ -4996,19 +4995,8 @@ function onMasterBomSelect(mbomId){
         currency:'USD', price:0, landed:0, hedging:0, usd_rate:getLatestRate('USD'), total_amt:0, total_idr:0,
         fromMaster:true, // field qty/scrap/factor/item_code dari master, tidak boleh diedit
       })),
-      // Auto-generate DL-FOH dari master dlfoh per machine_line
-      // total_hour = prosesTime × lengthQty + setupTime
-      dlfohLines: DB.dlfoh
-        .filter(d => d.machine_line === g.machine_line)
-        .map(d => ({
-          cat: d.catid, type: d.type || '',
-          index: gProsesTime, index_manual: false,
-          setup: gSetupTime,  setup_manual: false,
-          factor: gLengthQty, factor_manual: false,
-          total_hour: gProsesTime * gLengthQty + gSetupTime,
-          total_cost: (gProsesTime * gLengthQty + gSetupTime) * (parseFloat(d.rate) || 0),
-          fromMaster: true, // auto-generated dari master DL-FOH, tidak bisa dihapus
-        })),
+      // DL-FOH dikosongkan — akan diisi setelah Master Route dipilih
+      dlfohLines: [],
     });
   });
   // Fallback: if no groups, use flat lines + machine_lines summary
