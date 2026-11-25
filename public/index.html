@@ -3645,14 +3645,9 @@ function recalcGroupDlfoh(gIdx){
   recalcAllGroups();
 }
 
-// Tentukan factor lengthQty per machine line:
-// Colouring → total fiber qty (proses per serat)
-// Buffering → jumlah loose tube / bom_fiber_cnt (proses per tube)
-// Lainnya   → 1 (satu kali proses assembly kabel)
+// Semua machine line menggunakan Length Qty (bom_fiber_qty) sebagai factor pengali
 function getLengthQtyForMachineLine(ml, totalFiberQty, looseTubeQty){
-  if(ml==='Colouring') return totalFiberQty;
-  if(ml==='Buffering') return looseTubeQty||1;
-  return 1;
+  return totalFiberQty || 1;
 }
 
 // Dipanggil saat user mengubah Length Qty di header BOM
