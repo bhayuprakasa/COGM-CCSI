@@ -269,22 +269,22 @@ router.get('/dlfoh', requireAuth, async (req,res) => {
 
 router.post('/dlfoh', requireEdit, async (req,res) => {
   try {
-    const {catid,desc,type,rate,machine_line} = req.body;
+    const {catid,desc,type,rate,machine_line,setup_proses} = req.body;
     if(!catid) return res.status(400).json({error:'Category ID wajib.'});
     const ex=await query(`SELECT id FROM dlfoh WHERE catid=?`,[catid]);
     if(ex.length) return res.status(400).json({error:'Category ID sudah ada.'});
     const id='DLFOH-'+catid;
-    await query(`INSERT INTO dlfoh (id,catid,\`desc\`,type,rate,machine_line,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-      [id,catid,desc||'',type||'',rate||0,machine_line||'',who(req),now(),who(req),now()]);
+    await query(`INSERT INTO dlfoh (id,catid,\`desc\`,type,rate,machine_line,setup_proses,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+      [id,catid,desc||'',type||'',rate||0,machine_line||'',setup_proses||'',who(req),now(),who(req),now()]);
     res.json({id,catid});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 router.put('/dlfoh/:id', requireEdit, async (req,res) => {
   try {
-    const {desc,type,rate,machine_line}=req.body;
-    await query(`UPDATE dlfoh SET \`desc\`=?,type=?,rate=?,machine_line=?,modified_by=?,modified_dt=? WHERE id=?`,
-      [desc,type,rate||0,machine_line||'',who(req),now(),req.params.id]);
+    const {desc,type,rate,machine_line,setup_proses}=req.body;
+    await query(`UPDATE dlfoh SET \`desc\`=?,type=?,rate=?,machine_line=?,setup_proses=?,modified_by=?,modified_dt=? WHERE id=?`,
+      [desc,type,rate||0,machine_line||'',setup_proses||'',who(req),now(),req.params.id]);
     res.json({ok:true});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
