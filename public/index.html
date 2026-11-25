@@ -1870,6 +1870,8 @@ window.API = {
 // ── apiSave helper (also used in main script) ──
 window.apiSave = function(apiCall, onSuccess) {
   Promise.resolve(apiCall).then(function(res) {
+    // Tangkap error dari server (HTTP 4xx/5xx tetap resolve di fetch, bukan throw)
+    if (res && res.error) { throw new Error(res.error); }
     onSuccess(res);
   }).catch(function(e) {
     console.error('API error:', e);
@@ -2867,13 +2869,13 @@ function saveItemFg(){
   const payload = {code, name, uom, loose_tube_qty:looseTube, fiber_qty:fiberQty, machines};
   if (editId) {
     // Update: gunakan endpoint PUT /item-fg/:id
-    apiSave(fetch('/api/item-fg/'+editId,{method:'PUT',headers:{'Content-Type':'application/json','x-token':TOKEN},body:JSON.stringify(payload)}).then(r=>r.json()), function(){
+    apiSave(fetch('/api/item-fg/'+editId,{method:'PUT',headers:{'Content-Type':'application/json','x-token':TOKEN},body:JSON.stringify(payload)}).then(r=>r.ok?r.json():r.json().then(d=>{throw new Error(d.error||'Gagal update item');})), function(){
       toast('Master Item FG diupdate.','success');
       closeItemFgForm();
       loadItemFg();
     });
   } else {
-    apiSave(fetch('/api/item-fg',{method:'POST',headers:{'Content-Type':'application/json','x-token':TOKEN},body:JSON.stringify(payload)}).then(r=>r.json()), function(){
+    apiSave(fetch('/api/item-fg',{method:'POST',headers:{'Content-Type':'application/json','x-token':TOKEN},body:JSON.stringify(payload)}).then(r=>r.ok?r.json():r.json().then(d=>{throw new Error(d.error||'Gagal simpan item');})), function(){
       toast('Master Item FG disimpan.','success');
       closeItemFgForm();
       loadItemFg();
