@@ -945,6 +945,11 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <input class="finput" id="mbom_id_disp" readonly placeholder="Auto-generate">
           </div>
           <div class="form-group">
+            <!-- No Spec: nomor spesifikasi produk, diinput manual -->
+            <div class="flabel">No Spec</div>
+            <input class="finput" id="mbom_no_spec" placeholder="Nomor spesifikasi...">
+          </div>
+          <div class="form-group">
             <div class="flabel req">Item Code</div>
             <!-- Visible item code field — user bisa ketik manual atau pakai search modal (sama seperti Master Route) -->
             <div class="search-field-wrap">
@@ -994,6 +999,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <thead><tr>
             <th style="width:32px"></th>
             <th>BOM ID</th>
+            <th>No Spec</th>
             <th>Product</th>
             <th>Customer</th>
             <th>Project</th>
@@ -4357,7 +4363,7 @@ let mbomSeq=0;
 function openMBomForm(id){try{
   mbomGroups=[];
   setVal('mbom_edit_id','');
-  ['mbom_product','mbom_product_code'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['mbom_product','mbom_product_code','mbom_no_spec'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['mbom_fiber_cnt','mbom_buffer_qty','mbom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   // mbom_new_ml_sel dihapus — line diambil dari Master FG
 
@@ -4372,6 +4378,7 @@ function openMBomForm(id){try{
       setText('mbom_form_title','Edit Master BOM: '+rec.bomid);
       setVal('mbom_edit_id',id);
       setVal('mbom_id_disp',rec.bomid);
+      setVal('mbom_no_spec',rec.no_spec||'');
       setVal('mbom_product_code',rec.product_code||'');
       setVal('mbom_product',rec.product||'');
       // Sync Loose Tube & Fiber/Tube dari Master Item FG agar selalu sesuai master
@@ -4571,7 +4578,7 @@ function renderMBomGroups(){
           <table class="line-tbl">
             <thead><tr>
               <th>Item Code</th><th>Item Name</th><th>UOM</th>
-              <th>Qty</th><th>Scrap%</th><th>Factor</th><th>Total Qty</th><th></th>
+              <th>Qty</th><th>Scrap (%)</th><th>Scrap (Fix)</th><th>Factor</th><th>Total Qty</th><th></th>
             </tr></thead>
             <tbody id="mbom_lines_${gIdx}">
               ${g.lines.map((l,lIdx)=>renderMBomLineRow(gIdx,lIdx,l)).join('')}
@@ -4603,6 +4610,7 @@ function renderMBomLineRow(gIdx,lIdx,l){
     +'<td><input class="li-input mbom-line-uom" style="width:44px" value="'+(l.uom||'')+'" readonly></td>'
     +'<td><input class="li-input mbom-line-qty" type="number" style="width:58px" value="'+(l.qty||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
     +'<td><input class="li-input mbom-line-scrap" type="number" style="width:50px" value="'+(l.scrap||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
+    +'<td><input class="li-input mbom-line-scrapfix" type="number" style="width:60px" value="'+(l.scrap_fix||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')" title="Scrap nilai tetap, ditambahkan ke Total Qty berapapun qty-nya"></td>'
     +'<td><input class="li-input mbom-line-factor" type="number" style="width:50px" value="'+(l.factor||1)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
     +'<td><input class="li-input mbom-line-totalqty" style="width:75px" value="'+fmt_num(l.total_qty||0,3)+'" readonly></td>'
     +'<td><button class="btn btn-danger btn-xs" onclick="deleteMBomLine('+gIdx+','+lIdx+')">&#10005;</button></td>'
@@ -4615,7 +4623,7 @@ function wireMBomLineInputs(gIdx,lIdx){
 }
 
 function addMBomLine(gIdx){
-  mbomGroups[gIdx].lines.push({item_code:'',item_name:'',uom:'',qty:0,scrap:0,factor:1,total_qty:0});
+  mbomGroups[gIdx].lines.push({item_code:'',item_name:'',uom:'',qty:0,scrap:0,scrap_fix:0,factor:1,total_qty:0});
   renderMBomGroups();
 }
 
@@ -4648,10 +4656,12 @@ function recalcMBomLine(gIdx,lIdx){
   if(!row) return;
   const qty=parseFloat(row.querySelector('.mbom-line-qty').value)||0;
   const scrap=parseFloat(row.querySelector('.mbom-line-scrap').value)||0;
+  // scrap_fix: nilai tetap ditambahkan ke total_qty berapapun qty-nya
+  const scrap_fix=parseFloat(row.querySelector('.mbom-line-scrapfix').value)||0;
   const factor=parseFloat(row.querySelector('.mbom-line-factor').value)||1;
-  const totalQty=qty*factor*(1+scrap/100);
+  const totalQty=qty*factor*(1+scrap/100)+scrap_fix;
   row.querySelector('.mbom-line-totalqty').value=fmt_num(totalQty,3);
-  Object.assign(mbomGroups[gIdx].lines[lIdx],{qty,scrap,factor,total_qty:totalQty});
+  Object.assign(mbomGroups[gIdx].lines[lIdx],{qty,scrap,scrap_fix,factor,total_qty:totalQty});
 }
 
 // ── DL-FOH row ──
@@ -4750,8 +4760,9 @@ function saveMBom(){try{
   const product=(ge('mbom_product')||{value:''}).value.trim();
   if(!product_code){toast('Item Code wajib diisi.','error');return;}
   if(!mbomGroups.length){toast('Tambahkan minimal 1 Machine Line.','error');return;}
-  // Kirim product_code dan product (nama) ke API
-  const payload={product_code,product,fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,fiber_qty:(ge('mbom_fiber_qty')||{value:''}).value,groups:JSON.parse(JSON.stringify(mbomGroups))};
+  // Kirim product_code, product (nama), dan no_spec ke API
+  const no_spec=(ge('mbom_no_spec')||{value:''}).value.trim();
+  const payload={product_code,product,fiber_cnt:(ge('mbom_fiber_cnt')||{value:''}).value,buffer_qty:(ge('mbom_buffer_qty')||{value:''}).value,fiber_qty:(ge('mbom_fiber_qty')||{value:''}).value,no_spec,groups:JSON.parse(JSON.stringify(mbomGroups))};
   if(typeof API!=='undefined'){
     if(editId){apiSave(API.masterbom.update(editId,payload),function(){toast('Master BOM diupdate.','success');closeMBomForm();loadAllData().then(function(){renderMBom();updateCounts();});});}
     else{apiSave(API.masterbom.create(payload),function(){toast('Master BOM disimpan.','success');closeMBomForm();loadAllData().then(function(){renderMBom();updateCounts();});});}
@@ -4813,7 +4824,7 @@ function viewMBomDetail(id){try{
     var totalFiber=looseTube*fiberPerTube||b.fiber_qty||'—';
 
     var hdr='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem 1.5rem;margin-bottom:1rem">';
-    var fields=[['BOM ID',b.bomid],['Item Code',b.product_code||'—'],['Product',b.product||'—'],
+    var fields=[['BOM ID',b.bomid],['No Spec',b.no_spec||'—'],['Item Code',b.product_code||'—'],['Product',b.product||'—'],
       ['Loose Tube Qty',looseTube||'—'],['Fiber / Tube',fiberPerTube||'—'],['Total Fiber Qty',totalFiber],
       ['Created By',b.created_by||'—'],['Created',b.created_dt||b.created||'—'],['Modified By',b.modified_by||'—'],
       ['Modified',b.modified_dt||b.updated||'—']];
@@ -4833,7 +4844,7 @@ function viewMBomDetail(id){try{
       if((g.lines||[]).length){
         grpsHtml+='<div style="font-size:.72rem;font-weight:600;margin:.4rem 0 .3rem;color:var(--muted)">MATERIAL LINES</div>';
         grpsHtml+='<table style="width:100%;border-collapse:collapse;font-size:.75rem">';
-        grpsHtml+='<thead><tr style="background:rgba(0,0,0,.3)"><th style="padding:.3rem .5rem;text-align:left">Item Code</th><th style="padding:.3rem .5rem;text-align:left">Item Name</th><th style="padding:.3rem .5rem;text-align:left">UOM</th><th style="padding:.3rem .5rem;text-align:right">Qty</th><th style="padding:.3rem .5rem;text-align:right">Scrap%</th><th style="padding:.3rem .5rem;text-align:right">Factor</th><th style="padding:.3rem .5rem;text-align:right">Total Qty</th></tr></thead><tbody>';
+        grpsHtml+='<thead><tr style="background:rgba(0,0,0,.3)"><th style="padding:.3rem .5rem;text-align:left">Item Code</th><th style="padding:.3rem .5rem;text-align:left">Item Name</th><th style="padding:.3rem .5rem;text-align:left">UOM</th><th style="padding:.3rem .5rem;text-align:right">Qty</th><th style="padding:.3rem .5rem;text-align:right">Scrap (%)</th><th style="padding:.3rem .5rem;text-align:right">Scrap (Fix)</th><th style="padding:.3rem .5rem;text-align:right">Factor</th><th style="padding:.3rem .5rem;text-align:right">Total Qty</th></tr></thead><tbody>';
         (g.lines||[]).forEach(function(l){
           grpsHtml+='<tr style="border-bottom:1px solid rgba(255,255,255,.05)">';
           grpsHtml+='<td style="padding:.3rem .5rem"><span class="badge badge-cyan">'+l.item_code+'</span></td>';
@@ -4841,6 +4852,7 @@ function viewMBomDetail(id){try{
           grpsHtml+='<td style="padding:.3rem .5rem">'+l.uom+'</td>';
           grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.qty,3)+'</td>';
           grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.scrap,3)+'%</td>';
+          grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.scrap_fix||0,3)+'</td>';
           grpsHtml+='<td style="padding:.3rem .5rem;text-align:right">'+fmt_num(l.factor,3)+'</td>';
           grpsHtml+='<td style="padding:.3rem .5rem;text-align:right;font-weight:600;color:var(--cyan)">'+fmt_num(l.total_qty,3)+'</td>';
           grpsHtml+='</tr>';
@@ -4874,7 +4886,7 @@ function renderMBom(){try{
   const tbody=ge('mbom_tbody'); if(!tbody) return;
   setText('mbom_count',DB.masterbom.length);
   const rows=DB.masterbom.filter(b=>!mbomFilter||(b.bomid.toLowerCase().includes(mbomFilter)||b.product.toLowerCase().includes(mbomFilter)));
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="es-icon">&#128208;</div><p>Belum ada Master BOM.</p></div></td></tr>';return;}
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="es-icon">&#128208;</div><p>Belum ada Master BOM.</p></div></td></tr>';return;}
   tbody.innerHTML=rows.map(b=>{
     // Machine lines: from groups array or machine_lines array
     const mlines=(b.machine_lines&&b.machine_lines.length)
@@ -4889,6 +4901,7 @@ function renderMBom(){try{
     return '<tr'+(_ge?' class="ge-row"':'')+'>'
       +'<td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" '+(isSelected('masterbom',b.id)?'checked':'')+' onchange="toggleRowSelect(\'masterbom\',\''+b.id+'\',this.checked)"></td>'
       +'<td><span class="run-num">'+b.bomid+'</span></td>'
+      +'<td class="muted">'+(b.no_spec||'&#8212;')+'</td>'
       +(_ge?'<td><input class="ge-input" id="ge_mb_prod_'+b.id+'" value="'+geEsc(b.product)+'"></td>'
            :'<td><strong>'+b.product+'</strong></td>')
       +(_ge?'<td><input class="ge-input" id="ge_mb_cust_'+b.id+'" value="'+geEsc(b.customer||'')+'"></td>'
@@ -4966,7 +4979,7 @@ function onMasterBomSelect(mbomId){
       lines:(g.lines||[]).map(l=>({
         item_code:l.item_code, item_name:l.item_name,
         uom:l.uom||(DB_itemPrices.find(p=>p.item_code===l.item_code)||{}).uom||'',
-        qty:parseFloat(l.qty)||0, scrap:parseFloat(l.scrap)||0, factor:parseFloat(l.factor)||1, total_qty:parseFloat(l.total_qty)||0,
+        qty:parseFloat(l.qty)||0, scrap:parseFloat(l.scrap)||0, scrap_fix:parseFloat(l.scrap_fix)||0, factor:parseFloat(l.factor)||1, total_qty:parseFloat(l.total_qty)||0,
         currency:'USD', price:0, landed:0, hedging:0, usd_rate:getLatestRate('USD'), total_amt:0, total_idr:0,
         fromMaster:true, // field qty/scrap/factor/item_code dari master, tidak boleh diedit
       })),
@@ -5076,9 +5089,9 @@ const UPLOAD_CONFIG={
   },
   masterbom:{
     title:'Upload Master BOM',
-    columns:['BomID','Product','Customer','Project','FiberCnt','BufferQty','FiberQty',
+    columns:['BomID','NoSpec','Product','Customer','Project','FiberCnt','BufferQty','FiberQty',
              'MachineLine','MachineID','KapID','Speed','KapPct','DLLot','FOHLot',
-             'RowType','ItemCode','ItemName','UOM','Qty','Scrap','Factor',
+             'RowType','ItemCode','ItemName','UOM','Qty','Scrap','ScrapFix','Factor',
              'DLFOHCategory','DLFOHType','Index','SetUp','DLFOHFactor'],
     info:'<b>Format CSV Master BOM</b> — gunakan kolom <b>RowType</b>:<br>'
       +'&bull; <code>HEADER</code> = definisi Machine Line group<br>'
@@ -5086,11 +5099,11 @@ const UPLOAD_CONFIG={
       +'&bull; <code>DLFOH</code> = satu baris DL-FOH category<br>'
       +'BomID yang sudah ada akan di-update. BomID baru akan ditambahkan.',
     sample:[
-      ['BomID','Product','Customer','Project','FiberCnt','BufferQty','FiberQty','MachineLine','MachineID','KapID','Speed','KapPct','DLLot','FOHLot','RowType','ItemCode','ItemName','UOM','Qty','Scrap','Factor','DLFOHCategory','DLFOHType','Index','SetUp','DLFOHFactor'],
-      ['MBOM-0010','Kabel Fiber SM 24Core','PT Telkom','Proyek A','24','24','288','Colouring','M-COLOR-01','KAP-0001','15','85','1','1','HEADER','','','','','','','','','','',''],
-      ['MBOM-0010','','','','','','','Colouring','','','','','','','MATERIAL','RM-001','Serat Optik SM','MTR','288','2','1','','','','',''],
-      ['MBOM-0010','','','','','','','Colouring','','','','','','','MATERIAL','RM-002','UV Ink','LTR','0.5','1','1','','','','',''],
-      ['MBOM-0010','','','','','','','Colouring','','','','','','','DLFOH','','','','','','','DL-001','DL','','0','1'],
+      ['BomID','NoSpec','Product','Customer','Project','FiberCnt','BufferQty','FiberQty','MachineLine','MachineID','KapID','Speed','KapPct','DLLot','FOHLot','RowType','ItemCode','ItemName','UOM','Qty','Scrap','ScrapFix','Factor','DLFOHCategory','DLFOHType','Index','SetUp','DLFOHFactor'],
+      ['MBOM-0010','SPC-001','Kabel Fiber SM 24Core','PT Telkom','Proyek A','24','24','288','Colouring','M-COLOR-01','KAP-0001','15','85','1','1','HEADER','','','','','','','','','','','',''],
+      ['MBOM-0010','','','','','','','','Colouring','','','','','','','MATERIAL','RM-001','Serat Optik SM','MTR','288','2','0.5','1','','','','',''],
+      ['MBOM-0010','','','','','','','','Colouring','','','','','','','MATERIAL','RM-002','UV Ink','LTR','0.5','1','0','1','','','','',''],
+      ['MBOM-0010','','','','','','','','Colouring','','','','','','','DLFOH','','','','','','','','DL-001','DL','','0','1'],
       ['MBOM-0010','','','','','','','Stranding','M-STRAND-01','KAP-0010','12','90','1','1','HEADER','','','','','','','','','','',''],
       ['MBOM-0010','','','','','','','Stranding','','','','','','','MATERIAL','RM-003','Jelly Tube','MTR','1','2','24','','','','',''],
       ['MBOM-0010','','','','','','','Stranding','','','','','','','DLFOH','','','','','','','DL-002','DL','','0','1'],
@@ -5463,6 +5476,7 @@ function confirmUpload(){
       if(!bomMap[bomId]) bomMap[bomId]={
         bomid:bomId,
         product:(r['Product']||'').trim(),
+        no_spec:(r['NoSpec']||'').trim(),
         customer:(r['Customer']||'').trim(),
         project:(r['Project']||'').trim(),
         fiber_cnt:(r['FiberCnt']||'').trim(),
@@ -5472,6 +5486,7 @@ function confirmUpload(){
       };
       const bom=bomMap[bomId];
       if((r['Product']||'').trim()) bom.product=(r['Product']||'').trim();
+      if((r['NoSpec']||'').trim()) bom.no_spec=(r['NoSpec']||'').trim();
       const ml=(r['MachineLine']||'').trim();
       const rowType=(r['RowType']||'HEADER').trim().toUpperCase();
       if(!ml){skipped++;return;}
@@ -5497,8 +5512,8 @@ function confirmUpload(){
       } else if(rowType==='MATERIAL'){
         var ic=(r['ItemCode']||'').trim();
         if(!ic){skipped++;return;}
-        var qty=parseFloat(r['Qty'])||0, scrap=parseFloat(r['Scrap'])||0, factor=parseFloat(r['Factor'])||1;
-        grp.lines.push({item_code:ic,item_name:(r['ItemName']||'').trim(),uom:(r['UOM']||'').trim(),qty:qty,scrap:scrap,factor:factor,total_qty:qty*factor*(1+scrap/100)});
+        var qty=parseFloat(r['Qty'])||0, scrap=parseFloat(r['Scrap'])||0, scrap_fix=parseFloat(r['ScrapFix'])||0, factor=parseFloat(r['Factor'])||1;
+        grp.lines.push({item_code:ic,item_name:(r['ItemName']||'').trim(),uom:(r['UOM']||'').trim(),qty:qty,scrap:scrap,scrap_fix:scrap_fix,factor:factor,total_qty:qty*factor*(1+scrap/100)+scrap_fix});
       } else if(rowType==='DLFOH'){
         var cat=(r['DLFOHCategory']||'').trim();
         if(!cat){skipped++;return;}
@@ -5522,7 +5537,7 @@ function confirmUpload(){
       var existing=DB.masterbom.find(function(b){return b.bomid===bomId;});
       if(existing){updated++;}else{added++;}
       newRecords.push({
-        bomid:bomId, product:bom.product, customer:bom.customer, project:bom.project,
+        bomid:bomId, product:bom.product, no_spec:bom.no_spec||'', customer:bom.customer, project:bom.project,
         fiber_cnt:bom.fiber_cnt, buffer_qty:bom.buffer_qty, fiber_qty:bom.fiber_qty,
         groups:groups, existing:existing||null,
       });
@@ -5531,7 +5546,7 @@ function confirmUpload(){
     if(useAPI){
       closeUploadModal();
       var apiCalls=newRecords.map(function(mb){
-        var data={product:mb.product,customer:mb.customer,project:mb.project,
+        var data={product:mb.product,no_spec:mb.no_spec||'',customer:mb.customer,project:mb.project,
           fiber_cnt:mb.fiber_cnt,buffer_qty:mb.buffer_qty,fiber_qty:mb.fiber_qty,groups:mb.groups};
         if(mb.existing){
           return API.masterbom.update(mb.existing.id,data).catch(function(){return API.masterbom.create(data);});
