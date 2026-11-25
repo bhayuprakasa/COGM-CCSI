@@ -884,10 +884,10 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             style="background:var(--bg2,#1a1a2e);color:var(--t3,#8888aa);cursor:not-allowed">
         </div>
       </div>
-      <!-- Section Line: bisa tambah lebih dari 1 baris -->
+      <!-- Section Line: auto-generate dari Machine Lines Master Item FG -->
       <div class="sec-head" style="margin-top:.9rem">Line</div>
+      <div style="font-size:.72rem;color:var(--t3);margin-bottom:.4rem">Line diambil otomatis dari Machine Lines pada Master Item FG saat Item Code dipilih.</div>
       <div id="kap_lines_container" style="display:flex;flex-direction:column;gap:.5rem"></div>
-      <button type="button" class="btn btn-secondary btn-sm" onclick="addKapLine()" style="margin-top:.5rem;width:fit-content">+ Tambah Line</button>
     </div>
   </div>
 
@@ -974,23 +974,9 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           </div>
         </div>
 
-        <!-- MACHINE LINE GROUPS (same pattern as BOM form) -->
+        <!-- MACHINE LINE GROUPS: auto-generate dari Master Item FG -->
         <div class="sec-head" style="margin-top:1rem">Lines — Material (per Machine Line)</div>
-        <div style="display:flex;align-items:flex-end;gap:.75rem;margin-bottom:.75rem;padding:.75rem 1rem;background:var(--s2);border:1px dashed var(--b2);border-radius:var(--r);flex-wrap:wrap">
-          <div style="display:flex;flex-direction:column;gap:.3rem">
-            <span style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)">Machine Line <span style="color:var(--red)">*</span></span>
-            <select class="fselect" id="mbom_new_ml_sel" style="width:160px" onchange="onMBomMachineLineFilter()">
-              <option value="">— Pilih Machine Line —</option>
-              <option>Colouring</option>
-              <option>Buffering</option>
-              <option>Stranding</option>
-              <option>Jacketing</option>
-              <option>Armouring</option>
-              <option>Pipe Line</option>
-            </select>
-          </div>
-          <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="addMBomGroup()">+ Tambah Group</button>
-        </div>
+        <div style="font-size:.72rem;color:var(--t3);margin-bottom:.75rem">Group Machine Line diambil otomatis dari Machine Lines pada Master Item FG saat Item Code dipilih.</div>
         <div id="mbom_groups_container"></div>
       </div>
     </div>
@@ -2036,17 +2022,12 @@ function selectSearchResult(code,name){
   if(sm_nameField){const nel=document.getElementById(sm_nameField);if(nel) nel.value=name;}
   // FG item search — digunakan oleh BOM form, Master BOM form, dan Master FG (Route)
   if(sm_type==='fg_item'){
-    // Master FG (Route) — kap_item_code: auto-fill name + fiber spec dari item FG
+    // Master Route — kap_item_code: auto-fill + generate lines dari Master FG
     if(sm_field==='kap_item_code'){
-      const fgRec=DB_fgItems.find(p=>p.code===code);
-      setVal('kap_item_code',code);
-      setVal('kap_item_name',fgRec?(fgRec.name||name):name);
-      if(fgRec){
-        setVal('kap_loose_tube_qty',fgRec.loose_tube_qty||0);
-        setVal('kap_fiber_per_tube_qty',fgRec.fiber_qty||0);
-      }
-      calcKapTotalFiber();
-      closeSearchModal(); return;
+      closeSearchModal();
+      // Trigger onKapItemCodeInput agar auto-generate lines dari DB.itemfg
+      onKapItemCodeInput(code);
+      return;
     }
     if(sm_field==='bom_product_code'){
       // BOM (COGS Calculated) form: set code (hidden) dan name (readonly visible)
@@ -2062,19 +2043,10 @@ function selectSearchResult(code,name){
       }
       closeSearchModal(); return;
     }
-    // Master BOM product search — code ke mbom_product_code, name ke mbom_product, lalu sync dari kap
-    const codeEl=document.getElementById('mbom_product_code');
-    if(codeEl) codeEl.value=code;
-    const nameEl=document.getElementById('mbom_product');
-    if(nameEl) nameEl.value=name;
-    // Auto-fill Loose Tube, Fiber/Tube, Total Fiber dari Master FG
-    const fgRec=DB_fgItems.find(p=>p.code===code);
-    if(fgRec){
-      setVal('mbom_fiber_cnt',fgRec.loose_tube_qty||0);
-      setVal('mbom_buffer_qty',fgRec.fiber_qty||0);
-      setVal('mbom_fiber_qty',fgRec.total_fiber_qty||((fgRec.loose_tube_qty||0)*(fgRec.fiber_qty||0)));
-    }
-    closeSearchModal(); return;
+    // Master BOM product search — trigger onMBomProductCodeInput agar auto-generate groups dari FG
+    closeSearchModal();
+    onMBomProductCodeInput(code);
+    return;
   }
   // Master BOM select for BOM header
   // closeSearchModal dipanggil SEBELUM onMasterBomSelect agar popup selalu tertutup
@@ -2583,17 +2555,17 @@ function onKapLineMlChange(sel){
   dlfohSel.innerHTML=buildDlfohOpts('',sel.value);
 }
 
-// Render satu baris line (Machine Line + Duration + Setup + Category DL-FOH) ke dalam container
+// Render satu baris line — Machine Line readonly dari Master FG, user isi Duration & Setup saja
 function buildKapLineRow(ml,dur,setup){
-  const mlOpts=KAP_MACHINE_LINES.map(o=>`<option value="${o}" ${o===ml?'selected':''}>${o}</option>`).join('');
   const row=document.createElement('div');
   row.className='kap-line-row';
-  // Pakai flex-wrap agar tampil rapi di layar kecil
   row.style.cssText='display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-start;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.5rem .6rem';
   row.innerHTML=`
     <div class="form-group" style="flex:1;min-width:140px;margin:0">
-      <div class="flabel req" style="margin-bottom:.25rem">Machine Line</div>
-      <select class="fselect kap-line-ml" onchange="onKapLineMlChange(this)">${mlOpts}</select>
+      <div class="flabel" style="margin-bottom:.25rem">Machine Line</div>
+      <!-- Machine Line dari Master FG — readonly, tidak bisa diubah manual -->
+      <div class="finput" style="background:var(--s3);color:var(--cyan);cursor:default;font-family:var(--fm);font-size:.82rem;padding:.4rem .6rem">${ml||'—'}</div>
+      <input type="hidden" class="kap-line-ml" value="${ml||''}">
     </div>
     <div class="form-group" style="flex:1;min-width:120px;margin:0">
       <div class="flabel req" style="margin-bottom:.25rem">Duration Process (Jam)</div>
@@ -2602,8 +2574,7 @@ function buildKapLineRow(ml,dur,setup){
     <div class="form-group" style="flex:1;min-width:120px;margin:0">
       <div class="flabel" style="margin-bottom:.25rem">Setup (Jam)</div>
       <input class="finput kap-line-setup" type="number" step="0.001" min="0" placeholder="0.000" value="${setup||''}">
-    </div>
-    <button type="button" onclick="this.closest('.kap-line-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem;flex-shrink:0;margin-top:1.4rem" title="Hapus baris">✕</button>`;
+    </div>`;
   return row;
 }
 
@@ -2663,9 +2634,8 @@ function openKapForm(id){try{
     (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})();
     document.getElementById('kap_created').value=nowStr();
     setText('kap_form_title','Tambah Master Route');
-    addKapLine(); // satu baris default
+    // Baris line akan auto-generate setelah Item Code dipilih dari Master FG
   }
-  // item_code dan item_name diisi manual, tidak ada lookup
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openKapForm:",e);}}
 function closeKapForm(){try{setDisp('kap_form_card','none');setDisp('kap_list_card','');}catch(e){console.warn("closeKapForm:",e);}}
@@ -2678,7 +2648,7 @@ function saveKap(){try{
   if(!item_code){toast('Item Code wajib diisi.','error');return;}
   if(!item_name){toast('Item Name wajib diisi.','error');return;}
   const lines=getKapLines();
-  if(!lines.length){toast('Tambahkan minimal 1 baris Line.','error');return;}
+  if(!lines.length){toast('Pilih Item Code FG yang memiliki Machine Lines terlebih dahulu.','error');return;}
   // Ambil nilai fiber spec dari form
   const looseTube=parseInt((ge('kap_loose_tube_qty')||{value:'0'}).value)||0;
   const fiberPerTube=parseInt((ge('kap_fiber_per_tube_qty')||{value:'0'}).value)||0;
@@ -4372,7 +4342,7 @@ function openMBomForm(id){try{
   setVal('mbom_edit_id','');
   ['mbom_product','mbom_product_code'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['mbom_fiber_cnt','mbom_buffer_qty','mbom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
-  setVal('mbom_new_ml_sel','');
+  // mbom_new_ml_sel dihapus — line diambil dari Master FG
 
   if(id){
     // Show form with loading state
@@ -4466,6 +4436,21 @@ function onMBomProductCodeInput(val){
   if(codeEl) codeEl.value=code;
   // Sync Loose Tube Qty & Fiber/Tube dari Master Item FG berdasarkan item_code
   fillMBomFiberFromKap(code);
+
+  const isNewForm=!(ge('mbom_edit_id')||{}).value;
+  if(isNewForm){
+    // Auto-generate groups dari Machine Lines Master Item FG saat create baru
+    // Pertahankan lines yang sudah diisi user jika machine_line sama
+    const ifgRec=(DB.itemfg||[]).find(function(r){return r.code===code;});
+    if(ifgRec&&(ifgRec.machines||[]).length){
+      const existingByMl={};
+      mbomGroups.forEach(function(g){existingByMl[g.machine_line]=g;});
+      mbomGroups=ifgRec.machines.map(function(m){
+        // Reuse existing group jika ada agar lines yang sudah diisi user tidak hilang
+        return existingByMl[m.machine_line]||{machine_line:m.machine_line,machine_id:'',kap_id:'',lines:[],dlfohLines:[],prosesTime:0,setupTime:0,lengthQty:1,dlLot:1,fohLot:1};
+      });
+    }
+  }
   // Sync prosesTime & setupTime tiap group yang sudah ada dari kapasitas.notes
   syncMBomGroupsFromKap(code);
   if(mbomGroups.length) renderMBomGroups();
@@ -4550,7 +4535,7 @@ function renderMBomGroups(){
   const container=ge('mbom_groups_container');
   if(!container) return;
   if(!mbomGroups.length){
-    container.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--t3);border:1px dashed var(--b1);border-radius:var(--r);font-size:.82rem">Belum ada Machine Line. Tambah Machine Line di atas untuk mulai mengisi material.</div>';
+    container.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--t3);border:1px dashed var(--b1);border-radius:var(--r);font-size:.82rem">Pilih Item Code FG di atas untuk auto-generate group Machine Line dari Master Item FG.</div>';
     return;
   }
   container.innerHTML=mbomGroups.map((g,gIdx)=>`
@@ -7565,6 +7550,15 @@ function onKapItemCodeInput(val){
     setVal('kap_fiber_per_tube_qty',fgRec.fiber_qty||0);
   }
   calcKapTotalFiber();
+  // Auto-generate baris Line dari Machine Lines Master Item FG
+  // Ambil data mesin dari DB.itemfg (bukan DB_fgItems yang tidak punya machines)
+  var ifgRec=(DB.itemfg||[]).find(function(r){return r.code===code;});
+  var container=document.getElementById('kap_lines_container');
+  if(!container) return;
+  container.innerHTML='';
+  if(ifgRec&&(ifgRec.machines||[]).length){
+    ifgRec.machines.forEach(function(m){addKapLine(m.machine_line,'','');});
+  }
 }
 
 function openItemPriceForm(itemCode){
