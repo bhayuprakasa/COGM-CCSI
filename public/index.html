@@ -2856,43 +2856,61 @@ function openBomForm(id){try{
     });
 
     // Re-sync prosesTime & setupTime dari Master BOM yang ter-link
-    // Prioritas: 1) Master BOM (linked), 2) kapasitas.notes, 3) nilai tersimpan di bom_dlfoh
-    // Ini memastikan COGS Calculated selalu pakai nilai terkini dari Master FG per lini mesin
-    if(mbomRec && mbomRec.groups && mbomRec.groups.length){
-      bomGroups.forEach(g=>{
-        const _mg=(mbomRec.groups||[]).find(mg=>mg.machine_line===g.machine_line);
-        if(!_mg||!_mg.dlfohLines||!_mg.dlfohLines.length) return;
-        const _mFirstDl=_mg.dlfohLines[0];
-        const _mPT=_mFirstDl?parseFloat(_mFirstDl.index)||0:0;
-        const _mST=_mFirstDl?parseFloat(_mFirstDl.setup)||0:0;
-        if(_mPT>0||_mST>0){
-          g.prosesTime=_mPT;
-          g.setupTime=_mST;
-          // Update index & setup di tiap dlfoh line yang belum di-override manual
-          g.dlfohLines.forEach(dl=>{
-            if(!dl.index_manual) dl.index=_mPT;
-            dl.setup=_mST;
-            dl.total_hour=dl.index*(dl.factor||1)+(dl.setup||0);
-          });
-        }
-      });
-    } else if(rec.item_code){
-      // Fallback: kapasitas.notes (jika ada)
-      const _kapRec=DB.kap.find(k=>k.item_code===rec.item_code);
-      if(_kapRec){
-        let _kapLines=[];
-        try{_kapLines=JSON.parse(_kapRec.notes||'[]');}catch(e){_kapLines=[];}
-        bomGroups.forEach(g=>{
-          const _kl=_kapLines.find(l=>l.machine_line===g.machine_line);
-          if(_kl){
-            const _pt=parseFloat(_kl.duration)||0;
-            const _st=parseFloat(_kl.setup)||0;
-            if(_pt>0) g.prosesTime=_pt;
-            if(_st>0) g.setupTime=_st;
+    // Fetch fresh dari API agar DB.masterbom selalu up-to-date sebelum re-sync
+    var _masterBomId=rec.master_bom_id||'';
+    var _itemCode=rec.item_code||'';
+    var _doResync=function(mbomList){
+      var _mr=_masterBomId?(mbomList||[]).find(function(b){return b.id===_masterBomId||b.bomid===_masterBomId;}):null;
+      if(_mr && _mr.groups && _mr.groups.length){
+        // Gunakan nilai terkini dari Master BOM (bukan bom_dlfoh lama yang mungkin salah)
+        bomGroups.forEach(function(g){
+          var _mg=(_mr.groups||[]).find(function(mg){return mg.machine_line===g.machine_line;});
+          if(!_mg||!_mg.dlfohLines||!_mg.dlfohLines.length) return;
+          var _mFirstDl=_mg.dlfohLines[0];
+          var _mPT=_mFirstDl?parseFloat(_mFirstDl.index)||0:0;
+          var _mST=_mFirstDl?parseFloat(_mFirstDl.setup)||0:0;
+          if(_mPT>0||_mST>0){
+            g.prosesTime=_mPT;
+            g.setupTime=_mST;
+            g.dlfohLines.forEach(function(dl){
+              if(!dl.index_manual) dl.index=_mPT;
+              dl.setup=_mST;
+              dl.total_hour=dl.index*(dl.factor||1)+(dl.setup||0);
+            });
           }
         });
+      } else if(_itemCode){
+        // Fallback: kapasitas.notes (jika ada)
+        var _kapRec=DB.kap.find(function(k){return k.item_code===_itemCode;});
+        if(_kapRec){
+          var _kapLines=[];
+          try{_kapLines=JSON.parse(_kapRec.notes||'[]');}catch(e){_kapLines=[];}
+          bomGroups.forEach(function(g){
+            var _kl=_kapLines.find(function(l){return l.machine_line===g.machine_line;});
+            if(_kl){
+              var _pt=parseFloat(_kl.duration)||0;
+              var _st=parseFloat(_kl.setup)||0;
+              if(_pt>0) g.prosesTime=_pt;
+              if(_st>0) g.setupTime=_st;
+            }
+          });
+        }
       }
+      renderBomGroups();
+      renderBomRouting();
+    };
+    // Fetch masterbom fresh dari server lalu apply re-sync (async agar dapat data terkini)
+    if(typeof API!=='undefined' && _masterBomId){
+      const _bfs=ge('bom_form_section');if(_bfs)_bfs.scrollIntoView({behavior:'smooth'});
+      fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+        .then(function(r){return r.json();})
+        .then(function(list){DB.masterbom=list;_doResync(list);})
+        .catch(function(){_doResync(DB.masterbom||[]);});
+      return; // renderBomGroups dipanggil di dalam _doResync
     }
+    _doResync(DB.masterbom||[]);
+    const bfs2=ge('bom_form_section');if(bfs2)bfs2.scrollIntoView({behavior:'smooth'});
+    return;
   } else {
     setText('bom_form_title','COGS Calculated Baru');
     const newBomId='BOM-'+(++bomSeq).toString().padStart(4,'0');
