@@ -1743,9 +1743,10 @@ window.serverLogout = async function() {
 
 // ── Load ALL data from server → fully replace in-memory DB ──
 window.loadAllData = async function() {
-  const [itemPrices, fgItems, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs, cogs] = await Promise.all([
+  const [itemPrices, fgItems, itemfg, prices, exrates, dlfoh, mesin, kapasitas, masterbom, bom, history, seqs, cogs] = await Promise.all([
     apiGet('/item-prices'),  // item_prices sekarang menggantikan items sebagai master data
     apiGet('/items/fg'),     // master FG (is_fg=1) untuk dropdown item code di Master BOM
+    apiGet('/item-fg'),      // Master Item FG lengkap beserta machine lines — dibutuhkan oleh Master BOM
     apiGet('/prices'),
     apiGet('/exrates'),
     apiGet('/dlfoh'),
@@ -1761,6 +1762,7 @@ window.loadAllData = async function() {
   // Fully replace — never merge with seed/sample data
   DB_itemPrices = itemPrices || [];  // item_prices sebagai sumber lookup item
   DB_fgItems    = fgItems    || [];  // master FG untuk lookup item code di Master BOM
+  DB.itemfg     = itemfg     || [];  // Master Item FG dengan machines — wajib untuk auto-generate group di Master BOM
   DB.items      = [];                // tidak lagi digunakan — lookup pakai DB_itemPrices
   DB.prices     = prices     || [];
   DB.exrates    = exrates    || [];
