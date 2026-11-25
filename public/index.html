@@ -3371,7 +3371,7 @@ function renderBomGroups(){
               <th>Item Code</th><th>Item Name</th><th>UOM</th>
               <th>Total Qty</th>
               <th>Currency</th><th>Price</th><th>Landed%</th><th>Hedging%</th>
-              <th>Rate USD/IDR</th><th>Total</th><th>Total(IDR)</th><th></th>
+              <th>Rate</th><th>Total</th><th>Total(IDR)</th><th></th>
             </tr></thead>
             <tbody id="bom_lines_body_${gIdx}">
               ${g.lines.map((l,lIdx)=>renderBomLineRow(gIdx,lIdx,l)).join('')}
@@ -3563,15 +3563,17 @@ function recalcBomLine(gIdx,lIdx){try{
   const landed=parseFloat(row.querySelector('.bom-line-landed').value)||0;
   const hedging=parseFloat(row.querySelector('.bom-line-hedging').value)||0;
   const currency=(row.querySelector('.bom-line-currency')?row.querySelector('.bom-line-currency').value:'USD').trim()||'USD';
-  // lineUsdRate: rate USD/IDR per line (input oleh user, bisa beda dengan global rate)
+  // lineUsdRate: rate per line (input oleh user, bisa beda dengan global rate)
   const lineUsdRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getLatestRate('USD');
   // totalQty = qty × factor × (1 + scrap%)
   const totalQty=qty*factor*(1+scrap/100);
+  // lengthQty dari group (jumlah fiber/tube yang diproduksi)
+  const lengthQty=bomGroups[gIdx].lengthQty||1;
   // rateConv: konversi price dari [currency] ke USD (misal IDR→USD: 1/16000)
   const rateConv=getLatestConversion(currency);
-  // totalAmt (USD) = totalQty × price × (1 + (landed%+hedging%)/100) × rateConv
-  const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv;
-  // totalIdr = totalAmt (USD) × rate USD/IDR per line
+  // totalAmt (USD) = totalQty × price × (1 + (landed%+hedging%)/100) × rateConv × lengthQty
+  const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv*lengthQty;
+  // totalIdr = totalAmt (USD) × rate per line
   const totalIdr=totalAmt*lineUsdRate;
   if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,3);
   if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,3);
