@@ -2619,6 +2619,12 @@ function openKapForm(id){try{
       setVal('kap_loose_tube_qty',rec.tube||0);
       setVal('kap_fiber_per_tube_qty',rec.fiber||0);
       setVal('kap_total_fiber_qty',(parseInt(rec.tube)||0)*(parseInt(rec.fiber)||0));
+      // Disable tube & fiber qty saat edit — nilai diambil dari Master Item FG
+      (function(){
+        var lt=ge('kap_loose_tube_qty'),ft=ge('kap_fiber_per_tube_qty');
+        if(lt){lt.disabled=true;lt.style.background='var(--bg2,#1a1a2e)';lt.style.color='var(--t3,#8888aa)';lt.style.cursor='not-allowed';}
+        if(ft){ft.disabled=true;ft.style.background='var(--bg2,#1a1a2e)';ft.style.color='var(--t3,#8888aa)';ft.style.cursor='not-allowed';}
+      })();
       // Parse lines dari notes (disimpan sebagai JSON)
       var lines=[];
       try{lines=JSON.parse(rec.notes||'[]');}catch(e){lines=[];}
@@ -2636,6 +2642,12 @@ function openKapForm(id){try{
     (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})();
     document.getElementById('kap_created').value=nowStr();
     setText('kap_form_title','Tambah Master Route');
+    // Pastikan tube & fiber qty bisa diedit saat tambah baru
+    (function(){
+      var lt=ge('kap_loose_tube_qty'),ft=ge('kap_fiber_per_tube_qty');
+      if(lt){lt.disabled=false;lt.style.background='';lt.style.color='';lt.style.cursor='';}
+      if(ft){ft.disabled=false;ft.style.background='';ft.style.color='';ft.style.cursor='';}
+    })();
     // Baris line akan auto-generate setelah Item Code dipilih dari Master FG
   }
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
