@@ -75,14 +75,14 @@ router.get('/masterbom', requireAuth, async (req,res) => {
 
 router.post('/masterbom', requireEdit, async (req,res) => {
   try {
-    const {product,product_code,fiber_cnt,buffer_qty,fiber_qty,groups} = req.body;
+    const {product,product_code,fiber_cnt,buffer_qty,fiber_qty,no_spec,groups} = req.body;
     if(!product) return res.status(400).json({error:'Product Name wajib.'});
     if(!groups?.length) return res.status(400).json({error:'Minimal 1 Machine Line.'});
     const seq   = await nextSeq('masterbom');
     const bomid = 'MBOM-'+String(seq).padStart(4,'0');
     const id    = 'MBOMDOC-'+bomid;
-    await query(`INSERT INTO masterbom (id,bomid,product,product_code,fiber_cnt,buffer_qty,fiber_qty,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-      [id,bomid,product,product_code||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',who(req),now(),who(req),now()]);
+    await query(`INSERT INTO masterbom (id,bomid,product,product_code,fiber_cnt,buffer_qty,fiber_qty,no_spec,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [id,bomid,product,product_code||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',no_spec||'',who(req),now(),who(req),now()]);
     await insertMBomGroups(id,groups);
     res.json({id,bomid});
   } catch(e) { res.status(500).json({error:e.message}); }
@@ -90,9 +90,9 @@ router.post('/masterbom', requireEdit, async (req,res) => {
 
 router.put('/masterbom/:id', requireEdit, async (req,res) => {
   try {
-    const {product,product_code,fiber_cnt,buffer_qty,fiber_qty,groups} = req.body;
-    await query(`UPDATE masterbom SET product=?,product_code=?,fiber_cnt=?,buffer_qty=?,fiber_qty=?,modified_by=?,modified_dt=? WHERE id=?`,
-      [product,product_code||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',who(req),now(),req.params.id]);
+    const {product,product_code,fiber_cnt,buffer_qty,fiber_qty,no_spec,groups} = req.body;
+    await query(`UPDATE masterbom SET product=?,product_code=?,fiber_cnt=?,buffer_qty=?,fiber_qty=?,no_spec=?,modified_by=?,modified_dt=? WHERE id=?`,
+      [product,product_code||'',fiber_cnt||'',buffer_qty||'',fiber_qty||'',no_spec||'',who(req),now(),req.params.id]);
     await deleteMBomGroups(req.params.id);
     await insertMBomGroups(req.params.id, groups||[]);
     res.json({ok:true});
@@ -126,8 +126,8 @@ async function insertMBomGroups(mbomId, groups) {
       [gid,mbomId,g.machine_line||'',g.machine_id||'',g.kap_id||'',g.speed||1,g.kapPct||100,g.dlLot||1,g.fohLot||1,gi]);
     for (let li=0; li<(g.lines||[]).length; li++) {
       const l=g.lines[li];
-      await query(`INSERT INTO masterbom_lines (group_id,item_code,item_name,uom,qty,scrap,factor,total_qty,sort_order) VALUES (?,?,?,?,?,?,?,?,?)`,
-        [gid,l.item_code||'',l.item_name||'',l.uom||'',l.qty||0,l.scrap||0,l.factor||1,l.total_qty||0,li]);
+      await query(`INSERT INTO masterbom_lines (group_id,item_code,item_name,uom,qty,scrap,scrap_fix,factor,total_qty,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        [gid,l.item_code||'',l.item_name||'',l.uom||'',l.qty||0,l.scrap||0,l.scrap_fix||0,l.factor||1,l.total_qty||0,li]);
     }
     for (let di=0; di<(g.dlfohLines||[]).length; di++) {
       const d=g.dlfohLines[di];
