@@ -371,6 +371,90 @@ router.delete('/kapasitas/:id', requireEdit, async (req,res) => {
 });
 
 // ── SEQUENCES ──
+// ── MASTER ITEM FG ──
+// Helper: load machine lines untuk satu item_code
+async function getFgMachines(item_code) {
+  return query(`SELECT id,machine_line,sort_order FROM item_fg_machines WHERE item_code=? ORDER BY sort_order,id`, [item_code]);
+}
+
+// Helper: ganti machine lines (delete-then-insert)
+async function replaceFgMachines(item_code, lines) {
+  await query(`DELETE FROM item_fg_machines WHERE item_code=?`, [item_code]);
+  for (let i = 0; i < lines.length; i++) {
+    const ml = (lines[i].machine_line || '').trim();
+    if (!ml) continue;
+    await query(`INSERT INTO item_fg_machines (item_code,machine_line,sort_order) VALUES (?,?,?)`,
+      [item_code, ml, i]);
+  }
+}
+
+// GET semua FG item + machine lines masing-masing
+router.get('/item-fg', requireAuth, async (req,res) => {
+  try {
+    const items = await query(`SELECT id,code,name,loose_tube_qty,fiber_qty,total_fiber_qty,created_by,created_dt,modified_by,modified_dt FROM items WHERE is_fg=1 ORDER BY code`);
+    const machines = await query(`SELECT item_code,machine_line,sort_order FROM item_fg_machines ORDER BY sort_order,id`);
+    const result = items.map(it => ({
+      ...it,
+      machines: machines.filter(m => m.item_code === it.code)
+    }));
+    res.json(result);
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+// POST buat FG item baru
+router.post('/item-fg', requireEdit, async (req,res) => {
+  try {
+    const {code, name, loose_tube_qty, fiber_qty, machines} = req.body;
+    if (!code || !name) return res.status(400).json({error:'Item Code dan Item Name wajib.'});
+    const exists = await query(`SELECT id FROM items WHERE code=?`, [code]);
+    if (exists.length) return res.status(400).json({error:'Item Code sudah ada.'});
+    const seq = await nextSeq('item');
+    const id  = 'ITM-'+String(seq).padStart(4,'0');
+    const lt  = parseInt(loose_tube_qty) || 0;
+    const fq  = parseInt(fiber_qty)      || 0;
+    const tf  = lt * fq;
+    await query(
+      `INSERT INTO items (id,code,name,uom,is_fg,loose_tube_qty,fiber_qty,total_fiber_qty,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,1,?,?,?,?,?,?,?)`,
+      [id, code, name, 'MTR', lt, fq, tf, who(req), now(), who(req), now()]
+    );
+    await replaceFgMachines(code, machines || []);
+    res.json({id, code, name, loose_tube_qty:lt, fiber_qty:fq, total_fiber_qty:tf});
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+// PUT update FG item
+router.put('/item-fg/:id', requireEdit, async (req,res) => {
+  try {
+    const [item] = await query(`SELECT code FROM items WHERE id=? AND is_fg=1`, [req.params.id]);
+    if (!item) return res.status(404).json({error:'Item FG tidak ditemukan.'});
+    const {name, loose_tube_qty, fiber_qty, machines} = req.body;
+    if (!name) return res.status(400).json({error:'Item Name wajib.'});
+    const lt = parseInt(loose_tube_qty) || 0;
+    const fq = parseInt(fiber_qty)      || 0;
+    const tf = lt * fq;
+    await query(
+      `UPDATE items SET name=?,loose_tube_qty=?,fiber_qty=?,total_fiber_qty=?,modified_by=?,modified_dt=? WHERE id=?`,
+      [name, lt, fq, tf, who(req), now(), req.params.id]
+    );
+    await replaceFgMachines(item.code, machines || []);
+    res.json({ok:true});
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+// DELETE FG item — tolak jika dipakai transaksi
+router.delete('/item-fg/:id', requireEdit, async (req,res) => {
+  try {
+    const [item] = await query(`SELECT code FROM items WHERE id=? AND is_fg=1`, [req.params.id]);
+    if (!item) return res.status(404).json({error:'Item FG tidak ditemukan.'});
+    if (await isItemUsed(item.code))
+      return res.status(400).json({error:'Item sudah digunakan dalam transaksi, tidak dapat dihapus.'});
+    await query(`DELETE FROM item_fg_machines WHERE item_code=?`, [item.code]);
+    await query(`DELETE FROM items WHERE id=?`, [req.params.id]);
+    res.json({ok:true});
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+// ── SEQUENCES ──
 router.get('/sequences', requireAuth, async (req,res) => {
   try {
     const rows = await query(`SELECT name, value FROM sequences`);
