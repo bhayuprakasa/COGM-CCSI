@@ -754,6 +754,11 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <input class="finput" id="ifg_name" placeholder="Nama produk FG">
         </div>
         <div class="form-group">
+          <div class="flabel req">UOM</div>
+          <!-- Satuan unit item FG, misal: MTR, PCS, KG -->
+          <input class="finput" id="ifg_uom" placeholder="Contoh: MTR, PCS, KG">
+        </div>
+        <div class="form-group">
           <div class="flabel">Loose Tube Qty</div>
           <!-- Jumlah tube dalam satu kabel -->
           <input class="finput" type="number" id="ifg_loose_tube_qty" placeholder="0" step="1" min="0"
@@ -794,6 +799,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <tr>
               <th>Item Code</th>
               <th>Item Name</th>
+              <th>UOM</th>
               <th style="text-align:right">Loose Tube Qty</th>
               <th style="text-align:right">Fiber/Tube Qty</th>
               <th style="text-align:right">Total Fiber</th>
@@ -2813,6 +2819,7 @@ function openItemFgForm(id){
   document.getElementById('ifg_code').value      = '';
   document.getElementById('ifg_code').readOnly   = false;
   document.getElementById('ifg_name').value      = '';
+  document.getElementById('ifg_uom').value       = '';
   document.getElementById('ifg_loose_tube_qty').value = '0';
   document.getElementById('ifg_fiber_qty').value       = '0';
   document.getElementById('ifg_total_fiber').value     = '0';
@@ -2827,6 +2834,7 @@ function openItemFgForm(id){
     document.getElementById('ifg_code').value      = rec.code;
     document.getElementById('ifg_code').readOnly   = true; // code tidak bisa diubah setelah simpan
     document.getElementById('ifg_name').value      = rec.name;
+    document.getElementById('ifg_uom').value       = rec.uom||'';
     document.getElementById('ifg_loose_tube_qty').value = rec.loose_tube_qty||0;
     document.getElementById('ifg_fiber_qty').value       = rec.fiber_qty||0;
     document.getElementById('ifg_total_fiber').value     = rec.total_fiber_qty||0;
@@ -2849,12 +2857,14 @@ function saveItemFg(){
   const editId   = document.getElementById('ifg_edit_id').value;
   const code     = document.getElementById('ifg_code').value.trim();
   const name     = document.getElementById('ifg_name').value.trim();
+  const uom      = document.getElementById('ifg_uom').value.trim();
   const looseTube= parseInt(document.getElementById('ifg_loose_tube_qty').value)||0;
   const fiberQty = parseInt(document.getElementById('ifg_fiber_qty').value)||0;
   const machines = getIfgLines();
   if (!code) { toast('Item Code wajib diisi.','error'); return; }
   if (!name) { toast('Item Name wajib diisi.','error'); return; }
-  const payload = {code, name, loose_tube_qty:looseTube, fiber_qty:fiberQty, machines};
+  if (!uom)  { toast('UOM wajib diisi.','error'); return; }
+  const payload = {code, name, uom, loose_tube_qty:looseTube, fiber_qty:fiberQty, machines};
   if (editId) {
     // Update: gunakan endpoint PUT /item-fg/:id
     apiSave(fetch('/api/item-fg/'+editId,{method:'PUT',headers:{'Content-Type':'application/json','x-token':TOKEN},body:JSON.stringify(payload)}).then(r=>r.json()), function(){
@@ -2905,7 +2915,7 @@ function renderItemFg(){
   document.getElementById('ifg_count').textContent = (DB.itemfg||[]).length;
   const tbody = document.getElementById('ifg_tbody');
   if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="es-icon">🧵</div><p>Belum ada data Master Item FG.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="es-icon">🧵</div><p>Belum ada data Master Item FG.</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(r=>{
@@ -2913,6 +2923,7 @@ function renderItemFg(){
     return `<tr>
       <td class="mono">${r.code}</td>
       <td>${r.name}</td>
+      <td><span class="badge badge-teal" style="font-size:.65rem">${r.uom||'—'}</span></td>
       <td style="text-align:right;font-family:var(--fm)">${r.loose_tube_qty||0}</td>
       <td style="text-align:right;font-family:var(--fm)">${r.fiber_qty||0}</td>
       <td style="text-align:right;font-family:var(--fm);color:var(--cyan)">${r.total_fiber_qty||0}</td>
