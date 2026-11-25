@@ -718,7 +718,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <div class="flabel req">Product Code</div>
           <div class="search-field-wrap">
             <input class="finput" id="kap_item_code" placeholder="Cari product code...">
-            <span class="search-icon clickable" onclick="openSearchModal('item','kap_item_code','kap_item_name')">🔍</span>
+            <span class="search-icon clickable" onclick="openSearchModal('masterfg','kap_item_code','kap_item_name')">🔍</span>
           </div>
         </div>
         <div class="form-group">
@@ -1385,6 +1385,14 @@ function selectSearchResult(code,name){
   // Master Route select — dari BOM form: auto-fill lines; dari masterbom form: hanya set field
   if(sm_type==='masterfg'){
     if(sm_field==='bom_master_fg_id') onMasterFgSelect(code);
+    // Auto-fill tube & fiber dari item FG jika dipilih di form Master Route
+    else if(sm_field==='kap_item_code'){
+      const fg=DB.items.find(i=>i.code===code&&i.is_fg);
+      if(fg){
+        const te=ge('kap_tube');  if(te)  te.value=fg.loose_tube_qty||0;
+        const fe=ge('kap_fiber'); if(fe)  fe.value=fg.fiber_qty||0;
+      }
+    }
     // jika dari mbom_product_code, nilai sudah di-set oleh codeEl.value=code di atas
     closeSearchModal(); return;
   }
@@ -1407,12 +1415,7 @@ function selectSearchResult(code,name){
     sm_extra=null;
     closeSearchModal(); return;
   }
-  // Kapasitas item code auto-fill name
-  if(sm_type==='item'&&sm_field==='kap_item_code'){
-    const item=DB.items.find(i=>i.code===code);
-    if(item) (function(){const _e=ge('kap_item_name');if(_e)_e.value=item.name;})()
-    closeSearchModal(); return;
-  }
+  // (kap_item_code ditangani oleh blok masterfg di atas)
   // BOM currency search — sm_extra = {g, l}
   if(sm_type==='exrate'&&sm_extra&&sm_extra.g!=null){
     onBomLineCurrencyChange(sm_extra.g, sm_extra.l, code);
@@ -1930,14 +1933,18 @@ function openKapForm(id){try{
     document.getElementById('kap_created').value=nowStr();
     setText('kap_form_title','Tambah Master Route');
   }
-  // wire item code search — support lookup by name juga
+  // wire item code search — hanya FG item, auto-fill name + tube + fiber
   const codeEl=document.getElementById('kap_item_code');
   codeEl.oninput=function(){
-    const item=findItemByCodeOrName(this.value);
-    if(item){
+    const q=this.value.trim();
+    const fg=DB.items.find(i=>i.is_fg&&i.code===q) ||
+             DB.items.find(i=>i.is_fg&&i.name.toLowerCase()===q.toLowerCase());
+    if(fg){
       // Jika match by name, ganti input dengan kode asli
-      if(item.code!==this.value) this.value=item.code;
-      (function(){const _e=ge('kap_item_name');if(_e)_e.value=item.name;})();
+      if(fg.code!==this.value) this.value=fg.code;
+      const ne=ge('kap_item_name');  if(ne)  ne.value=fg.name;
+      const te=ge('kap_tube');       if(te)  te.value=fg.loose_tube_qty||0;
+      const fe=ge('kap_fiber');      if(fe)  fe.value=fg.fiber_qty||0;
     }
   };
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
