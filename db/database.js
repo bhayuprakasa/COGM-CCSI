@@ -269,6 +269,15 @@ async function initSchema() {
         INDEX idx_fg_routes_item (item_code)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
+      // Machine lines per FG item — urutan proses mesin untuk setiap produk FG
+      `CREATE TABLE IF NOT EXISTS item_fg_machines (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        item_code VARCHAR(100) NOT NULL,
+        machine_line VARCHAR(100) NOT NULL DEFAULT '',
+        sort_order INT DEFAULT 0,
+        INDEX idx_item_fg_machines_code (item_code)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
       // Routing DL-FOH di level BOM (bukan group-level) — sumber dari fg_routes
       `CREATE TABLE IF NOT EXISTS bom_routing (
         id INT AUTO_INCREMENT PRIMARY KEY,

@@ -438,6 +438,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div class="nav-item active" onclick="goPage('price')"><span class="ni">💲</span> Item Price</div>
   <div class="nav-item" onclick="goPage('exrate')"><span class="ni">💱</span> Exchange Rate</div>
   <div class="nav-item" onclick="goPage('dlfoh')"><span class="ni">🏭</span> DL-FOH</div>
+  <div class="nav-item" onclick="goPage('itemfg')"><span class="ni">🧵</span> Master Item FG</div>
   <div class="nav-item" onclick="goPage('kapasitas')"><span class="ni">⚡</span> Master FG (Route)</div>
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
@@ -712,6 +713,95 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         <table class="tbl">
           <thead><tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll('dlfoh',this.checked)" title="Pilih Semua"></th><th>Category ID</th><th>Description</th><th>Type</th><th>Rate</th><th>Machine Line</th><th>Created</th><th>Aksi</th></tr></thead>
           <tbody id="dlfoh_tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PAGE: MASTER ITEM FG ══════════ -->
+<div class="page" id="page_itemfg">
+  <div class="actions-bar">
+    <div class="stat-row" style="margin-bottom:0">
+      <div class="stat-pill"><span class="sp-label">Total Item FG</span><span class="sp-val" id="ifg_count">0</span></div>
+    </div>
+    <button class="btn btn-primary" onclick="openItemFgForm()">+ Tambah Item FG</button>
+  </div>
+
+  <!-- FORM TAMBAH/EDIT -->
+  <div class="card" id="ifg_form_card" style="display:none">
+    <div class="card-head">
+      <div class="card-title"><span class="card-title-icon">🧵</span><span id="ifg_form_title">Tambah Master Item FG</span></div>
+      <div style="display:flex;gap:.4rem">
+        <button class="btn btn-secondary btn-sm" onclick="closeItemFgForm()">Batal</button>
+        <button class="btn btn-primary btn-sm" onclick="saveItemFg()">Simpan</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <input type="hidden" id="ifg_edit_id">
+      <input type="hidden" id="ifg_edit_code">
+
+      <!-- Header fields -->
+      <div class="sec-head">Identifikasi Item</div>
+      <div class="form-grid fg-3">
+        <div class="form-group">
+          <div class="flabel req">Item Code</div>
+          <!-- Freetext; readonly saat edit karena code = primary key -->
+          <input class="finput" id="ifg_code" placeholder="Contoh: FG-001">
+        </div>
+        <div class="form-group">
+          <div class="flabel req">Item Name</div>
+          <input class="finput" id="ifg_name" placeholder="Nama produk FG">
+        </div>
+        <div class="form-group">
+          <div class="flabel">Loose Tube Qty</div>
+          <!-- Jumlah tube dalam satu kabel -->
+          <input class="finput" type="number" id="ifg_loose_tube_qty" placeholder="0" step="1" min="0"
+            oninput="calcIfgTotalFiber()">
+        </div>
+        <div class="form-group">
+          <div class="flabel">Fiber/Tube Qty</div>
+          <!-- Jumlah fiber per tube -->
+          <input class="finput" type="number" id="ifg_fiber_qty" placeholder="0" step="1" min="0"
+            oninput="calcIfgTotalFiber()">
+        </div>
+        <div class="form-group">
+          <div class="flabel">Total Fiber (auto)</div>
+          <!-- Dihitung otomatis: Loose Tube × Fiber/Tube; tidak bisa diedit -->
+          <input class="finput" type="number" id="ifg_total_fiber" placeholder="0" disabled
+            style="background:var(--bg2,#1a1a2e);color:var(--t3,#8888aa);cursor:not-allowed">
+        </div>
+      </div>
+
+      <!-- Machine Lines -->
+      <div class="sec-head" style="margin-top:.9rem">Machine Lines</div>
+      <div style="font-size:.72rem;color:var(--t3);margin-bottom:.5rem">Klik ↑ ↓ untuk mengubah urutan. Klik ✕ untuk menghapus baris.</div>
+      <div id="ifg_lines_container" style="display:flex;flex-direction:column;gap:.4rem"></div>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="addIfgLine()" style="margin-top:.5rem;width:fit-content">+ Tambah Machine Line</button>
+    </div>
+  </div>
+
+  <!-- LIST -->
+  <div class="card" id="ifg_list_card">
+    <div class="card-head">
+      <div class="card-title"><span class="card-title-icon">🧵</span> Daftar Master Item FG</div>
+      <input class="finput" style="width:200px" placeholder="🔍 Cari..." oninput="filterItemFg(this.value)">
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Item Code</th>
+              <th>Item Name</th>
+              <th style="text-align:right">Loose Tube Qty</th>
+              <th style="text-align:right">Fiber/Tube Qty</th>
+              <th style="text-align:right">Total Fiber</th>
+              <th>Machine Lines</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="ifg_tbody"></tbody>
         </table>
       </div>
     </div>
@@ -1806,6 +1896,7 @@ const DB = {
   exrates:  [],
   dlfoh:    [],
   kap:      [],
+  itemfg:   [],  // Master Item FG (items dengan is_fg=1 beserta machine lines)
   bom:      [],
   mesin:    [],
   masterbom:[],
@@ -1844,6 +1935,7 @@ const pageTitles={
   exrate:'💱 Master Data <span>Exchange Rate</span>',
   dlfoh:'🏭 Master Data <span>DL-FOH</span>',
   mesin:'🔧 Master Data <span>Mesin</span>',
+  itemfg:'🧵 Master Data <span>Master Item FG</span>',
   kapasitas:'⚡ Master Data <span>Master FG (Route)</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
   bom:'📋 <span>COGS Calculated</span>',
@@ -2633,6 +2725,195 @@ function renderKap(){try{
     ${col('kap','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveKap('${k.id}')">💾 Simpan</button>${GE.kap!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('kap')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openKapForm('${k.id}')">✏</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`):''}
   </tr>`;}).join('');
 }catch(e){console.warn("renderKap:",e);}}
+
+// ═══════════════════════════════════════════
+// MASTER ITEM FG
+// ═══════════════════════════════════════════
+
+// Hitung Total Fiber otomatis di form Item FG
+function calcIfgTotalFiber(){
+  const lt = parseInt(document.getElementById('ifg_loose_tube_qty').value)||0;
+  const fq = parseInt(document.getElementById('ifg_fiber_qty').value)||0;
+  document.getElementById('ifg_total_fiber').value = lt * fq;
+}
+
+// Bangun satu baris machine line di form
+function buildIfgLineRow(machineLine, idx){
+  const mlOpts = KAP_MACHINE_LINES.map(o=>`<option value="${o}" ${o===machineLine?'selected':''}>${o}</option>`).join('');
+  const row = document.createElement('div');
+  row.className = 'ifg-line-row';
+  row.style.cssText = 'display:flex;gap:.5rem;align-items:center;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.4rem .6rem';
+  row.innerHTML = `
+    <span style="color:var(--t3);font-size:.75rem;min-width:24px;text-align:center">${idx+1}</span>
+    <select class="fselect ifg-line-ml" style="flex:1">${mlOpts}</select>
+    <div style="display:flex;flex-direction:column;gap:1px">
+      <!-- Pindah baris ke atas -->
+      <button type="button" onclick="moveIfgLine(this,-1)" title="Pindah ke atas"
+        style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:.85rem;line-height:1;padding:1px 4px">↑</button>
+      <!-- Pindah baris ke bawah -->
+      <button type="button" onclick="moveIfgLine(this,1)" title="Pindah ke bawah"
+        style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:.85rem;line-height:1;padding:1px 4px">↓</button>
+    </div>
+    <button type="button" onclick="this.closest('.ifg-line-row').remove();reindexIfgLines()" title="Hapus"
+      style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:.1rem .3rem">✕</button>`;
+  return row;
+}
+
+// Tambah satu baris ke container
+function addIfgLine(machineLine){
+  const container = document.getElementById('ifg_lines_container');
+  const idx = container.querySelectorAll('.ifg-line-row').length;
+  container.appendChild(buildIfgLineRow(machineLine || (KAP_MACHINE_LINES[0]||''), idx));
+}
+
+// Pindahkan baris: dir = -1 (atas) atau +1 (bawah)
+function moveIfgLine(btn, dir){
+  const row = btn.closest('.ifg-line-row');
+  const container = row.parentElement;
+  const rows = Array.from(container.querySelectorAll('.ifg-line-row'));
+  const i = rows.indexOf(row);
+  const target = rows[i + dir];
+  if (!target) return;
+  if (dir === -1) container.insertBefore(row, target);
+  else container.insertBefore(target, row);
+  reindexIfgLines();
+}
+
+// Perbarui nomor urut tampilan setelah reorder/delete
+function reindexIfgLines(){
+  Array.from(document.querySelectorAll('#ifg_lines_container .ifg-line-row')).forEach((row, i)=>{
+    const numEl = row.querySelector('span');
+    if (numEl) numEl.textContent = i + 1;
+  });
+}
+
+// Ambil semua baris sebagai array [{machine_line}]
+function getIfgLines(){
+  return Array.from(document.querySelectorAll('#ifg_lines_container .ifg-line-row')).map(row=>({
+    machine_line: row.querySelector('.ifg-line-ml').value
+  }));
+}
+
+// Buka form tambah/edit
+function openItemFgForm(id){
+  document.getElementById('ifg_form_card').style.display = '';
+  document.getElementById('ifg_list_card').style.display  = 'none';
+  document.getElementById('ifg_edit_id').value   = '';
+  document.getElementById('ifg_edit_code').value = '';
+  document.getElementById('ifg_code').value      = '';
+  document.getElementById('ifg_code').readOnly   = false;
+  document.getElementById('ifg_name').value      = '';
+  document.getElementById('ifg_loose_tube_qty').value = '0';
+  document.getElementById('ifg_fiber_qty').value       = '0';
+  document.getElementById('ifg_total_fiber').value     = '0';
+  document.getElementById('ifg_lines_container').innerHTML = '';
+
+  if (id) {
+    document.getElementById('ifg_form_title').textContent = 'Edit Master Item FG';
+    const rec = (DB.itemfg||[]).find(x => x.id === id);
+    if (!rec) { toast('Data tidak ditemukan.','error'); closeItemFgForm(); return; }
+    document.getElementById('ifg_edit_id').value   = rec.id;
+    document.getElementById('ifg_edit_code').value = rec.code;
+    document.getElementById('ifg_code').value      = rec.code;
+    document.getElementById('ifg_code').readOnly   = true; // code tidak bisa diubah setelah simpan
+    document.getElementById('ifg_name').value      = rec.name;
+    document.getElementById('ifg_loose_tube_qty').value = rec.loose_tube_qty||0;
+    document.getElementById('ifg_fiber_qty').value       = rec.fiber_qty||0;
+    document.getElementById('ifg_total_fiber').value     = rec.total_fiber_qty||0;
+    (rec.machines||[]).forEach(m => addIfgLine(m.machine_line));
+    if (!(rec.machines||[]).length) addIfgLine();
+  } else {
+    document.getElementById('ifg_form_title').textContent = 'Tambah Master Item FG';
+    addIfgLine(); // satu baris default
+  }
+  document.getElementById('ifg_form_card').scrollIntoView({behavior:'smooth'});
+}
+
+function closeItemFgForm(){
+  document.getElementById('ifg_form_card').style.display = 'none';
+  document.getElementById('ifg_list_card').style.display  = '';
+}
+
+// Simpan (create/update)
+function saveItemFg(){
+  const editId   = document.getElementById('ifg_edit_id').value;
+  const code     = document.getElementById('ifg_code').value.trim();
+  const name     = document.getElementById('ifg_name').value.trim();
+  const looseTube= parseInt(document.getElementById('ifg_loose_tube_qty').value)||0;
+  const fiberQty = parseInt(document.getElementById('ifg_fiber_qty').value)||0;
+  const machines = getIfgLines();
+  if (!code) { toast('Item Code wajib diisi.','error'); return; }
+  if (!name) { toast('Item Name wajib diisi.','error'); return; }
+  const payload = {code, name, loose_tube_qty:looseTube, fiber_qty:fiberQty, machines};
+  if (editId) {
+    // Update: gunakan endpoint PUT /item-fg/:id
+    apiSave(fetch('/api/item-fg/'+editId,{method:'PUT',headers:{'Content-Type':'application/json','x-token':TOKEN},body:JSON.stringify(payload)}).then(r=>r.json()), function(){
+      toast('Master Item FG diupdate.','success');
+      closeItemFgForm();
+      loadItemFg();
+    });
+  } else {
+    apiSave(fetch('/api/item-fg',{method:'POST',headers:{'Content-Type':'application/json','x-token':TOKEN},body:JSON.stringify(payload)}).then(r=>r.json()), function(){
+      toast('Master Item FG disimpan.','success');
+      closeItemFgForm();
+      loadItemFg();
+    });
+  }
+}
+
+// Hapus
+function deleteItemFg(id){
+  if (!confirm('Hapus Item FG ini?')) return;
+  fetch('/api/item-fg/'+id,{method:'DELETE',headers:{'x-token':TOKEN}})
+    .then(r=>r.json())
+    .then(d=>{
+      if (d.error) { toast(d.error,'error'); return; }
+      toast('Item FG dihapus.','info');
+      loadItemFg();
+    }).catch(e=>toast(e.message,'error'));
+}
+
+// Load data item FG dari server lalu render
+function loadItemFg(){
+  fetch('/api/item-fg',{headers:{'x-token':TOKEN}})
+    .then(r=>r.json())
+    .then(data=>{
+      DB.itemfg = data||[];
+      renderItemFg();
+    }).catch(e=>console.warn('loadItemFg:',e));
+}
+
+let ifgFilter='';
+function filterItemFg(v){ ifgFilter=v.toLowerCase(); renderItemFg(); }
+
+// Render tabel daftar
+function renderItemFg(){
+  const data = (DB.itemfg||[]).filter(r=>{
+    if (!ifgFilter) return true;
+    return (r.code||'').toLowerCase().includes(ifgFilter) || (r.name||'').toLowerCase().includes(ifgFilter);
+  });
+  document.getElementById('ifg_count').textContent = (DB.itemfg||[]).length;
+  const tbody = document.getElementById('ifg_tbody');
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="es-icon">🧵</div><p>Belum ada data Master Item FG.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(r=>{
+    const machines = (r.machines||[]).map(m=>`<span class="badge badge-violet" style="font-size:.65rem">${m.machine_line}</span>`).join(' ') || '<span class="muted">—</span>';
+    return `<tr>
+      <td class="mono">${r.code}</td>
+      <td>${r.name}</td>
+      <td style="text-align:right;font-family:var(--fm)">${r.loose_tube_qty||0}</td>
+      <td style="text-align:right;font-family:var(--fm)">${r.fiber_qty||0}</td>
+      <td style="text-align:right;font-family:var(--fm);color:var(--cyan)">${r.total_fiber_qty||0}</td>
+      <td style="font-size:.72rem">${machines}</td>
+      <td><div style="display:flex;gap:.3rem">
+        <button class="btn btn-amber btn-xs" onclick="openItemFgForm('${r.id}')">✏</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteItemFg('${r.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
 
 // ═══════════════════════════════════════════
 // BOM
@@ -5291,16 +5572,16 @@ function showUploadResult(msg, added, updated, skipped){
 // AUTH & ROLES
 // ═══════════════════════════════════════════
 const ROLES_CONFIG = {
-  admin:             {label:'Administrator',          pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
-  editor:            {label:'Editor',                 pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
-  finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                 canApprove:true,  canEdit:false},
-  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                 canApprove:true,  canEdit:false},
-  vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                 canApprove:true,  canEdit:false},
-  approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                 canApprove:true,  canEdit:false},
-  viewer:            {label:'Viewer',                  pages:['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
+  admin:             {label:'Administrator',          pages:['price','exrate','dlfoh','itemfg','kapasitas','masterbom','bom','history','cogs','roles','guide'], canApprove:true,  canEdit:true},
+  editor:            {label:'Editor',                 pages:['price','exrate','dlfoh','itemfg','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:true},
+  finance_director:  {label:'Finance Director',       pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
+  sales_director:    {label:'Sales & Mktg Director',  pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
+  vp_director:       {label:'VP Director',            pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
+  approver:          {label:'Approver (Legacy)',       pages:['bom','history','guide'],                                                                           canApprove:true,  canEdit:false},
+  viewer:            {label:'Viewer',                  pages:['price','exrate','dlfoh','itemfg','kapasitas','masterbom','bom','history','cogs','guide'],         canApprove:false, canEdit:false},
 };
 
-const ALL_PAGES = ['price','exrate','dlfoh','kapasitas','masterbom','bom','history','cogs','roles'];
+const ALL_PAGES = ['price','exrate','dlfoh','itemfg','kapasitas','masterbom','bom','history','cogs','roles'];
 
 let USERS = [
   {id:'u1', username:'admin',    password:'admin123',  nama:'Administrator',       role:'admin',            customPages:[]},
@@ -5456,7 +5737,7 @@ function closeAddUserForm(){ setDisp('add_user_card','none'); }
 
 function buildCustomAccessChecks(selected){
   const wrap = document.getElementById('custom_access_checks');
-  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',kapasitas:'Master FG (Route)',bom:'COGS Calculated',history:'COGM Approved',cogs:'COGS Summary',roles:'Access Role'};
+  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',itemfg:'Master Item FG',kapasitas:'Master FG (Route)',bom:'COGS Calculated',history:'COGM Approved',cogs:'COGS Summary',roles:'Access Role'};
   wrap.innerHTML = ALL_PAGES.map(p=>`
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;padding:.3rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--b1)">
       <input type="checkbox" id="chk_${p}" ${selected.includes(p)?'checked':''} style="accent-color:var(--cyan)"> ${pageLabels[p]||p}
@@ -5493,7 +5774,7 @@ function deleteUser(id){
 function renderRoles(){try{
   const tbody = document.getElementById('roles_tbody');
   if(!tbody) return;
-  const pageLabels={item:'Item',price:'Price',exrate:'ExRate',dlfoh:'DL-FOH',kapasitas:'Kap',bom:'BOM',history:'History',roles:'Roles'};
+  const pageLabels={item:'Item',price:'Price',exrate:'ExRate',dlfoh:'DL-FOH',itemfg:'Item FG',kapasitas:'Kap',bom:'BOM',history:'History',roles:'Roles'};
   tbody.innerHTML = USERS.map(u=>{
     const rc = ROLES_CONFIG[u.role]||{label:'Custom',pages:[]};
     const pages = u.role==='custom'?u.customPages:rc.pages;
@@ -7187,6 +7468,7 @@ var _origGoPagePrice=null;
     }
     if(pageId==='exrate')    reload('exrates',   function(l){DB.exrates=l;renderExrates&&renderExrates();});
     if(pageId==='dlfoh')     reload('dlfoh',     function(l){DB.dlfoh=l;  renderDlfoh&&renderDlfoh();});
+    if(pageId==='itemfg')    { loadItemFg&&loadItemFg(); }
     if(pageId==='kapasitas') reload('kapasitas', function(l){DB.kap=l;    renderKap&&renderKap();});
   };
 })();
