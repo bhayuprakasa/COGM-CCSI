@@ -2869,13 +2869,13 @@ function saveItemFg(){
   const payload = {code, name, uom, loose_tube_qty:looseTube, fiber_qty:fiberQty, machines};
   if (editId) {
     // Update: gunakan endpoint PUT /item-fg/:id
-    apiSave(fetch('/api/item-fg/'+editId,{method:'PUT',headers:{'Content-Type':'application/json','x-token':TOKEN},body:JSON.stringify(payload)}).then(r=>r.ok?r.json():r.json().then(d=>{throw new Error(d.error||'Gagal update item');})), function(){
+    apiSave(fetch('/api/item-fg/'+editId,{method:'PUT',headers:{'Content-Type':'application/json','x-token':getToken()},body:JSON.stringify(payload)}).then(r=>r.ok?r.json():r.json().then(d=>{throw new Error(d.error||'Gagal update item');})), function(){
       toast('Master Item FG diupdate.','success');
       closeItemFgForm();
       loadItemFg();
     });
   } else {
-    apiSave(fetch('/api/item-fg',{method:'POST',headers:{'Content-Type':'application/json','x-token':TOKEN},body:JSON.stringify(payload)}).then(r=>r.ok?r.json():r.json().then(d=>{throw new Error(d.error||'Gagal simpan item');})), function(){
+    apiSave(fetch('/api/item-fg',{method:'POST',headers:{'Content-Type':'application/json','x-token':getToken()},body:JSON.stringify(payload)}).then(r=>r.ok?r.json():r.json().then(d=>{throw new Error(d.error||'Gagal simpan item');})), function(){
       toast('Master Item FG disimpan.','success');
       closeItemFgForm();
       loadItemFg();
@@ -2886,7 +2886,7 @@ function saveItemFg(){
 // Hapus
 function deleteItemFg(id){
   if (!confirm('Hapus Item FG ini?')) return;
-  fetch('/api/item-fg/'+id,{method:'DELETE',headers:{'x-token':TOKEN}})
+  fetch('/api/item-fg/'+id,{method:'DELETE',headers:{'x-token':getToken()}})
     .then(r=>r.json())
     .then(d=>{
       if (d.error) { toast(d.error,'error'); return; }
@@ -2897,7 +2897,7 @@ function deleteItemFg(id){
 
 // Load data item FG dari server lalu render
 function loadItemFg(){
-  fetch('/api/item-fg',{headers:{'x-token':TOKEN}})
+  fetch('/api/item-fg',{headers:{'x-token':getToken()}})
     .then(r=>r.json())
     .then(data=>{
       DB.itemfg = data||[];
