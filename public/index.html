@@ -847,13 +847,17 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         </div>
         <div class="form-group">
           <div class="flabel req">Item Code</div>
-          <!-- Input langsung, bukan lookup -->
-          <input class="finput" id="kap_item_code" placeholder="Masukkan item code">
+          <!-- Bisa ketik manual atau cari via search modal (FG items) -->
+          <div style="display:flex;gap:.4rem;align-items:center">
+            <input class="finput" id="kap_item_code" placeholder="Cari item code FG..."
+              oninput="onKapItemCodeInput(this.value)" style="flex:1">
+            <span class="search-icon clickable" onclick="openSearchModal('fg_item','kap_item_code','kap_item_name')" title="Cari Item FG">🔍</span>
+          </div>
         </div>
         <div class="form-group">
           <div class="flabel req">Item Name</div>
-          <!-- Input langsung, bukan auto-fill dari lookup -->
-          <input class="finput" id="kap_item_name" placeholder="Masukkan nama item">
+          <!-- Auto-fill dari Item Code, bisa diedit manual -->
+          <input class="finput" id="kap_item_name" placeholder="Auto dari item code">
         </div>
         <div class="form-group">
           <div class="flabel">Loose Tube Qty</div>
@@ -2022,8 +2026,20 @@ function selectSearchResult(code,name){
   const codeEl=document.getElementById(sm_field);
   if(codeEl) codeEl.value=code;
   if(sm_nameField){const nel=document.getElementById(sm_nameField);if(nel) nel.value=name;}
-  // FG item search — digunakan oleh BOM form dan Master BOM form
+  // FG item search — digunakan oleh BOM form, Master BOM form, dan Master FG (Route)
   if(sm_type==='fg_item'){
+    // Master FG (Route) — kap_item_code: auto-fill name + fiber spec dari item FG
+    if(sm_field==='kap_item_code'){
+      const fgRec=DB_fgItems.find(p=>p.code===code);
+      setVal('kap_item_code',code);
+      setVal('kap_item_name',fgRec?(fgRec.name||name):name);
+      if(fgRec){
+        setVal('kap_loose_tube_qty',fgRec.loose_tube_qty||0);
+        setVal('kap_fiber_per_tube_qty',fgRec.fiber_qty||0);
+      }
+      calcKapTotalFiber();
+      closeSearchModal(); return;
+    }
     if(sm_field==='bom_product_code'){
       // BOM (COGS Calculated) form: set code (hidden) dan name (readonly visible)
       const codeEl=document.getElementById('bom_product_code');
@@ -2084,13 +2100,7 @@ function selectSearchResult(code,name){
     sm_extra=null;
     closeSearchModal(); return;
   }
-  // ip_item_code tidak lagi menggunakan search modal — diisi manual
-  if(sm_type==='item'&&sm_field==='kap_item_code'){
-    // Lookup dari DB_itemPrices — Master Item sudah dihapus
-    const item=DB_itemPrices.find(p=>p.item_code===code);
-    if(item) (function(){const _e=ge('kap_item_name');if(_e)_e.value=item.item_name||name;})()
-    closeSearchModal(); return;
-  }
+  // kap_item_code sudah ditangani di blok fg_item di atas
   // BOM currency search — sm_extra = {g, l}
   if(sm_type==='exrate'&&sm_extra&&sm_extra.g!=null){
     onBomLineCurrencyChange(sm_extra.g, sm_extra.l, code);
@@ -7524,6 +7534,24 @@ function calcKapTotalFiber(){
   var fpt=parseInt((ge('kap_fiber_per_tube_qty')||{value:'0'}).value)||0;
   var el=ge('kap_total_fiber_qty');
   if(el) el.value=loose*fpt||0;
+}
+
+// Auto-fill Item Name + fiber spec saat mengetik kap_item_code (lookup dari DB_fgItems)
+function onKapItemCodeInput(val){
+  var code=(val||'').trim().toUpperCase();
+  // Uppercase item code
+  var codeEl=ge('kap_item_code');
+  if(codeEl) codeEl.value=code;
+  // Lookup dari master FG (is_fg=1)
+  var fgRec=DB_fgItems&&DB_fgItems.find(function(p){return p.code===code;});
+  var nameEl=ge('kap_item_name');
+  if(nameEl) nameEl.value=fgRec?(fgRec.name||''):'';
+  // Auto-fill Loose Tube & Fiber/Tube dari master item FG
+  if(fgRec){
+    setVal('kap_loose_tube_qty',fgRec.loose_tube_qty||0);
+    setVal('kap_fiber_per_tube_qty',fgRec.fiber_qty||0);
+  }
+  calcKapTotalFiber();
 }
 
 function openItemPriceForm(itemCode){
