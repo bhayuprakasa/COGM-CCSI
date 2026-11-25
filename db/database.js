@@ -361,6 +361,8 @@ async function initSchema() {
       { table:'masterbom',       col:'product_code',      def:"VARCHAR(100) DEFAULT ''" },
       // item_code di tabel bom — FG item yang di-link ke fg_routes
       { table:'bom',             col:'item_code',         def:"VARCHAR(100) DEFAULT ''" },
+      // master_route_id di tabel bom — link ke kapasitas.kapid yang dipakai sebagai Master Route
+      { table:'bom',             col:'master_route_id',   def:"VARCHAR(100) DEFAULT ''" },
       // Machine Line pada DL-FOH category
       { table:'dlfoh',           col:'machine_line',      def:"VARCHAR(100) DEFAULT ''" },
       // No Spec di masterbom header
@@ -374,7 +376,7 @@ async function initSchema() {
       `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = ?
          AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices','masterbom','dlfoh')
-         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code','machine_line','usd_rate','no_spec','scrap_fix')`,
+         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code','machine_line','usd_rate','no_spec','scrap_fix','master_route_id')`,
       [cfg.database]
     );
     const existSet = new Set(existing.map(r => `${r.TABLE_NAME.toLowerCase()}.${r.COLUMN_NAME.toLowerCase()}`));

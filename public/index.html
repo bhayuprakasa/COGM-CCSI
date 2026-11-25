@@ -1095,6 +1095,14 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
                 <span class="search-icon clickable" onclick="openSearchModal('masterbom','bom_master_bom_id',null)">🔍</span>
               </div>
             </div>
+            <div class="form-group">
+              <!-- Master Route ID: pilih kapasitas spesifik untuk mengisi Routing DL-FOH -->
+              <div class="flabel">Master Route ID <span style="font-size:.6rem;color:var(--cyan)">(auto-fill routing)</span></div>
+              <div class="search-field-wrap">
+                <input class="finput" id="bom_master_route_id" placeholder="Pilih Master Route..." readonly>
+                <span class="search-icon clickable" onclick="openSearchModal('masterkap','bom_master_route_id',null)">🔍</span>
+              </div>
+            </div>
             <!-- Rate USD/IDR dipindah ke masing-masing line material -->
           </div>
         </div>
@@ -1978,7 +1986,7 @@ function openSearchModal(type, codeField, nameField, extra){
   sm_type=type; sm_field=codeField; sm_nameField=nameField||'';
   // Only overwrite sm_extra if caller explicitly passes a 4th argument
   if(arguments.length>=4) sm_extra = extra||null;
-  const titles={item:'Pilih Item',fg_item:'Pilih Produk (FG)',price:'Pilih Price ID',exrate:'Pilih Currency',dlfoh:'Pilih DL-FOH Category',kap:'Pilih Kapasitas'};
+  const titles={item:'Pilih Item',fg_item:'Pilih Produk (FG)',price:'Pilih Price ID',exrate:'Pilih Currency',dlfoh:'Pilih DL-FOH Category',kap:'Pilih Kapasitas',masterkap:'Pilih Master Route',masterbom:'Pilih Master BOM'};
   setText('sm_title',titles[type]||'Search');
   setVal('sm_search','');
   buildSearchData(type);
@@ -1999,6 +2007,8 @@ function buildSearchData(type){
   else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Rp '+Number(d.rate).toLocaleString('id-ID')+'/jam'}));
   else if(type==='kap') sm_data=DB.kap.map(k=>({code:k.id,name:k.item_name,sub:k.proses+' | '+(DB.mesin.find(m=>m.machine_id===k.mesin)||{machine_name:k.mesin}).machine_name}));
   else if(type==='masterbom') sm_data=DB.masterbom.map(b=>({code:b.bomid,name:b.product,sub:b.machine_line+' | '+(b.lines||[]).length+' items'}));
+  // Kapasitas sebagai Master Route — ditampilkan per kapid untuk dropdown BOM form
+  else if(type==='masterkap') sm_data=DB.kap.map(k=>({code:k.kapid,name:k.item_name||k.item_code,sub:k.item_code+' | '+k.proses}));
   else if(type==='fgrl') {
     // FG items dari DB.kap (Master Route) — unique by item_code
     const seen=new Set();
@@ -2062,6 +2072,12 @@ function selectSearchResult(code,name){
   if(sm_type==='masterbom'){
     closeSearchModal();
     onMasterBomSelect(code);
+    return;
+  }
+  // Master Route (kapasitas) selection — isi routing dari kapasitas yang dipilih
+  if(sm_type==='masterkap'){
+    closeSearchModal();
+    onMasterRouteSelect(code);
     return;
   }
   // FG Item untuk Routing DL-FOH di BOM form
@@ -3026,7 +3042,7 @@ function renderBomRouting() {
   tbody.innerHTML = '';
   if (!bomRouting.length) {
     const tr = document.createElement('tr');
-    tr.innerHTML = '<td colspan="9" style="text-align:center;color:#888;font-style:italic">Belum ada routing — pilih Item Code FG</td>';
+    tr.innerHTML = '<td colspan="9" style="text-align:center;color:#888;font-style:italic">Belum ada routing — pilih Master Route ID</td>';
     tbody.appendChild(tr); return;
   }
   bomRouting.forEach((r, i) => {
@@ -3051,7 +3067,7 @@ function openBomForm(id){try{
   // Reset semua field header form BOM
   ['bom_product','bom_customer','bom_project','bom_product_code'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   ['bom_fiber_cnt','bom_buffer_qty','bom_fiber_qty'].forEach(f=>{const e=ge(f);if(e)e.value='';});
-  ['bom_item_code','bom_item_code_name'].forEach(f=>{const e=ge(f);if(e)e.value='';});
+  ['bom_item_code','bom_item_code_name','bom_master_route_id'].forEach(f=>{const e=ge(f);if(e)e.value='';});
   // Machine groups come from Master BOM selection - only reset if opening blank form
   if(!id) bomGroups=[];
 
@@ -3069,8 +3085,9 @@ function openBomForm(id){try{
     setVal('bom_fiber_cnt',mbomRec?mbomRec.fiber_cnt||'':rec.fiber_cnt||'');
     setVal('bom_buffer_qty',mbomRec?mbomRec.buffer_qty||'':rec.buffer_qty||'');
     setVal('bom_fiber_qty',rec.fiber_qty||'');
-    // Restore Master BOM ID di field header
+    // Restore Master BOM ID dan Master Route ID di field header
     setVal('bom_master_bom_id',rec.master_bom_id||'');
+    setVal('bom_master_route_id',rec.master_route_id||'');
     // Restore product code (hidden) agar pencarian FG konsisten saat edit
     setVal('bom_product_code',rec.product_code||'');
     // bomUsdRate tetap dipakai untuk usd_rate_snapshot di payload (reference rate)
@@ -3875,6 +3892,7 @@ function saveBom(){try{
     fiber_qty:(ge('bom_fiber_qty')||{value:''}).value,
     // price_id dihapus dari BOM form
     master_bom_id:(ge('bom_master_bom_id')||{value:''}).value,
+    master_route_id:(ge('bom_master_route_id')||{value:''}).value,
     item_code:(ge('bom_item_code')||{value:''}).value,
     usd_rate_snapshot: bomUsdRate||getLatestRate('USD'),
     groups:JSON.parse(JSON.stringify(validGroups)),
@@ -3923,6 +3941,7 @@ function saveBom(){try{
     fiber_qty:(ge('bom_fiber_qty')||{value:''}).value,
     // price_id dihapus
     master_bom_id:(ge('bom_master_bom_id')||{value:''}).value,
+    master_route_id:(ge('bom_master_route_id')||{value:''}).value,
     groups:JSON.parse(JSON.stringify(validGroups)),
     lines:validGroups.flatMap(function(g){return g.lines||[];}),
     machine_lines:validGroups.map(function(g){return g.machine_line;}),
@@ -5022,6 +5041,73 @@ function onMasterBomSelect(mbomId){
   if(priceId) onBomPriceSelect(priceId);
 
   toast('Header dan lines dari Master BOM "'+rec.bomid+'" berhasil dimuat.','success');
+}
+
+// ═══════════════════════════════════════════
+// MASTER ROUTE SELECTION
+// ═══════════════════════════════════════════
+
+// Dipanggil saat user memilih Master Route dari search modal (tipe masterkap)
+// kapId = kapasitas.kapid yang dipilih
+function onMasterRouteSelect(kapId) {
+  const kap = DB.kap.find(k => k.kapid === kapId);
+  if (!kap) { toast('Master Route tidak ditemukan.','error'); return; }
+  setVal('bom_master_route_id', kap.kapid);
+  // Muat routing dari kapasitas yang dipilih
+  autoLoadBomRoutingFromKap(kap);
+  toast('Routing dari Master Route "'+kap.kapid+'" berhasil dimuat.','success');
+}
+
+// Muat bomRouting dari satu objek kapasitas (kapasitas.notes berisi JSON machine_line routes)
+// Juga update prosesTime & setupTime di bomGroups sesuai machine_line yang cocok
+function autoLoadBomRoutingFromKap(kap) {
+  if (!kap) { bomRouting = []; renderBomRouting(); return; }
+  let lines = [];
+  try { lines = JSON.parse(kap.notes || '[]'); } catch(e) { lines = []; }
+
+  const _fQty  = parseFloat((ge('bom_fiber_qty') ||{value:'0'}).value)||1;
+  const _ltQty = parseFloat((ge('bom_fiber_cnt')||{value:'0'}).value)||1;
+
+  // Update prosesTime & setupTime tiap bomGroup dari notes per machine_line
+  bomGroups.forEach(g => {
+    const kapLine = lines.find(l => l.machine_line === g.machine_line);
+    if (!kapLine) return;
+    const processTime = parseFloat(kapLine.duration) || 0;
+    const setupTime   = parseFloat(kapLine.setup)    || 0;
+    g.prosesTime = processTime;
+    g.setupTime  = setupTime;
+    g.lengthQty  = getLengthQtyForMachineLine(g.machine_line, _fQty, _ltQty);
+    // Regenerasi dlfohLines berdasarkan master DL-FOH untuk machine_line ini
+    g.dlfohLines = DB.dlfoh
+      .filter(d => d.machine_line === g.machine_line)
+      .map(d => ({
+        cat: d.catid, type: d.type || '',
+        index: processTime, index_manual: false,
+        setup: setupTime,   setup_manual: false,
+        factor: g.lengthQty, factor_manual: false,
+        total_hour: processTime * g.lengthQty + setupTime,
+        total_cost: (processTime * g.lengthQty + setupTime) * (parseFloat(d.rate) || 0),
+        fromMaster: !!g.fromMaster,
+      }));
+  });
+
+  // Build flat routing preview (tabel Routing DL-FOH bawah)
+  bomRouting = lines.filter(l => l.machine_line).flatMap(l => {
+    const processTime = parseFloat(l.duration) || 0;
+    const setupTime   = parseFloat(l.setup)    || 0;
+    const totalHour   = processTime + setupTime;
+    return DB.dlfoh
+      .filter(d => d.machine_line === l.machine_line)
+      .map(d => ({
+        cat: d.catid, cat_desc: d.desc || '', type: d.type || '',
+        process_time: processTime, setup_time: setupTime, factor: 1,
+        total_hour: totalHour,
+        total_cost: totalHour * (parseFloat(d.rate) || 0),
+      }));
+  });
+
+  renderBomGroups();   // refresh DL-FOH per machine group
+  renderBomRouting();  // refresh tabel routing preview bawah
 }
 
 // ═══════════════════════════════════════════
