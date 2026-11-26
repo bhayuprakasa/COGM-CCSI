@@ -384,7 +384,7 @@ async function initSchema() {
       `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = ?
          AND TABLE_NAME IN ('masterbom_lines','bom_lines','bom','items','item_prices','masterbom','dlfoh','kapasitas')
-         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code','machine_line','usd_rate','no_spec','scrap_fix','master_route_id','setup_proses','setup')`,
+         AND COLUMN_NAME IN ('modified_by','modified_dt','usd_rate_snapshot','is_fg','loose_tube_qty','fiber_qty','fiber_per_tube_qty','total_fiber_qty','item_name','uom','product_code','item_code','machine_line','usd_rate','no_spec','scrap_fix','master_route_id','setup_proses','setup','rate_process','rate_setup')`,
       [cfg.database]
     );
     const existSet = new Set(existing.map(r => `${r.TABLE_NAME.toLowerCase()}.${r.COLUMN_NAME.toLowerCase()}`));
@@ -396,6 +396,15 @@ async function initSchema() {
         console.log(`   + Added ${table}.${col}`);
       }
     }
+
+    // ── Data migration: isi rate_process & rate_setup dari rate lama jika masih 0 ──
+    await conn.execute(
+      `UPDATE dlfoh SET rate_process = rate WHERE (rate_process IS NULL OR rate_process = 0) AND rate > 0`
+    );
+    await conn.execute(
+      `UPDATE dlfoh SET rate_setup = rate WHERE (rate_setup IS NULL OR rate_setup = 0) AND rate > 0`
+    );
+    console.log('   ✅ DL-FOH rate_process & rate_setup migrated from rate');
 
     // ── Seed sequences ──
     for (const name of ['item','price','kap','masterbom','bom','cogs']) {
