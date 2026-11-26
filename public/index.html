@@ -3235,10 +3235,12 @@ function openBomForm(id){try{
           price: parseFloat(l.price)||0,
           landed: parseFloat(l.landed)||0,
           hedging: parseFloat(l.hedging)||0,
-          // usd_rate per line: rate USD/IDR spesifik untuk konversi IDR di line ini
-          usd_rate: parseFloat(l.usd_rate)||getLatestRate('USD'),
+          // usd_rate: gunakan getRateForLine agar IDR line selalu rate=1 (bukan USD rate)
+          // Stored usd_rate di DB bisa salah (IDR tersimpan 17500) — selalu derive ulang dari currency
+          usd_rate: getRateForLine(l.currency||'USD'),
           total_amt: parseFloat(l.total_amt)||0,
-          total_idr: parseFloat(l.total_idr)||0,
+          // Recalculate total_idr dari total_amt × rate yang benar (fix IDR lines dikali 17500)
+          total_idr: (parseFloat(l.total_amt)||0) * getRateForLine(l.currency||'USD') || parseFloat(l.total_idr)||0,
           modified_by: l.modified_by||'',
           modified_dt: l.modified_dt||'',
         };
@@ -3457,9 +3459,9 @@ function renderBomGroups(){
           </table>
         </div>
         ${g.fromMaster?'':(`<button class="btn btn-ghost btn-sm" style="margin-top:.4rem" onclick="addBomLine(${gIdx})">+ Tambah Item</button>`)}
-        <!-- Total Material per machine group — diupdate oleh recalcAllGroups() -->
+        <!-- Subtotal (Material + DL-FOH) per machine group — di bawah material, di atas DL-FOH header -->
         <div style="display:flex;justify-content:flex-end;margin-top:.4rem">
-          <div class="stat-pill"><span class="sp-label">Total Material (IDR)</span><span class="sp-val" id="grp_mat_idr_${gIdx}">0</span></div>
+          <div class="stat-pill" style="border-color:var(--amber);"><span class="sp-label">Subtotal (IDR)</span><span class="sp-val" style="color:var(--amber)" id="grp_subtotal_idr_${gIdx}">0</span></div>
         </div>
 
         <div style="margin-top:.85rem">
@@ -3477,13 +3479,10 @@ function renderBomGroups(){
               </tbody>
             </table>
           </div>
-          <!-- Total DL-FOH dan Subtotal (Material + DL-FOH) per machine group -->
+          <!-- Total DL-FOH per machine group -->
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.4rem;flex-wrap:wrap;gap:.4rem">
             ${g.fromMaster?'':(`<button class="btn btn-ghost btn-sm" onclick="addDlfohLineToGroup(${gIdx})">+ Tambah Category</button>`)}
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-              <div class="stat-pill"><span class="sp-label">Total DL-FOH (IDR)</span><span class="sp-val" id="grp_dlfoh_idr_${gIdx}">0</span></div>
-              <div class="stat-pill" style="border-color:var(--amber);"><span class="sp-label">Subtotal (IDR)</span><span class="sp-val" style="color:var(--amber)" id="grp_subtotal_idr_${gIdx}">0</span></div>
-            </div>
+            <div class="stat-pill"><span class="sp-label">Total DL-FOH (IDR)</span><span class="sp-val" id="grp_dlfoh_idr_${gIdx}">0</span></div>
           </div>
         </div>
       </div>
@@ -3821,9 +3820,6 @@ function recalcAllGroups(){
     const ei=document.getElementById('grp_idr_'+gIdx);
     if(eu) eu.textContent=fmt_num(subUSD,3);
     if(ei) ei.textContent=Number(subIDR.toFixed(0)).toLocaleString('id-ID');
-    // Update Total Material per machine group
-    const matEl=document.getElementById('grp_mat_idr_'+gIdx);
-    if(matEl) matEl.textContent=Number(subIDR.toFixed(0)).toLocaleString('id-ID');
     // Update Subtotal (Material + DL-FOH) per machine group
     const dlfohIDR=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
     const subTEl=document.getElementById('grp_subtotal_idr_'+gIdx);
