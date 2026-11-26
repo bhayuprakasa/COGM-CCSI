@@ -3473,7 +3473,7 @@ function renderBomGroups(){
           <div class="line-tbl-wrap">
             <table class="line-tbl">
               <thead><tr>
-                <th>Category</th><th>Type</th><th>S/P</th><th>Proses (hr)</th><th>Setup (hr)</th><th>Hour</th><th>Rate</th><th>Total Cost (IDR)</th><th></th>
+                <th>Category</th><th>Type</th><th>S/P</th><th>Hour</th><th>Rate</th><th>Total Cost (IDR)</th><th></th>
               </tr></thead>
               <tbody id="dlfoh_body_${gIdx}">
                 ${g.dlfohLines.map((dl,dIdx)=>renderDlfohRow(gIdx,dIdx,dl)).join('')}
@@ -3586,14 +3586,6 @@ function renderDlfohRow(gIdx,dIdx,dl){
       </td>
       <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
       <td>${spBadge(rec?rec.setup_proses||'':'')}</td>
-      <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,3)}"
-        data-manual="${dl.index_manual?'1':'0'}"
-        ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
-        </td>
-      <td><input class="li-input dlfoh-line-setup dlfoh-setup-cell" type="number" style="width:54px" value="${dl.setup||0}"
-        data-manual="${dl.setup_manual?'1':'0'}"
-        ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
-        </td>
       <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,3)}" readonly></td>
       <td><input class="li-input dlfoh-rate-process-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
       <td><input class="li-input dlfoh-cost-cell" style="width:92px" value="${Number(dl.total_cost||0).toLocaleString('id-ID')}" readonly></td>
