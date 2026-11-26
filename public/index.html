@@ -3460,13 +3460,17 @@ function renderBomGroups(){
             <tbody id="bom_lines_body_${gIdx}">
               ${g.lines.map((l,lIdx)=>renderBomLineRow(gIdx,lIdx,l)).join('')}
             </tbody>
+            <!-- Total Material per line group di dalam tabel — kolom kanan -->
+            <tfoot>
+              <tr style="background:rgba(0,0,0,.18)">
+                <td colspan="10" style="text-align:right;padding:.35rem .6rem;font-size:.7rem;color:var(--t3);font-weight:600;letter-spacing:.04em">Total Material</td>
+                <td style="text-align:right;padding:.35rem .6rem;color:var(--amber);font-family:var(--fm);font-size:.8rem;font-weight:700" id="grp_subtotal_idr_${gIdx}">0</td>
+                <td></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
         ${g.fromMaster?'':(`<button class="btn btn-ghost btn-sm" style="margin-top:.4rem" onclick="addBomLine(${gIdx})">+ Tambah Item</button>`)}
-        <!-- Total Material per machine group — di bawah material, di atas DL-FOH header -->
-        <div style="display:flex;justify-content:flex-end;margin-top:.4rem">
-          <div class="stat-pill"><span class="sp-label">Total Material (IDR)</span><span class="sp-val" id="grp_subtotal_idr_${gIdx}">0</span></div>
-        </div>
 
         <div style="margin-top:.85rem">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
@@ -3483,10 +3487,16 @@ function renderBomGroups(){
               </tbody>
             </table>
           </div>
-          <!-- Total DL-FOH per machine group -->
+          <!-- Total DL-FOH dan Sub Total machine line — semua di kanan -->
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.4rem;flex-wrap:wrap;gap:.4rem">
             ${g.fromMaster?'':(`<button class="btn btn-ghost btn-sm" onclick="addDlfohLineToGroup(${gIdx})">+ Tambah Category</button>`)}
-            <div class="stat-pill"><span class="sp-label">Total DL-FOH (IDR)</span><span class="sp-val" id="grp_dlfoh_idr_${gIdx}">0</span></div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end">
+              <div class="stat-pill"><span class="sp-label">Total DL-FOH (IDR)</span><span class="sp-val" id="grp_dlfoh_idr_${gIdx}">0</span></div>
+            </div>
+          </div>
+          <!-- Sub Total per machine line = Material + DL-FOH, di kanan -->
+          <div style="display:flex;justify-content:flex-end;margin-top:.45rem;padding-top:.45rem;border-top:1px solid var(--b1)">
+            <div class="stat-pill" style="border-color:var(--amber)"><span class="sp-label">Sub Total Machine Line (IDR)</span><span class="sp-val" style="color:var(--amber)" id="grp_ml_subtotal_${gIdx}">0</span></div>
           </div>
         </div>
       </div>
@@ -3689,6 +3699,10 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
   const el=document.getElementById('grp_dlfoh_idr_'+gIdx);
   if(el) el.textContent=Number(groupTotal.toFixed(0)).toLocaleString('id-ID');
+  // Update Sub Total machine line = Material + DL-FOH
+  const matIDR=g.lines.reduce((s,l)=>s+(l.total_idr||0),0);
+  const mlSubEl=document.getElementById('grp_ml_subtotal_'+gIdx);
+  if(mlSubEl) mlSubEl.textContent=Number((matIDR+groupTotal).toFixed(0)).toLocaleString('id-ID');
   recalcAllGroups();
 }
 
@@ -3739,6 +3753,10 @@ function recalcGroupDlfoh(gIdx){
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
   const el=document.getElementById('grp_dlfoh_idr_'+gIdx);
   if(el) el.textContent=Number(groupTotal.toFixed(0)).toLocaleString('id-ID');
+  // Update Sub Total machine line = Material + DL-FOH
+  const matIDR=g.lines.reduce((s,l)=>s+(l.total_idr||0),0);
+  const mlSubEl=document.getElementById('grp_ml_subtotal_'+gIdx);
+  if(mlSubEl) mlSubEl.textContent=Number((matIDR+groupTotal).toFixed(0)).toLocaleString('id-ID');
   recalcAllGroups();
 }
 
@@ -3819,9 +3837,13 @@ function recalcAllGroups(){
     const ei=document.getElementById('grp_idr_'+gIdx);
     if(eu) eu.textContent=fmt_num(subUSD,3);
     if(ei) ei.textContent=Number(subIDR.toFixed(0)).toLocaleString('id-ID');
-    // Update Total Material per machine group (material-only, bukan subtotal)
+    // Update Total Material per machine group (tfoot di tabel material)
     const subTEl=document.getElementById('grp_subtotal_idr_'+gIdx);
     if(subTEl) subTEl.textContent=Number(subIDR.toFixed(0)).toLocaleString('id-ID');
+    // Update Sub Total machine line = Material + DL-FOH
+    const dlfohTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
+    const mlSubEl2=document.getElementById('grp_ml_subtotal_'+gIdx);
+    if(mlSubEl2) mlSubEl2.textContent=Number((subIDR+dlfohTotal).toFixed(0)).toLocaleString('id-ID');
   });
   const tu=document.getElementById('bom_total_usd');
   const ti=document.getElementById('bom_total_idr_mat');
