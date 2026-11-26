@@ -3043,6 +3043,14 @@ function getLatestRate(currencyId){
   const sorted=[...rec.lines].sort((a,b)=>new Date(b.tanggal)-new Date(a.tanggal));
   return parseFloat(sorted[0].rate)||1;
 }
+// Rate per baris material: IDR per 1 unit currency.
+// IDR adalah base currency → selalu 1 (meskipun ada di tabel exchange rate).
+// Currency lain → ambil dari master exchange rate.
+function getRateForLine(currencyId){
+  const c=(currencyId||'USD').toUpperCase().trim();
+  if(c==='IDR') return 1; // IDR base currency, 1 IDR = 1 IDR
+  return getLatestRate(c)||1;
+}
 function getLatestConversion(currencyId){
   // Returns factor to convert price in [currencyId] to USD
   // e.g. if currencyId=USD → 1
@@ -3556,7 +3564,7 @@ function renderBomLineRow(gIdx,lIdx,l){
       <td><input class="li-input bom-line-landed" type="number" style="width:52px" value="${l.landed||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-hedging" type="number" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <!-- Rate per line: IDR per 1 unit currency — selalu ambil dari master exchange rate sesuai currency baris -->
-      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getLatestRate((l.currency||'USD').toUpperCase().trim());l.usd_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getRateForLine(l.currency||'USD');l.usd_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,3)}" readonly></td>
       <td><input class="li-input bom-line-totalidr" style="width:98px" value="${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
@@ -3645,7 +3653,7 @@ function recalcBomLine(gIdx,lIdx){try{
   const hedging=parseFloat(row.querySelector('.bom-line-hedging').value)||0;
   const currency=(row.querySelector('.bom-line-currency')?row.querySelector('.bom-line-currency').value:'USD').trim()||'USD';
   // lineRate: IDR per 1 unit currency — diambil dari input RATE, default dari master exchange rate
-  const lineRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getLatestRate(currency)||1;
+  const lineRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getRateForLine(currency)||1;
   // totalQty = qty × factor × (1 + scrap%)
   const totalQty=qty*factor*(1+scrap/100);
   // lengthQty dari group (jumlah fiber/tube yang diproduksi)
@@ -3763,7 +3771,7 @@ function recalcGroupMaterials(gIdx){
       l.hedging=parseFloat(row0.querySelector('.bom-line-hedging').value)||0;
       l.currency=(row0.querySelector('.bom-line-currency')||{value:l.currency||'USD'}).value||l.currency||'USD';
       // Baca rate dari DOM (sudah ter-auto-fill oleh renderBomLine); fallback ke master exchange rate sesuai currency
-      l.usd_rate=parseFloat((row0.querySelector('.bom-line-rate')||{value:0}).value)||getLatestRate(l.currency||'USD')||1;
+      l.usd_rate=parseFloat((row0.querySelector('.bom-line-rate')||{value:0}).value)||getRateForLine(l.currency||'USD')||1;
     }
     const qty=parseFloat(l.qty)||0;
     const scrap=parseFloat(l.scrap)||0;
@@ -3773,7 +3781,7 @@ function recalcGroupMaterials(gIdx){
     const hedging=parseFloat(l.hedging)||0;
     const currency=(l.currency||'USD').trim()||'USD';
     // lineRate: IDR per 1 unit currency — dari data object (sudah sinkron dengan DOM via recalcBomLine)
-    const lineRate=parseFloat(l.usd_rate)||getLatestRate(currency)||1;
+    const lineRate=parseFloat(l.usd_rate)||getRateForLine(currency)||1;
     const totalQty=qty*factor*(1+scrap/100);
     // totalIdr langsung: price × rate — tidak routing via USD
     const totalIdr=(totalQty*price)*(1+(landed+hedging)/100)*lineRate*lengthQty;
@@ -3874,7 +3882,7 @@ function onBomLineCurrencyChange(gIdx,lIdx,cur){
   if(row){
     const rateInput=row.querySelector('.bom-line-rate');
     if(rateInput){
-      const rateForCurrency=getLatestRate(cur.toUpperCase().trim());
+      const rateForCurrency=getRateForLine(cur);
       rateInput.value=rateForCurrency;
       if(l) l.usd_rate=rateForCurrency;
     }
@@ -3904,7 +3912,7 @@ function autoFillPrice(gIdx,lIdx,row,l){
   // Auto-fill RATE dari master exchange rate sesuai currency
   const rateInput=row.querySelector('.bom-line-rate');
   if(rateInput){
-    const rateForCur=getLatestRate(finalCurrency.toUpperCase().trim());
+    const rateForCur=getRateForLine(finalCurrency);
     rateInput.value=rateForCur;
     l.usd_rate=rateForCur;
   }
