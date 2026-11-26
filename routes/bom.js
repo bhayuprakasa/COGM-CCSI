@@ -322,24 +322,28 @@ router.post('/bom/:id/recalculate', requireEdit, async (req, res) => {
         );
       }
 
-      // Recalc bom_dlfoh: total_cost = total_hour × dlfoh.rate
+      // Recalc bom_dlfoh: total_cost = idx*factor*rate_process + setup*rate_setup
       const dlfohLines = await query(`SELECT * FROM bom_dlfoh WHERE group_id = ?`, [g.id]);
       for (const d of dlfohLines) {
         if (!d.cat) continue;
-        const [master] = await query(`SELECT rate FROM dlfoh WHERE catid = ?`, [d.cat]);
+        const [master] = await query(`SELECT rate,rate_process,rate_setup FROM dlfoh WHERE catid = ?`, [d.cat]);
         if (!master) continue;
-        const totalCost = (parseFloat(d.total_hour) || 0) * (parseFloat(master.rate) || 0);
+        const rp = parseFloat(master.rate_process) || parseFloat(master.rate) || 0;
+        const rs = parseFloat(master.rate_setup) || parseFloat(master.rate) || 0;
+        const totalCost = (parseFloat(d.idx)||0)*(parseFloat(d.factor)||1)*rp + (parseFloat(d.setup)||0)*rs;
         await query(`UPDATE bom_dlfoh SET total_cost = ? WHERE id = ?`, [totalCost, d.id]);
       }
     }
 
-    // Recalc bom_routing: total_cost = total_hour × dlfoh.rate (rate bisa berubah sewaktu-waktu)
+    // Recalc bom_routing: total_cost = process_time*rate_process + setup_time*rate_setup
     const routingRows = await query(`SELECT * FROM bom_routing WHERE bom_id = ?`, [req.params.id]);
     for (const r of routingRows) {
       if (!r.cat) continue;
-      const [dlfohMaster] = await query(`SELECT rate FROM dlfoh WHERE catid = ?`, [r.cat]);
+      const [dlfohMaster] = await query(`SELECT rate,rate_process,rate_setup FROM dlfoh WHERE catid = ?`, [r.cat]);
       if (!dlfohMaster) continue;
-      const totalCost = (parseFloat(r.total_hour) || 0) * (parseFloat(dlfohMaster.rate) || 0);
+      const rp = parseFloat(dlfohMaster.rate_process) || parseFloat(dlfohMaster.rate) || 0;
+      const rs = parseFloat(dlfohMaster.rate_setup) || parseFloat(dlfohMaster.rate) || 0;
+      const totalCost = (parseFloat(r.process_time)||0)*(parseFloat(r.factor)||1)*rp + (parseFloat(r.setup_time)||0)*rs;
       await query(`UPDATE bom_routing SET total_cost = ? WHERE id = ?`, [totalCost, r.id]);
     }
 

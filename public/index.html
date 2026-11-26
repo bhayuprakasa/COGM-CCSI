@@ -285,6 +285,21 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 .badge-green{background:var(--green2);color:var(--green);border:1px solid rgba(74,222,128,.2);}
 .badge-red{background:var(--red2);color:var(--red);border:1px solid rgba(248,113,113,.2);}
 .badge-violet{background:var(--violet2);color:var(--violet);border:1px solid rgba(167,139,250,.2);}
+/* Machine Line badge colors — satu warna per line, konsisten di semua halaman */
+.badge-ml-colouring{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.25);}
+.badge-ml-buffering{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25);}
+.badge-ml-stranding{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);}
+.badge-ml-jacketing{background:rgba(249,115,22,.12);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+.badge-ml-armoring{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);}
+.badge-ml-pipeline{background:rgba(236,72,153,.12);color:#f472b6;border:1px solid rgba(236,72,153,.25);}
+.badge-ml-other{background:rgba(100,116,139,.12);color:#94a3b8;border:1px solid rgba(100,116,139,.25);}
+/* DL-FOH type colors — Machine/Labour/Overhead */
+.badge-type-machine{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);}
+.badge-type-labour{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);}
+.badge-type-overhead{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25);}
+/* Setup/Proses badge */
+.badge-sp-setup{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.25);}
+.badge-sp-proses{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.25);}
 
 /* DIVIDER */
 .divider{height:1px;background:var(--b1);margin:.75rem 0;}
@@ -685,8 +700,12 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           </select>
         </div>
         <div class="form-group">
-          <div class="flabel req">Rate (IDR/Jam)</div>
-          <input class="finput" type="number" id="dlfoh_rate" placeholder="0">
+          <div class="flabel req">Rate Proses (IDR/Jam)</div>
+          <input class="finput" type="number" id="dlfoh_rate_process" placeholder="0">
+        </div>
+        <div class="form-group">
+          <div class="flabel req">Rate Setup (IDR/Jam)</div>
+          <input class="finput" type="number" id="dlfoh_rate_setup" placeholder="0">
         </div>
         <div class="form-group">
           <div class="flabel">Machine Line</div>
@@ -720,7 +739,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     <div class="card-body" style="padding:0">
       <div class="tbl-wrap">
         <table class="tbl">
-          <thead><tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll('dlfoh',this.checked)" title="Pilih Semua"></th><th>Category ID</th><th>Description</th><th>Type</th><th>Rate</th><th>Machine Line</th><th>Setup/Proses</th><th>Created</th><th>Aksi</th></tr></thead>
+          <thead><tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll('dlfoh',this.checked)" title="Pilih Semua"></th><th>Category ID</th><th>Description</th><th>Type</th><th>Rate Proses</th><th>Rate Setup</th><th>Machine Line</th><th>Setup/Proses</th><th>Created</th><th>Aksi</th></tr></thead>
           <tbody id="dlfoh_tbody"></tbody>
         </table>
       </div>
@@ -1940,6 +1959,32 @@ function toast(msg,type='info'){
 function fmt_idr(n){return 'Rp '+Number(n||0).toLocaleString('id-ID');}
 function fmt_num(n,d=3){return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});}
 
+// Helper: badge class untuk Machine Line berdasarkan nama (konsisten di semua halaman)
+function mlBadgeClass(ml){
+  if(!ml) return 'badge-ml-other';
+  const k=ml.toLowerCase().replace(/[\s-]/g,'');
+  if(k.includes('colou')||k.includes('color')) return 'badge-ml-colouring';
+  if(k.includes('buffer')) return 'badge-ml-buffering';
+  if(k.includes('strand')) return 'badge-ml-stranding';
+  if(k.includes('jacket')) return 'badge-ml-jacketing';
+  if(k.includes('armor')||k.includes('armour')) return 'badge-ml-armoring';
+  if(k.includes('pipe')) return 'badge-ml-pipeline';
+  return 'badge-ml-other';
+}
+// Helper: render badge machine_line
+function mlBadge(ml,extra){return ml?`<span class="badge ${mlBadgeClass(ml)}"${extra?' style="'+extra+'"':''}>${ml}</span>`:'<span class="muted">—</span>';}
+// Helper: badge class untuk DL-FOH type
+function dlTypeBadgeClass(t){
+  if(t==='Machine') return 'badge-type-machine';
+  if(t==='Labour') return 'badge-type-labour';
+  if(t==='Overhead') return 'badge-type-overhead';
+  return 'badge-violet';
+}
+// Helper: render badge DL-FOH type
+function dlTypeBadge(t){return`<span class="badge ${dlTypeBadgeClass(t)}">${t||'—'}</span>`;}
+// Helper: badge Setup/Proses
+function spBadge(sp){if(!sp) return'<span class="muted">—</span>';return`<span class="badge ${sp==='Setup'?'badge-sp-setup':'badge-sp-proses'}">${sp}</span>`;}
+
 // ═══════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════
@@ -2003,11 +2048,30 @@ function buildSearchData(type){
   }
   else if(type==='price') sm_data=DB.prices.map(p=>({code:p.id,name:p.created_dt||p.created||'',sub:p.lines.length+' lines'}));
   else if(type==='exrate') sm_data=DB.exrates.map(e=>({code:e.currency_id,name:e.currency_id,sub:latestRate(e)}));
-  else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Rp '+Number(d.rate).toLocaleString('id-ID')+'/jam'}));
+  else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Proses: Rp '+Number(d.rate_process||d.rate||0).toLocaleString('id-ID')+' | Setup: Rp '+Number(d.rate_setup||d.rate||0).toLocaleString('id-ID')}));
   else if(type==='kap') sm_data=DB.kap.map(k=>({code:k.id,name:k.item_name,sub:k.proses+' | '+(DB.mesin.find(m=>m.machine_id===k.mesin)||{machine_name:k.mesin}).machine_name}));
-  else if(type==='masterbom') sm_data=DB.masterbom.map(b=>({code:b.bomid,name:b.product,sub:b.machine_line+' | '+(b.lines||[]).length+' items'}));
+  else if(type==='masterbom') {
+    // Filter berdasarkan product_code yang dipilih di BOM form agar hanya tampil Master BOM yang relevan
+    var _selProdCode = (ge('bom_product_code')||{value:''}).value;
+    var _mbomFiltered = _selProdCode
+      ? DB.masterbom.filter(b => b.product_code === _selProdCode)
+      : DB.masterbom;
+    sm_data = _mbomFiltered.map(b=>({
+      code: b.bomid,
+      name: b.product,
+      // machine_lines adalah array dari API, machine_line tidak ada di level record
+      sub: (b.machine_lines||[]).join(', ')+' | '+(b.lines||[]).length+' items'
+    }));
+  }
   // Kapasitas sebagai Master Route — ditampilkan per kapid untuk dropdown BOM form
-  else if(type==='masterkap') sm_data=DB.kap.map(k=>({code:k.kapid,name:k.item_name||k.item_code,sub:k.item_code+' | '+k.proses}));
+  else if(type==='masterkap') {
+    // Filter berdasarkan item_code yang cocok dengan produk yang dipilih di BOM form
+    var _selKapCode = (ge('bom_product_code')||{value:''}).value;
+    var _kapFiltered = _selKapCode
+      ? DB.kap.filter(k => k.item_code === _selKapCode)
+      : DB.kap;
+    sm_data = _kapFiltered.map(k=>({code:k.kapid,name:k.item_name||k.item_code,sub:k.item_code+' | '+k.proses}));
+  }
   else if(type==='fgrl') {
     // FG items dari DB.kap (Master Route) — unique by item_code
     const seen=new Set();
@@ -2465,7 +2529,8 @@ function openDlfohForm(id){try{
   (function(){const _e=ge('dlfoh_catid');if(_e)_e.disabled=false;})();
   setVal('dlfoh_desc','');
   setVal('dlfoh_type','');
-  setVal('dlfoh_rate','');
+  setVal('dlfoh_rate_process','');
+  setVal('dlfoh_rate_setup','');
   setVal('dlfoh_machine_line','');
   document.getElementById('dlfoh_created').value=nowStr();
   if(id){
@@ -2477,7 +2542,8 @@ function openDlfohForm(id){try{
       (function(){const _e=ge('dlfoh_catid');if(_e)_e.disabled=true;})();
       (function(){const _e=ge('dlfoh_desc');if(_e)_e.value=rec.desc;})();
       (function(){const _e=ge('dlfoh_type');if(_e)_e.value=rec.type;})();
-      (function(){const _e=ge('dlfoh_rate');if(_e)_e.value=rec.rate;})();
+      (function(){const _e=ge('dlfoh_rate_process');if(_e)_e.value=rec.rate_process||0;})();
+      (function(){const _e=ge('dlfoh_rate_setup');if(_e)_e.value=rec.rate_setup||0;})();
       (function(){const _e=ge('dlfoh_machine_line');if(_e)_e.value=rec.machine_line||'';})();
       (function(){const _e=ge('dlfoh_setup_proses');if(_e)_e.value=rec.setup_proses||'';})();
       (function(){const _e=ge('dlfoh_created');if(_e)_e.value=rec.created_dt||rec.created||'';})();
@@ -2498,13 +2564,15 @@ function saveDlfoh(){try{
   const catid=document.getElementById('dlfoh_catid').value.trim();
   const desc=document.getElementById('dlfoh_desc').value.trim();
   const type=document.getElementById('dlfoh_type').value;
-  const rate=parseFloat(document.getElementById('dlfoh_rate').value)||0;
+  const rate_process=parseFloat(document.getElementById('dlfoh_rate_process').value)||0;
+  const rate_setup=parseFloat(document.getElementById('dlfoh_rate_setup').value)||0;
+  const rate=rate_process; // backward compat: rate = rate_process
   const machine_line=document.getElementById('dlfoh_machine_line').value;
   const setup_proses=document.getElementById('dlfoh_setup_proses').value;
   if(!catid||!type){toast('Category ID dan Type wajib.','error');return;}
   if(typeof API!=='undefined'){
-    if(editId){apiSave(API.dlfoh.update(editId,{desc,type,rate,machine_line,setup_proses}),function(){toast('DL-FOH diupdate.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
-    else{apiSave(API.dlfoh.create({catid,desc,type,rate,machine_line,setup_proses}),function(){toast('DL-FOH disimpan.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
+    if(editId){apiSave(API.dlfoh.update(editId,{desc,type,rate,rate_process,rate_setup,machine_line,setup_proses}),function(){toast('DL-FOH diupdate.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
+    else{apiSave(API.dlfoh.create({catid,desc,type,rate,rate_process,rate_setup,machine_line,setup_proses}),function(){toast('DL-FOH disimpan.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
     return;
   }
   const created=document.getElementById('dlfoh_created').value;
@@ -2513,15 +2581,16 @@ function saveDlfoh(){try{
     const rec=DB.dlfoh.find(d=>d.id===editId);
     if(rec){
       if(rec.desc!==desc) recordHistory('dlfoh',editId,'Description',rec.desc,desc);
-      if(rec.rate!==rate) recordHistory('dlfoh',editId,'Rate',rec.rate,rate);
+      if(rec.rate_process!==rate_process) recordHistory('dlfoh',editId,'Rate Proses',rec.rate_process||0,rate_process);
+      if(rec.rate_setup!==rate_setup) recordHistory('dlfoh',editId,'Rate Setup',rec.rate_setup||0,rate_setup);
       if(rec.machine_line!==machine_line) recordHistory('dlfoh',editId,'Machine Line',rec.machine_line||'',machine_line);
       if(rec.setup_proses!==setup_proses) recordHistory('dlfoh',editId,'Setup/Proses',rec.setup_proses||'',setup_proses);
-      rec.desc=desc;rec.type=type;rec.rate=rate;rec.machine_line=machine_line;rec.setup_proses=setup_proses;rec.updated_dt=nowStr();rec.updated=nowStr();
+      rec.desc=desc;rec.type=type;rec.rate=rate;rec.rate_process=rate_process;rec.rate_setup=rate_setup;rec.machine_line=machine_line;rec.setup_proses=setup_proses;rec.updated_dt=nowStr();rec.updated=nowStr();
     }
     toast('DL-FOH diupdate.','success');
   } else {
     if(DB.dlfoh.find(d=>d.catid===catid)){toast('Category ID sudah ada!','error');return;}
-    DB.dlfoh.push({id:'DLFOH-'+catid,catid,desc,type,rate,machine_line,setup_proses,created,updated:nowStr()});
+    DB.dlfoh.push({id:'DLFOH-'+catid,catid,desc,type,rate,rate_process,rate_setup,machine_line,setup_proses,created,updated:nowStr()});
     toast('DL-FOH disimpan.','success');
   }
   closeDlfohForm(); renderDlfoh(); updateCounts();
@@ -2541,7 +2610,8 @@ function renderDlfoh(){try{
       <td><span class="run-num">${d.catid}</span></td>
       ${_ge?`<td><input class="ge-input" id="ge_dl_desc_${d.id}" value="${geEsc(d.desc)}"></td>`:`<td>${d.desc}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_type_${d.id}" style="width:110px"><option value="Machine" ${d.type==='Machine'?'selected':''}>Machine</option><option value="Labour" ${d.type==='Labour'?'selected':''}>Labour</option><option value="Overhead" ${d.type==='Overhead'?'selected':''}>Overhead</option></select></td>`:`<td><span class="badge badge-violet">${d.type}</span></td>`}
-      ${_ge?`<td><input class="ge-input" type="number" id="ge_dl_rate_${d.id}" value="${d.rate}" style="width:120px"></td>`:`<td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>`}
+      ${_ge?`<td><input class="ge-input" type="number" id="ge_dl_rate_process_${d.id}" value="${d.rate_process||0}" style="width:110px"></td>`:`<td class="mono">${Number(d.rate_process||0).toLocaleString('id-ID')}</td>`}
+      ${_ge?`<td><input class="ge-input" type="number" id="ge_dl_rate_setup_${d.id}" value="${d.rate_setup||0}" style="width:110px"></td>`:`<td class="mono">${Number(d.rate_setup||0).toLocaleString('id-ID')}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_ml_${d.id}" style="width:130px"><option value="">—</option>${_mlOpts.map(o=>`<option value="${o}" ${(d.machine_line||'')=== o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td>${d.machine_line?`<span class="badge badge-violet">${d.machine_line}</span>`:'<span class="muted">—</span>'}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_sp_${d.id}" style="width:100px"><option value="">—</option><option value="Setup" ${(d.setup_proses||'')==='Setup'?'selected':''}>Setup</option><option value="Proses" ${(d.setup_proses||'')==='Proses'?'selected':''}>Proses</option></select></td>`:`<td>${d.setup_proses?`<span class="badge badge-violet">${d.setup_proses}</span>`:'<span class="muted">—</span>'}</td>`}
       <td class="muted mono" style="font-size:.72rem">${d.created_dt||d.created||'—'}</td>
@@ -2722,7 +2792,7 @@ function renderKap(){try{
     // Parse lines dari notes
     var klines=[];try{klines=JSON.parse(k.notes||'[]');}catch(e){klines=[];}
     var linesSummary=klines.length?klines.map(function(l){
-      return`<span class="badge badge-violet" style="font-size:.65rem">${l.machine_line}</span>`;
+      return mlBadge(l.machine_line,'font-size:.65rem');
     }).join(' '):'<span class="muted">—</span>';
     return`<tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('kap',k.id)?' checked':''} onchange="toggleRowSelect('kap','${k.id}',this.checked)"></td>
@@ -2917,7 +2987,7 @@ function renderItemFg(){
     return;
   }
   tbody.innerHTML = data.map(r=>{
-    const machines = (r.machines||[]).map(m=>`<span class="badge badge-violet" style="font-size:.65rem">${m.machine_line}</span>`).join(' ') || '<span class="muted">—</span>';
+    const machines = (r.machines||[]).map(m=>mlBadge(m.machine_line,'font-size:.65rem')).join(' ') || '<span class="muted">—</span>';
     return `<tr>
       <td class="mono">${r.code}</td>
       <td>${r.name}</td>
@@ -3339,7 +3409,7 @@ function renderBomGroups(){
     <div style="margin-bottom:1.25rem;border:1px solid var(--b1);border-radius:var(--r2);overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;background:var(--s2);border-bottom:1px solid var(--b1)">
         <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
-          <span class="badge badge-green">&#9881; ${g.machine_line}</span>
+          <span class="badge ${mlBadgeClass(g.machine_line)}">&#9881; ${g.machine_line}</span>
           ${g.machine_id?`<span class="badge badge-cyan" style="font-size:.6rem">🔧 ${g.machine_id}</span>`:''}
           <span style="font-size:.7rem;color:var(--t3)">${g.lines.length} item &middot; ${g.dlfohLines.length} DL-FOH</span>
         </div>
@@ -3378,7 +3448,7 @@ function renderBomGroups(){
             <table class="line-tbl">
               <thead><tr>
                 <th>Category</th><th>Type</th><th>Process</th><th>Set Up</th>
-                <th>Total Hour</th><th>Rate</th><th>Total Cost (IDR)</th><th></th>
+                <th>Total Hour</th><th>Rate Proses</th><th>Rate Setup</th><th>Total Cost (IDR)</th><th></th>
               </tr></thead>
               <tbody id="dlfoh_body_${gIdx}">
                 ${g.dlfohLines.map((dl,dIdx)=>renderDlfohRow(gIdx,dIdx,dl)).join('')}
@@ -3490,6 +3560,7 @@ function renderDlfohRow(gIdx,dIdx,dl){
         </div>
       </td>
       <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
+      <td><span class="badge badge-violet" style="font-size:.6rem">${rec?rec.setup_proses||'—':'—'}</span></td>
       <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,3)}"
         data-manual="${dl.index_manual?'1':'0'}"
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
@@ -3499,8 +3570,9 @@ function renderDlfohRow(gIdx,dIdx,dl){
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
         </td>
       <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,3)}" readonly></td>
-      <!-- Rate & Total Cost: format locale ID agar tampil titik-koma ribuan -->
-      <td><input class="li-input dlfoh-rate-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
+      <!-- Rate Proses & Rate Setup: dipisah, masing-masing × waktu proses/setup -->
+      <td><input class="li-input dlfoh-rate-process-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
+      <td><input class="li-input dlfoh-rate-setup-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate_setup)||parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
       <td><input class="li-input dlfoh-cost-cell" style="width:92px" value="${Number(dl.total_cost||0).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="bomGroups[${gIdx}].dlfohLines.splice(${dIdx},1);renderBomGroups()">&#10005;</button>`)}</td>
     </tr>`;
@@ -3552,22 +3624,21 @@ function recalcBomLine(gIdx,lIdx){try{
   const landed=parseFloat(row.querySelector('.bom-line-landed').value)||0;
   const hedging=parseFloat(row.querySelector('.bom-line-hedging').value)||0;
   const currency=(row.querySelector('.bom-line-currency')?row.querySelector('.bom-line-currency').value:'USD').trim()||'USD';
-  // lineUsdRate: rate per line (input oleh user, bisa beda dengan global rate)
-  const lineUsdRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getLatestRate('USD');
+  // lineRate: IDR per 1 unit currency — diambil dari input RATE, default dari master exchange rate
+  const lineRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getLatestRate(currency)||1;
   // totalQty = qty × factor × (1 + scrap%)
   const totalQty=qty*factor*(1+scrap/100);
   // lengthQty dari group (jumlah fiber/tube yang diproduksi)
   const lengthQty=bomGroups[gIdx].lengthQty||1;
-  // rateConv: konversi price dari [currency] ke USD (misal IDR→USD: 1/16000)
-  const rateConv=getLatestConversion(currency);
-  // totalAmt (USD) = totalQty × price × (1 + (landed%+hedging%)/100) × rateConv × lengthQty
-  const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv*lengthQty;
-  // totalIdr = totalAmt (USD) × rate per line
-  const totalIdr=totalAmt*lineUsdRate;
+  // totalIdr langsung: price (dalam currency) × rate (IDR/currency) — tidak perlu routing via USD
+  const totalIdr=(totalQty*price)*(1+(landed+hedging)/100)*lineRate*lengthQty;
+  // totalAmt (USD) untuk kolom TOTAL — konversi dari IDR ke USD
+  const usdRate=getLatestRate('USD')||1;
+  const totalAmt=usdRate>0?totalIdr/usdRate:0;
   if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,3);
   if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,3);
   if(row.querySelector('.bom-line-totalidr')) row.querySelector('.bom-line-totalidr').value=Number(totalIdr.toFixed(0)).toLocaleString('id-ID');
-  Object.assign(l,{price,landed,hedging,currency,usd_rate:lineUsdRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
+  Object.assign(l,{price,landed,hedging,currency,usd_rate:lineRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
   recalcAllGroups();
 }catch(e){console.warn('recalcBomLine g='+gIdx+' l='+lIdx+':',e);}}
 
@@ -3575,19 +3646,26 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
   // Recalc only total_hour and total_cost for a single row (index or setup was manually edited)
   const g=bomGroups[gIdx];
   const dl=g.dlfohLines[dIdx];
-  const th=dl.index*(dl.factor||1)+(dl.setup||0);
-  dl.total_hour=th;
   const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
+  // Jika setup_proses="Setup" → pakai setup saja; "Proses" → index × factor saja
+  const sp=rec?(rec.setup_proses||''):'';
+  const th=sp==='Setup'?(dl.setup||0):(dl.index*(dl.factor||1));
+  dl.total_hour=th;
   // DL type pakai dlLot, FOH type pakai fohLot
   const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
-  dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*lotMult;
+  // total_cost = (proses × rate_process) + (setup × rate_setup), dikali lotMult
+  const rp=rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0;
+  const rs=rec?parseFloat(rec.rate_setup)||parseFloat(rec.rate)||0:0;
+  dl.total_cost=(dl.index*(dl.factor||1)*rp + (dl.setup||0)*rs)*lotMult;
   const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
   if(row){
     const hourCell=row.querySelector('.dlfoh-hour-cell');
-    const rateCell=row.querySelector('.dlfoh-rate-cell');
+    const rateProsesCell=row.querySelector('.dlfoh-rate-process-cell');
+    const rateSetupCell=row.querySelector('.dlfoh-rate-setup-cell');
     const costCell=row.querySelector('.dlfoh-cost-cell');
     if(hourCell) hourCell.value=fmt_num(th,3);
-    if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
+    if(rateProsesCell) rateProsesCell.value=Number(rp).toLocaleString('id-ID');
+    if(rateSetupCell) rateSetupCell.value=Number(rs).toLocaleString('id-ID');
     if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
   }
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
@@ -3610,28 +3688,38 @@ function recalcGroupDlfoh(gIdx){
     // Only overwrite factor if user has NOT manually edited it
     if(!dl.factor_manual) dl.factor=lengthQty;
     const idx=dl.index;
-    const th=idx*(dl.factor||1)+(dl.setup||0);
-    dl.total_hour=th;
     const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
+    // Jika setup_proses="Setup" → total_hour dari setup saja; "Proses" → index × factor saja
+    const sp=rec?(rec.setup_proses||''):'';
+    const th=sp==='Setup'?(dl.setup||0):(idx*(dl.factor||1));
+    dl.total_hour=th;
     // DL type pakai dlLot, FOH type (FFOH/VFOH) pakai fohLot
     const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
-    dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*lotMult;
+    // total_cost = (proses × rate_process) + (setup × rate_setup), dikali lotMult
+    const rp=rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0;
+    const rs=rec?parseFloat(rec.rate_setup)||parseFloat(rec.rate)||0:0;
+    dl.total_cost=(idx*(dl.factor||1)*rp + (dl.setup||0)*rs)*lotMult;
     const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
     if(row){
       const idxCell=row.querySelector('.dlfoh-process-cell');
       const setupCell=row.querySelector('.dlfoh-setup-cell');
       const hourCell=row.querySelector('.dlfoh-hour-cell');
-      const rateCell=row.querySelector('.dlfoh-rate-cell');
+      const rateProsesCell=row.querySelector('.dlfoh-rate-process-cell');
+      const rateSetupCell=row.querySelector('.dlfoh-rate-setup-cell');
       const costCell=row.querySelector('.dlfoh-cost-cell');
       if(idxCell&&!dl.index_manual) idxCell.value=fmt_num(idx,3);
       if(setupCell&&!dl.setup_manual) setupCell.value=fmt_num(dl.setup,3);
       if(hourCell) hourCell.value=fmt_num(th,3);
-      if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
+      if(rateProsesCell) rateProsesCell.value=Number(rp).toLocaleString('id-ID');
+      if(rateSetupCell) rateSetupCell.value=Number(rs).toLocaleString('id-ID');
       if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
       const t=rec?rec.type:'—';
       // badge color: DL=green, FFOH=violet, VFOH=amber
       const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
       row.cells[1].innerHTML='<span class="badge '+cls+'" style="font-size:.6rem">'+t+'</span>';
+      // Update S/P badge (cells[2] = kolom Setup/Proses)
+      const spBadge=rec?(rec.setup_proses||'—'):'—';
+      row.cells[2].innerHTML='<span class="badge badge-violet" style="font-size:.6rem">'+spBadge+'</span>';
     }
   });
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
@@ -3668,11 +3756,13 @@ function recalcGroupMaterials(gIdx){
     const landed=parseFloat(l.landed)||0;
     const hedging=parseFloat(l.hedging)||0;
     const currency=(l.currency||'USD').trim()||'USD';
-    const lineUsdRate=parseFloat(l.usd_rate)||getLatestRate('USD');
+    // lineRate: IDR per 1 unit currency — dari data object (sudah sinkron dengan DOM via recalcBomLine)
+    const lineRate=parseFloat(l.usd_rate)||getLatestRate(currency)||1;
     const totalQty=qty*factor*(1+scrap/100);
-    const rateConv=getLatestConversion(currency);
-    const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv*lengthQty;
-    const totalIdr=totalAmt*lineUsdRate;
+    // totalIdr langsung: price × rate — tidak routing via USD
+    const totalIdr=(totalQty*price)*(1+(landed+hedging)/100)*lineRate*lengthQty;
+    const usdRate2=getLatestRate('USD')||1;
+    const totalAmt=usdRate2>0?totalIdr/usdRate2:0;
     l.total_qty=totalQty; l.total_amt=totalAmt; l.total_idr=totalIdr;
     const row=container.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
     if(!row) return;
@@ -3764,6 +3854,15 @@ function onBomLineCurrencyChange(gIdx,lIdx,cur){
   const row=_bmg.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
   if(row) row.querySelector('.bom-line-currency').value=cur;
   const l=bomGroups[gIdx].lines[lIdx]; if(l) l.currency=cur;
+  // Auto-fill RATE dari master exchange rate sesuai currency per baris
+  if(row){
+    const rateInput=row.querySelector('.bom-line-rate');
+    if(rateInput){
+      const rateForCurrency=getLatestRate(cur.toUpperCase().trim());
+      rateInput.value=rateForCurrency;
+      if(l) l.usd_rate=rateForCurrency;
+    }
+  }
   autoFillPrice(gIdx,lIdx,row,l);
   recalcBomLine(gIdx,lIdx);
 }
@@ -3778,6 +3877,7 @@ function autoFillPrice(gIdx,lIdx,row,l){
   if(!pl) return;
   // Fill currency from purchase price first, then price/landed/hedging
   const currencyInput=row.querySelector('.bom-line-currency');
+  const finalCurrency=pl.currency||l.currency||'USD';
   if(currencyInput && pl.currency){
     currencyInput.value=pl.currency;
     l.currency=pl.currency;
@@ -3785,10 +3885,17 @@ function autoFillPrice(gIdx,lIdx,row,l){
     const cuHidden=document.getElementById('__bcu_'+gIdx+'_'+lIdx);
     if(cuHidden) cuHidden.value=pl.currency;
   }
+  // Auto-fill RATE dari master exchange rate sesuai currency
+  const rateInput=row.querySelector('.bom-line-rate');
+  if(rateInput){
+    const rateForCur=getLatestRate(finalCurrency.toUpperCase().trim());
+    rateInput.value=rateForCur;
+    l.usd_rate=rateForCur;
+  }
   row.querySelector('.bom-line-price').value=pl.price;
   row.querySelector('.bom-line-landed').value=pl.landed;
   row.querySelector('.bom-line-hedging').value=pl.hedging;
-  Object.assign(l,{currency:pl.currency||l.currency, price:+pl.price, landed:+pl.landed, hedging:+pl.hedging});
+  Object.assign(l,{currency:finalCurrency, price:+pl.price, landed:+pl.landed, hedging:+pl.hedging});
 }
 
 function onBomPriceSelect(priceId){
@@ -4031,7 +4138,7 @@ function renderBom(){try{
       ${col('bom','product')?(_ge?`<td><input class="ge-input" id="ge_bom_prod_${b.id}" value="${geEsc(b.product)}"></td>`:`<td><strong>${b.product}</strong></td>`):''}
       ${col('bom','customer')?(_ge?`<td><input class="ge-input" id="ge_bom_cust_${b.id}" value="${geEsc(b.customer||'')}"></td>`:`<td class="muted">${b.customer||'—'}</td>`):''}
       ${col('bom','price')?(_ge?`<td><input class="ge-input" id="ge_bom_price_${b.id}" value="${geEsc(b.price_id||'')}" style="width:110px" placeholder="Price ID"></td>`:`<td>${b.price_id?'<span class="badge badge-amber">'+b.price_id+'</span>':'—'}</td>`):''}
-      ${col('bom','mlines')?`<td>${(b.machine_lines||[]).map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')||'—'}</td>`:''}
+      ${col('bom','mlines')?`<td>${(b.machine_lines||[]).map(ml=>mlBadge(ml)).join('<span style="color:var(--muted);margin:0 3px"> </span>')||'—'}</td>`:''}
       ${col('bom','status')?`<td><span class="badge ${statusBadge}" style="font-size:.65rem">${si.label}</span></td>`:''}
       ${col('bom','cby')?`<td class="audit-cell">${b.created_by||'—'}</td>`:''}
       ${col('bom','cdt')?`<td class="audit-cell">${b.created_dt||b.created||'—'}</td>`:''}
@@ -4136,7 +4243,7 @@ function renderMesin(){try{
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('mesin','${m.id}')?' checked':''} onchange="toggleRowSelect('mesin','${m.id}',this.checked)"></td>
     ${col('mesin','mid')?`<td><span class="run-num">${m.machine_id}</span></td>`:''}
     ${col('mesin','mname')?(_ge?`<td><input class="ge-input" id="ge_m_name_${m.id}" value="${geEsc(m.machine_name)}"></td>`:`<td>${m.machine_name}</td>`):''}
-    ${col('mesin','mline')?(_ge?`<td><select class="ge-select" id="ge_m_line_${m.id}" style="width:130px">${_mlOpts.map(o=>`<option value="${o}" ${m.machine_line===o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td><span style="color:var(--muted);margin-right:5px;font-size:.85rem">|</span><span class="badge badge-violet">${m.machine_line||'—'}</span></td>`):''}
+    ${col('mesin','mline')?(_ge?`<td><select class="ge-select" id="ge_m_line_${m.id}" style="width:130px">${_mlOpts.map(o=>`<option value="${o}" ${m.machine_line===o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td>${mlBadge(m.machine_line)}</td>`):''}
     ${col('mesin','created')?`<td class="muted mono" style="font-size:.72rem">${m.created_dt||m.created||'—'}</td>`:''}
     ${col('mesin','updated')?`<td class="muted mono" style="font-size:.72rem">${m.modified_dt||m.updated||'—'}</td>`:''}
     ${col('mesin','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveMesin('${m.id}')">💾 Simpan</button>${GE.mesin!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('mesin')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-amber btn-xs" onclick="openMesinForm('${m.id}')">✏</button><button class="btn btn-ghost btn-xs" onclick="showHistory('mesin','${m.id}')">📜 Riwayat</button><button class="btn btn-danger btn-xs" onclick="deleteMesin('${m.id}')">🗑</button></div></td>`):''}
@@ -4618,7 +4725,7 @@ function renderMBomGroups(){
     <div style="margin-bottom:1.25rem;border:1px solid var(--b1);border-radius:var(--r2);overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;background:var(--s2);border-bottom:1px solid var(--b1)">
         <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
-          <span class="badge badge-violet">&#9881; ${g.machine_line}</span>
+          <span class="badge ${mlBadgeClass(g.machine_line)}">&#9881; ${g.machine_line}</span>
           <span style="font-size:.7rem;color:var(--t3)">${g.lines.length} item</span>
         </div>
         <button class="btn btn-danger btn-xs" onclick="removeMBomGroup(${gIdx})">&#10005; Hapus</button>
@@ -4721,7 +4828,7 @@ function renderMBomDlfohRow(gIdx,dIdx,dl){
   // Always use DB.dlfoh as source of truth for type when cat matches
   if(rec && dl.cat) dl.type=rec.type;
   const t = dl.type || (rec ? rec.type : '—');
-  const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':t==='Overhead'?'badge-amber':'';
+  const cls=dlTypeBadgeClass(t);
   return '<tr data-mdg="'+gIdx+'" data-mdi="'+dIdx+'">'
     +'<td><div style="display:flex;gap:.2rem;align-items:center">'
     +'<input class="li-input mbom-dl-cat" style="width:72px" value="'+(dl.cat||'')+'" placeholder="Cat ID" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].cat=this.value;recalcMBomDlfohRow('+gIdx+','+dIdx+')">'
@@ -4778,9 +4885,8 @@ function recalcMBomGroupDlfoh(gIdx){
       const sc=row.querySelector('.mbom-dl-setup'); if(sc&&!dl.setup_manual) sc.value=fmt_num(dl.setup,3);
       const fc=row.querySelector('.mbom-dl-factor'); if(fc&&!dl.factor_manual) fc.value=fmt_num(dl.factor,3);
       const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,3);
-      const cls=displayType==='Machine'?'badge-violet':displayType==='Labour'?'badge-green':displayType==='Overhead'?'badge-amber':'';
       const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
-      if(tb){tb.className='badge '+cls;tb.style.fontSize='.6rem';tb.textContent=displayType;}
+      if(tb){tb.className='badge '+dlTypeBadgeClass(displayType);tb.style.fontSize='.6rem';tb.textContent=displayType;}
     }
   });
 }
@@ -4797,9 +4903,8 @@ function recalcMBomDlfohRow(gIdx,dIdx){
   const row=document.querySelector('tr[data-mdg="'+gIdx+'"][data-mdi="'+dIdx+'"]');
   if(row){
     const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,3);
-    const cls=displayType==='Machine'?'badge-violet':displayType==='Labour'?'badge-green':displayType==='Overhead'?'badge-amber':'';
     const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
-    if(tb){tb.className='badge '+cls;tb.style.fontSize='.6rem';tb.textContent=displayType;}
+    if(tb){tb.className='badge '+dlTypeBadgeClass(displayType);tb.style.fontSize='.6rem';tb.textContent=displayType;}
   }
   // Saat baris pertama berubah, update prosesTime & setupTime group agar konsisten
   if(dIdx===0){g.prosesTime=dl.index;g.setupTime=dl.setup;}
@@ -4955,7 +5060,7 @@ function renderMBom(){try{
       +'<td class="muted">'+(b.no_spec||'&#8212;')+'</td>'
       +(_ge?'<td><input class="ge-input" id="ge_mb_prod_'+b.id+'" value="'+geEsc(b.product)+'"></td>'
            :'<td><strong>'+b.product+'</strong></td>')
-      +'<td>'+mlines.map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')+'</td>'
+      +'<td>'+mlines.map(ml=>mlBadge(ml)).join(' ')+'</td>'
       +'<td style="text-align:center"><span class="badge badge-amber">'+itemCount+' item</span></td>'
       +'<td class="audit-cell">'+createdBy+'</td>'
       +'<td class="audit-cell">'+createdDt+'</td>'
@@ -6093,7 +6198,7 @@ function renderHistory(){try{
     ${col('history','bomid')?`<td><span class="run-num">${b.bomid}</span></td>`:''}
     ${col('history','product')?`<td><strong>${b.product}</strong></td>`:''}
     ${col('history','customer')?`<td class="muted">${b.customer||'—'}</td>`:''}
-    ${col('history','mlines')?`<td>${((b.machine_lines&&b.machine_lines.length)?b.machine_lines:(b.groups||[]).map(g=>g.machine_line).filter(Boolean)).map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')||'—'}</td>`:''}
+    ${col('history','mlines')?`<td>${((b.machine_lines&&b.machine_lines.length)?b.machine_lines:(b.groups||[]).map(g=>g.machine_line).filter(Boolean)).map(ml=>mlBadge(ml)).join(' ')||'—'}</td>`:''}
     ${col('history','status')?`<td><span class="badge ${statusInfo(b.status||'draft').badge}" style="font-size:.65rem">${statusInfo(b.status||'draft').label}</span></td>`:''}
     ${col('history','sby')?`<td class="audit-cell">${b.created_by||'—'}</td>`:''}
     ${col('history','aby')?`<td class="audit-cell">${b.approved_by||'—'}</td>`:''}
@@ -6188,15 +6293,14 @@ function viewBomDetail(id, src){try{
     const dlfohRows=(g.dlfohLines||[]).map(dl=>{
       const catRec=DB.dlfoh.find(d=>d.catid===dl.cat);
       const t=catRec?catRec.type:'—';
-      const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':'badge-amber';
       return `<tr>
         <td class="mono">${dl.cat||'—'}</td>
         <td>${catRec?catRec.desc:'—'}</td>
-        <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
+        <td><span class="badge ${dlTypeBadgeClass(t)}" style="font-size:.6rem">${t}</span></td>
         <td class="mono" style="text-align:right">${fmt_num(dl.index||0,3)}</td>
         <td class="mono" style="text-align:right">${fmt_num(dl.setup||0,3)}</td>
         <td class="mono" style="text-align:right">${fmt_num(dl.factor||1,3)}</td>
-        <td class="mono" style="text-align:right">${fmt_num(dl.total_hour||0,3)}</td>
+        <td class="mono" style="text-align:right">${fmt_num(effHour,3)}</td>
         <td class="mono" style="text-align:right;color:var(--amber)">${Number((dl.total_cost||0).toFixed(0)).toLocaleString('id-ID')}</td>
       </tr>`;
     }).join('');
@@ -6205,7 +6309,7 @@ function viewBomDetail(id, src){try{
     <div style="margin-bottom:1rem;border:1px solid var(--b1);border-radius:var(--r);overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s2);padding:.5rem .75rem;gap:.75rem;flex-wrap:wrap">
         <div style="display:flex;align-items:center;gap:.5rem">
-          <span class="badge badge-violet">⚙️ ${g.machine_line}</span>
+          <span class="badge ${mlBadgeClass(g.machine_line)}">⚙️ ${g.machine_line}</span>
           ${g.machine_id?'<span class="badge badge-cyan" style="font-size:.6rem">🔧 '+g.machine_id+'</span>':''}
           ${g.kap_id?'<span class="badge" style="background:var(--blue-d);color:var(--blue);border:1px solid rgba(96,165,250,.2);font-size:.6rem">⚡ '+g.kap_id+'</span>':''}
         </div>
@@ -6236,7 +6340,7 @@ function viewBomDetail(id, src){try{
         <div style="overflow-x:auto">
           <table class="tbl" style="min-width:600px">
             <thead><tr>
-              <th>Category</th><th>Description</th><th>Type</th>
+              <th>Category</th><th>Description</th><th>Type</th><th>S/P</th>
               <th style="text-align:right">Index</th><th style="text-align:right">Set Up</th>
               <th style="text-align:right">Factor</th><th style="text-align:right">Total Hour</th>
               <th style="text-align:right">Total Cost (IDR)</th>
@@ -6596,7 +6700,7 @@ function viewKapDetail(id){try{
       <th style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;color:var(--t3);font-size:.68rem;text-transform:uppercase">Setup Time (Jam)</th>
     </tr></thead>
     <tbody>${klines.map(function(l){return`<tr>
-      <td style="padding:.35rem .6rem;border:1px solid var(--b2)"><span class="badge badge-violet">${l.machine_line}</span></td>
+      <td style="padding:.35rem .6rem;border:1px solid var(--b2)">${mlBadge(l.machine_line)}</td>
       <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.duration||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>
       <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.setup||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>
     </tr>`;}).join('')}</tbody>
@@ -8185,14 +8289,16 @@ function geSaveExrate(id) {
 function geSaveDlfoh(id) {
   var desc = (document.getElementById('ge_dl_desc_'+id)||{}).value||'';
   var type = (document.getElementById('ge_dl_type_'+id)||{}).value||'';
-  var rate = parseFloat((document.getElementById('ge_dl_rate_'+id)||{}).value)||0;
+  var rate_process = parseFloat((document.getElementById('ge_dl_rate_process_'+id)||{}).value)||0;
+  var rate_setup = parseFloat((document.getElementById('ge_dl_rate_setup_'+id)||{}).value)||0;
+  var rate = rate_process; // backward compat
   var machine_line = (document.getElementById('ge_dl_ml_'+id)||{}).value||'';
   var setup_proses = (document.getElementById('ge_dl_sp_'+id)||{}).value||'';
   if(!desc.trim()){toast('Deskripsi tidak boleh kosong','error');return;}
-  apiSave(API.dlfoh.update(id,{desc:desc.trim(),type,rate,machine_line,setup_proses}), function(){
+  apiSave(API.dlfoh.update(id,{desc:desc.trim(),type,rate,rate_process,rate_setup,machine_line,setup_proses}), function(){
     if(GE.dlfoh!=='__all__') GE.dlfoh=null;
     var rec=DB.dlfoh.find(function(r){return r.id==id||r.id===id;});
-    if(rec){rec.desc=desc.trim();rec.type=type;rec.rate=rate;rec.machine_line=machine_line;rec.setup_proses=setup_proses;}
+    if(rec){rec.desc=desc.trim();rec.type=type;rec.rate=rate;rec.rate_process=rate_process;rec.rate_setup=rate_setup;rec.machine_line=machine_line;rec.setup_proses=setup_proses;}
     renderDlfoh();
     toast('DLFOH berhasil disimpan','success');
   });

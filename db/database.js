@@ -111,6 +111,7 @@ async function initSchema() {
       `CREATE TABLE IF NOT EXISTS dlfoh (
         id VARCHAR(100) PRIMARY KEY, catid VARCHAR(100) UNIQUE NOT NULL,
         \`desc\` VARCHAR(255), type VARCHAR(50), rate DECIMAL(20,4) DEFAULT 0,
+        rate_process DECIMAL(20,4) DEFAULT 0, rate_setup DECIMAL(20,4) DEFAULT 0,
         created_by VARCHAR(100), created_dt VARCHAR(50),
         modified_by VARCHAR(100), modified_dt VARCHAR(50)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
@@ -368,6 +369,8 @@ async function initSchema() {
       { table:'dlfoh',           col:'machine_line',      def:"VARCHAR(100) DEFAULT ''" },
       // Setup/Proses pada DL-FOH category
       { table:'dlfoh',           col:'setup_proses',      def:"VARCHAR(50) DEFAULT ''" },
+      { table:'dlfoh',           col:'rate_process',      def:"DECIMAL(20,4) DEFAULT 0" },
+      { table:'dlfoh',           col:'rate_setup',        def:"DECIMAL(20,4) DEFAULT 0" },
       // No Spec di masterbom header
       { table:'masterbom',       col:'no_spec',           def:"VARCHAR(255) DEFAULT ''" },
       // Scrap Fix (nilai tetap) di masterbom_lines
