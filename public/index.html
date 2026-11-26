@@ -293,10 +293,10 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 .badge-ml-armoring{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);}
 .badge-ml-pipeline{background:rgba(236,72,153,.12);color:#f472b6;border:1px solid rgba(236,72,153,.25);}
 .badge-ml-other{background:rgba(100,116,139,.12);color:#94a3b8;border:1px solid rgba(100,116,139,.25);}
-/* DL-FOH type colors — Machine/Labour/Overhead */
-.badge-type-machine{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);}
-.badge-type-labour{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);}
-.badge-type-overhead{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25);}
+/* DL-FOH type colors — DL / FFOH / VFOH */
+.badge-type-dl{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);}
+.badge-type-ffoh{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);}
+.badge-type-vfoh{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25);}
 /* Setup/Proses badge */
 .badge-sp-setup{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.25);}
 .badge-sp-proses{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.25);}
@@ -1977,11 +1977,11 @@ function mlBadgeClass(ml){
 }
 // Helper: render badge machine_line
 function mlBadge(ml,extra){return ml?`<span class="badge ${mlBadgeClass(ml)}"${extra?' style="'+extra+'"':''}>${ml}</span>`:'<span class="muted">—</span>';}
-// Helper: badge class untuk DL-FOH type
+// Helper: badge class untuk DL-FOH type (DL / FFOH / VFOH)
 function dlTypeBadgeClass(t){
-  if(t==='Machine') return 'badge-type-machine';
-  if(t==='Labour') return 'badge-type-labour';
-  if(t==='Overhead') return 'badge-type-overhead';
+  if(t==='DL') return 'badge-type-dl';
+  if(t==='FFOH') return 'badge-type-ffoh';
+  if(t==='VFOH') return 'badge-type-vfoh';
   return 'badge-violet';
 }
 // Helper: render badge DL-FOH type
@@ -2589,7 +2589,7 @@ function renderDlfoh(){try{
     <tr${_ge?' class="ge-row"':''}><td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('dlfoh','${d.id}')?'checked':''} onchange="toggleRowSelect('dlfoh','${d.id}',this.checked)"></td>
       <td><span class="run-num">${d.catid}</span></td>
       ${_ge?`<td><input class="ge-input" id="ge_dl_desc_${d.id}" value="${geEsc(d.desc)}"></td>`:`<td>${d.desc}</td>`}
-      ${_ge?`<td><select class="ge-select" id="ge_dl_type_${d.id}" style="width:110px"><option value="Machine" ${d.type==='Machine'?'selected':''}>Machine</option><option value="Labour" ${d.type==='Labour'?'selected':''}>Labour</option><option value="Overhead" ${d.type==='Overhead'?'selected':''}>Overhead</option></select></td>`:`<td>${dlTypeBadge(d.type)}</td>`}
+      ${_ge?`<td><select class="ge-select" id="ge_dl_type_${d.id}" style="width:90px"><option value="DL" ${d.type==='DL'?'selected':''}>DL</option><option value="FFOH" ${d.type==='FFOH'?'selected':''}>FFOH</option><option value="VFOH" ${d.type==='VFOH'?'selected':''}>VFOH</option></select></td>`:`<td>${dlTypeBadge(d.type)}</td>`}
       ${_ge?`<td><input class="ge-input" type="number" id="ge_dl_rate_${d.id}" value="${d.rate}" style="width:120px"></td>`:`<td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_ml_${d.id}" style="width:130px"><option value="">—</option>${_mlOpts.map(o=>`<option value="${o}" ${(d.machine_line||'')=== o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td>${mlBadge(d.machine_line)}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_sp_${d.id}" style="width:100px"><option value="">—</option><option value="Setup" ${(d.setup_proses||'')==='Setup'?'selected':''}>Setup</option><option value="Proses" ${(d.setup_proses||'')==='Proses'?'selected':''}>Proses</option></select></td>`:`<td>${spBadge(d.setup_proses)}</td>`}
@@ -3539,7 +3539,7 @@ function renderBomLineRow(gIdx,lIdx,l){
 function renderDlfohRow(gIdx,dIdx,dl){
   const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
   const t=rec?rec.type:'—';
-  const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
+  const cls=dlTypeBadgeClass(t);
   // Field cat/index/setup/factor dikunci jika line dari Master BOM
   const fm=!!dl.fromMaster;
   const rdStyle='readonly style="background:var(--s2);color:var(--t3);cursor:default"';
@@ -3555,7 +3555,7 @@ function renderDlfohRow(gIdx,dIdx,dl){
         </div>
       </td>
       <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
-      <td><span class="badge badge-violet" style="font-size:.6rem">${rec?rec.setup_proses||'—':'—'}</span></td>
+      <td>${spBadge(rec?rec.setup_proses||'':'')}</td>
       <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,3)}"
         data-manual="${dl.index_manual?'1':'0'}"
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
@@ -3699,12 +3699,11 @@ function recalcGroupDlfoh(gIdx){
       if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
       if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
       const t=rec?rec.type:'—';
-      // badge color: DL=green, FFOH=violet, VFOH=amber
-      const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
+      const cls=dlTypeBadgeClass(t);
       row.cells[1].innerHTML='<span class="badge '+cls+'" style="font-size:.6rem">'+t+'</span>';
       // Update S/P badge (cells[2] = kolom Setup/Proses)
-      const spBadge=rec?(rec.setup_proses||'—'):'—';
-      row.cells[2].innerHTML='<span class="badge badge-violet" style="font-size:.6rem">'+spBadge+'</span>';
+      const spVal=rec?(rec.setup_proses||''):'';
+      row.cells[2].innerHTML=spBadge(spVal);
     }
   });
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
