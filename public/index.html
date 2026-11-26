@@ -3235,9 +3235,9 @@ function openBomForm(id){try{
           price: parseFloat(l.price)||0,
           landed: parseFloat(l.landed)||0,
           hedging: parseFloat(l.hedging)||0,
-          // usd_rate: gunakan getRateForLine agar IDR line selalu rate=1 (bukan USD rate)
-          // Stored usd_rate di DB bisa salah (IDR tersimpan 17500) — selalu derive ulang dari currency
-          usd_rate: getRateForLine(l.currency||'USD'),
+          // exchange_rate: rate currency baris ini ke IDR (IDR=1, USD/EUR/dll dari master exchange rate)
+          // Selalu derive ulang dari currency agar tidak pakai nilai stale dari DB
+          exchange_rate: getRateForLine(l.currency||'USD'),
           total_amt: parseFloat(l.total_amt)||0,
           // Recalculate total_idr dari total_amt × rate yang benar (fix IDR lines dikali 17500)
           total_idr: (parseFloat(l.total_amt)||0) * getRateForLine(l.currency||'USD') || parseFloat(l.total_idr)||0,
@@ -3412,8 +3412,8 @@ function removeMachineLineGroup(gIdx){
 }
 
 function addBomLine(gIdx){
-  // usd_rate default ke rate USD/IDR terkini dari master exchange rate
-  bomGroups[gIdx].lines.push({item_code:'',item_name:'',uom:'',qty:0,scrap:0,factor:1,currency:'USD',price:0,landed:0,hedging:0,usd_rate:getLatestRate('USD'),total_qty:0,total_amt:0,total_idr:0});
+  // exchange_rate default ke rate USD/IDR terkini dari master exchange rate (currency default USD)
+  bomGroups[gIdx].lines.push({item_code:'',item_name:'',uom:'',qty:0,scrap:0,factor:1,currency:'USD',price:0,landed:0,hedging:0,exchange_rate:getLatestRate('USD'),total_qty:0,total_amt:0,total_idr:0});
   renderBomGroups();
 }
 
@@ -3563,7 +3563,7 @@ function renderBomLineRow(gIdx,lIdx,l){
       <td><input class="li-input bom-line-landed" type="number" style="width:52px" value="${l.landed||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-hedging" type="number" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <!-- Rate per line: IDR per 1 unit currency — selalu ambil dari master exchange rate sesuai currency baris -->
-      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getRateForLine(l.currency||'USD');l.usd_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getRateForLine(l.currency||'USD');l.exchange_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,3)}" readonly></td>
       <td><input class="li-input bom-line-totalidr" style="width:98px" value="${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
@@ -3656,7 +3656,7 @@ function recalcBomLine(gIdx,lIdx){try{
   if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,3);
   if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,3);
   if(row.querySelector('.bom-line-totalidr')) row.querySelector('.bom-line-totalidr').value=Number(totalIdr.toFixed(0)).toLocaleString('id-ID');
-  Object.assign(l,{price,landed,hedging,currency,usd_rate:lineRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
+  Object.assign(l,{price,landed,hedging,currency,exchange_rate:lineRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
   recalcAllGroups();
 }catch(e){console.warn('recalcBomLine g='+gIdx+' l='+lIdx+':',e);}}
 
@@ -3767,7 +3767,7 @@ function recalcGroupMaterials(gIdx){
       l.hedging=parseFloat(row0.querySelector('.bom-line-hedging').value)||0;
       l.currency=(row0.querySelector('.bom-line-currency')||{value:l.currency||'USD'}).value||l.currency||'USD';
       // Baca rate dari DOM (sudah ter-auto-fill oleh renderBomLine); fallback ke master exchange rate sesuai currency
-      l.usd_rate=parseFloat((row0.querySelector('.bom-line-rate')||{value:0}).value)||getRateForLine(l.currency||'USD')||1;
+      l.exchange_rate=parseFloat((row0.querySelector('.bom-line-rate')||{value:0}).value)||getRateForLine(l.currency||'USD')||1;
     }
     const qty=parseFloat(l.qty)||0;
     const scrap=parseFloat(l.scrap)||0;
@@ -3777,7 +3777,7 @@ function recalcGroupMaterials(gIdx){
     const hedging=parseFloat(l.hedging)||0;
     const currency=(l.currency||'USD').trim()||'USD';
     // lineRate: IDR per 1 unit currency — dari data object (sudah sinkron dengan DOM via recalcBomLine)
-    const lineRate=parseFloat(l.usd_rate)||getRateForLine(currency)||1;
+    const lineRate=parseFloat(l.exchange_rate)||getRateForLine(currency)||1;
     const totalQty=qty*factor*(1+scrap/100);
     // total_amt = jumlah dalam mata uang asli (IDR→IDR, USD→USD)
     const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*lengthQty;
@@ -3886,7 +3886,7 @@ function onBomLineCurrencyChange(gIdx,lIdx,cur){
     if(rateInput){
       const rateForCurrency=getRateForLine(cur);
       rateInput.value=rateForCurrency;
-      if(l) l.usd_rate=rateForCurrency;
+      if(l) l.exchange_rate=rateForCurrency;
     }
   }
   autoFillPrice(gIdx,lIdx,row,l);
@@ -3916,7 +3916,7 @@ function autoFillPrice(gIdx,lIdx,row,l){
   if(rateInput){
     const rateForCur=getRateForLine(finalCurrency);
     rateInput.value=rateForCur;
-    l.usd_rate=rateForCur;
+    l.exchange_rate=rateForCur;
   }
   row.querySelector('.bom-line-price').value=pl.price;
   row.querySelector('.bom-line-landed').value=pl.landed;
@@ -5159,7 +5159,7 @@ function onMasterBomSelect(mbomId){
         item_code:l.item_code, item_name:l.item_name,
         uom:l.uom||(DB_itemPrices.find(p=>p.item_code===l.item_code)||{}).uom||'',
         qty:parseFloat(l.qty)||0, scrap:parseFloat(l.scrap)||0, scrap_fix:parseFloat(l.scrap_fix)||0, factor:parseFloat(l.factor)||1, total_qty:parseFloat(l.total_qty)||0,
-        currency:'USD', price:0, landed:0, hedging:0, usd_rate:getLatestRate('USD'), total_amt:0, total_idr:0,
+        currency:'USD', price:0, landed:0, hedging:0, exchange_rate:getLatestRate('USD'), total_amt:0, total_idr:0,
         fromMaster:true, // field qty/scrap/factor/item_code dari master, tidak boleh diedit
       })),
       // DL-FOH dikosongkan — akan diisi setelah Master Route dipilih
@@ -5177,7 +5177,7 @@ function onMasterBomSelect(mbomId){
           item_code:l.item_code, item_name:l.item_name,
           uom:l.uom||(DB_itemPrices.find(p=>p.item_code===l.item_code)||{}).uom||'',
           qty:l.qty, scrap:l.scrap, factor:l.factor, total_qty:l.total_qty,
-          currency:'USD', price:0, landed:0, hedging:0, usd_rate:getLatestRate('USD'), total_amt:0, total_idr:0,
+          currency:'USD', price:0, landed:0, hedging:0, exchange_rate:getLatestRate('USD'), total_amt:0, total_idr:0,
         })),
         dlfohLines:[],
       });
@@ -6274,7 +6274,8 @@ function viewBomDetail(id, src){try{
     // Recalc total_idr pakai formula baru (total_amt × rate) agar data lama dari DB tetap benar
     groups.forEach(function(g){
       g.lines.forEach(function(l){
-        var lineRate=parseFloat(l.usd_rate)>0?parseFloat(l.usd_rate):(getRateForLine(l.currency||'USD')||1);
+        // exchange_rate dari master, IDR=1; jika belum ada di object, derive dari currency
+        var lineRate=(l.currency||'USD').toUpperCase()==='IDR'?1:(parseFloat(l.exchange_rate)>0?parseFloat(l.exchange_rate):(getRateForLine(l.currency||'USD')||1));
         var tAmt=l.total_qty*l.price*(1+(l.landed+l.hedging)/100)*g.lengthQty;
         l.total_amt=tAmt;
         l.total_idr=tAmt*lineRate;
@@ -6324,7 +6325,7 @@ function viewBomDetail(id, src){try{
       <td class="mono" style="text-align:right">${fmt_num(l.price||0,3)}</td>
       <td class="mono" style="text-align:right">${fmt_num(l.landed||0,3)}%</td>
       <td class="mono" style="text-align:right">${fmt_num(l.hedging||0,3)}%</td>
-      <td class="mono" style="text-align:right;color:var(--cyan)">${Number((l.usd_rate||0).toFixed(0)).toLocaleString('id-ID')}</td>
+      <td class="mono" style="text-align:right;color:var(--cyan)">${Number((l.exchange_rate||0).toFixed(0)).toLocaleString('id-ID')}</td>
       <td class="mono" style="text-align:right;color:var(--cyan)">${fmt_num(l.total_amt||0,3)}</td>
       <td class="mono" style="text-align:right;color:var(--amber)">${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}</td>
     </tr>`).join('');

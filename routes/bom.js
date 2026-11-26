@@ -315,7 +315,7 @@ router.post('/bom/:id/recalculate', requireEdit, async (req, res) => {
         // total_idr = total_amt × rate (formula: total * rate)
         // IDR = base currency (rate 1); semua currency lain → pakai rate terbaru dari master exchange rate
         // currRate sudah di-fetch dari DB exrate_lines (order tanggal DESC) untuk currency apapun (EUR, SGD, dll)
-        // Tidak pakai l.usd_rate dari DB karena nilainya bisa stale (tersimpan saat last-save, bukan rate sekarang)
+        // Tidak pakai l.exchange_rate dari DB karena nilainya bisa stale (tersimpan saat last-save, bukan rate sekarang)
         const lineRate = currency === 'IDR' ? 1 : (currRate || usdRate);
         const totalIdr = totalAmt * lineRate;
 
@@ -438,9 +438,9 @@ async function insertBomGroups(bomId, groups) {
       [gid,bomId,g.machine_line||'',g.machine_id||'',g.kap_id||'',g.speed||1,g.kapPct||100,g.dlLot||1,g.fohLot||1,gi]);
     for (let li=0; li<(g.lines||[]).length; li++) {
       const l=g.lines[li];
-      // usd_rate = rate USD/IDR per line, digunakan untuk konversi total_amt (USD) → total_idr
-      await query(`INSERT INTO bom_lines (group_id,item_code,item_name,uom,qty,scrap,factor,total_qty,currency,price,landed,hedging,total_amt,total_idr,usd_rate,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [gid,l.item_code||'',l.item_name||'',l.uom||'',l.qty||0,l.scrap||0,l.factor||1,l.total_qty||0,l.currency||'USD',l.price||0,l.landed||0,l.hedging||0,l.total_amt||0,l.total_idr||0,parseFloat(l.usd_rate)||0,li]);
+      // exchange_rate = rate currency baris ini ke IDR (1 untuk IDR, rate master untuk USD/EUR/dll)
+      await query(`INSERT INTO bom_lines (group_id,item_code,item_name,uom,qty,scrap,factor,total_qty,currency,price,landed,hedging,total_amt,total_idr,exchange_rate,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [gid,l.item_code||'',l.item_name||'',l.uom||'',l.qty||0,l.scrap||0,l.factor||1,l.total_qty||0,l.currency||'USD',l.price||0,l.landed||0,l.hedging||0,l.total_amt||0,l.total_idr||0,parseFloat(l.exchange_rate||l.usd_rate)||0,li]);
     }
     for (let di=0; di<(g.dlfohLines||[]).length; di++) {
       const d=g.dlfohLines[di];
