@@ -2745,11 +2745,11 @@ function openKapForm(id){try{
     (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})();
     document.getElementById('kap_created').value=nowStr();
     setText('kap_form_title','Tambah Master Route');
-    // Pastikan tube & fiber qty bisa diedit saat tambah baru
+    // Pastikan tube & fiber qty bisa diedit saat tambah baru (sebelum item code dipilih)
     (function(){
       var lt=ge('kap_loose_tube_qty'),ft=ge('kap_fiber_per_tube_qty');
-      if(lt){lt.disabled=false;lt.style.background='';lt.style.color='';lt.style.cursor='';}
-      if(ft){ft.disabled=false;ft.style.background='';ft.style.color='';ft.style.cursor='';}
+      if(lt){lt.disabled=false;lt.readOnly=false;lt.style.background='';lt.style.color='';lt.style.cursor='';}
+      if(ft){ft.disabled=false;ft.readOnly=false;ft.style.background='';ft.style.color='';ft.style.cursor='';}
     })();
     // Baris line akan auto-generate setelah Item Code dipilih dari Master FG
   }
@@ -7794,10 +7794,18 @@ function onKapItemCodeInput(val){
   var fgRec=DB_fgItems&&DB_fgItems.find(function(p){return p.code===code;});
   var nameEl=ge('kap_item_name');
   if(nameEl) nameEl.value=fgRec?(fgRec.name||''):'';
-  // Auto-fill Loose Tube & Fiber/Tube dari master item FG
+  // Auto-fill Loose Tube & Fiber/Tube dari master item FG; readonly bila FG ditemukan
+  var ltEl=ge('kap_loose_tube_qty'), ftEl=ge('kap_fiber_per_tube_qty');
   if(fgRec){
     setVal('kap_loose_tube_qty',fgRec.loose_tube_qty||0);
     setVal('kap_fiber_per_tube_qty',fgRec.fiber_qty||0);
+    // Kunci field — nilai diambil dari Master Item FG, tidak boleh diedit manual
+    if(ltEl){ltEl.readOnly=true;ltEl.style.background='var(--bg2,#1a1a2e)';ltEl.style.color='var(--t3,#8888aa)';ltEl.style.cursor='not-allowed';}
+    if(ftEl){ftEl.readOnly=true;ftEl.style.background='var(--bg2,#1a1a2e)';ftEl.style.color='var(--t3,#8888aa)';ftEl.style.cursor='not-allowed';}
+  } else {
+    // Buka kembali bila item code kosong atau tidak ditemukan di FG
+    if(ltEl){ltEl.readOnly=false;ltEl.style.background='';ltEl.style.color='';ltEl.style.cursor='';}
+    if(ftEl){ftEl.readOnly=false;ftEl.style.background='';ftEl.style.color='';ftEl.style.cursor='';}
   }
   calcKapTotalFiber();
   // Auto-generate baris Line dari Machine Lines Master Item FG
