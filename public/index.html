@@ -285,6 +285,21 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 .badge-green{background:var(--green2);color:var(--green);border:1px solid rgba(74,222,128,.2);}
 .badge-red{background:var(--red2);color:var(--red);border:1px solid rgba(248,113,113,.2);}
 .badge-violet{background:var(--violet2);color:var(--violet);border:1px solid rgba(167,139,250,.2);}
+/* Machine Line badge colors — satu warna per line, konsisten di semua halaman */
+.badge-ml-colouring{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.25);}
+.badge-ml-buffering{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25);}
+.badge-ml-stranding{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);}
+.badge-ml-jacketing{background:rgba(249,115,22,.12);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+.badge-ml-armoring{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);}
+.badge-ml-pipeline{background:rgba(236,72,153,.12);color:#f472b6;border:1px solid rgba(236,72,153,.25);}
+.badge-ml-other{background:rgba(100,116,139,.12);color:#94a3b8;border:1px solid rgba(100,116,139,.25);}
+/* DL-FOH type colors — Machine/Labour/Overhead */
+.badge-type-machine{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);}
+.badge-type-labour{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);}
+.badge-type-overhead{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25);}
+/* Setup/Proses badge */
+.badge-sp-setup{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.25);}
+.badge-sp-proses{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.25);}
 
 /* DIVIDER */
 .divider{height:1px;background:var(--b1);margin:.75rem 0;}
@@ -1948,6 +1963,32 @@ function toast(msg,type='info'){
 function fmt_idr(n){return 'Rp '+Number(n||0).toLocaleString('id-ID');}
 function fmt_num(n,d=3){return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});}
 
+// Helper: badge class untuk Machine Line berdasarkan nama (konsisten di semua halaman)
+function mlBadgeClass(ml){
+  if(!ml) return 'badge-ml-other';
+  const k=ml.toLowerCase().replace(/[\s-]/g,'');
+  if(k.includes('colou')||k.includes('color')) return 'badge-ml-colouring';
+  if(k.includes('buffer')) return 'badge-ml-buffering';
+  if(k.includes('strand')) return 'badge-ml-stranding';
+  if(k.includes('jacket')) return 'badge-ml-jacketing';
+  if(k.includes('armor')||k.includes('armour')) return 'badge-ml-armoring';
+  if(k.includes('pipe')) return 'badge-ml-pipeline';
+  return 'badge-ml-other';
+}
+// Helper: render badge machine_line
+function mlBadge(ml,extra){return ml?`<span class="badge ${mlBadgeClass(ml)}"${extra?' style="'+extra+'"':''}>${ml}</span>`:'<span class="muted">—</span>';}
+// Helper: badge class untuk DL-FOH type
+function dlTypeBadgeClass(t){
+  if(t==='Machine') return 'badge-type-machine';
+  if(t==='Labour') return 'badge-type-labour';
+  if(t==='Overhead') return 'badge-type-overhead';
+  return 'badge-violet';
+}
+// Helper: render badge DL-FOH type
+function dlTypeBadge(t){return`<span class="badge ${dlTypeBadgeClass(t)}">${t||'—'}</span>`;}
+// Helper: badge Setup/Proses
+function spBadge(sp){if(!sp) return'<span class="muted">—</span>';return`<span class="badge ${sp==='Setup'?'badge-sp-setup':'badge-sp-proses'}">${sp}</span>`;}
+
 // ═══════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════
@@ -2548,10 +2589,10 @@ function renderDlfoh(){try{
     <tr${_ge?' class="ge-row"':''}><td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('dlfoh','${d.id}')?'checked':''} onchange="toggleRowSelect('dlfoh','${d.id}',this.checked)"></td>
       <td><span class="run-num">${d.catid}</span></td>
       ${_ge?`<td><input class="ge-input" id="ge_dl_desc_${d.id}" value="${geEsc(d.desc)}"></td>`:`<td>${d.desc}</td>`}
-      ${_ge?`<td><select class="ge-select" id="ge_dl_type_${d.id}" style="width:110px"><option value="Machine" ${d.type==='Machine'?'selected':''}>Machine</option><option value="Labour" ${d.type==='Labour'?'selected':''}>Labour</option><option value="Overhead" ${d.type==='Overhead'?'selected':''}>Overhead</option></select></td>`:`<td><span class="badge badge-violet">${d.type}</span></td>`}
+      ${_ge?`<td><select class="ge-select" id="ge_dl_type_${d.id}" style="width:110px"><option value="Machine" ${d.type==='Machine'?'selected':''}>Machine</option><option value="Labour" ${d.type==='Labour'?'selected':''}>Labour</option><option value="Overhead" ${d.type==='Overhead'?'selected':''}>Overhead</option></select></td>`:`<td>${dlTypeBadge(d.type)}</td>`}
       ${_ge?`<td><input class="ge-input" type="number" id="ge_dl_rate_${d.id}" value="${d.rate}" style="width:120px"></td>`:`<td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>`}
-      ${_ge?`<td><select class="ge-select" id="ge_dl_ml_${d.id}" style="width:130px"><option value="">—</option>${_mlOpts.map(o=>`<option value="${o}" ${(d.machine_line||'')=== o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td>${d.machine_line?`<span class="badge badge-violet">${d.machine_line}</span>`:'<span class="muted">—</span>'}</td>`}
-      ${_ge?`<td><select class="ge-select" id="ge_dl_sp_${d.id}" style="width:100px"><option value="">—</option><option value="Setup" ${(d.setup_proses||'')==='Setup'?'selected':''}>Setup</option><option value="Proses" ${(d.setup_proses||'')==='Proses'?'selected':''}>Proses</option></select></td>`:`<td>${d.setup_proses?`<span class="badge badge-violet">${d.setup_proses}</span>`:'<span class="muted">—</span>'}</td>`}
+      ${_ge?`<td><select class="ge-select" id="ge_dl_ml_${d.id}" style="width:130px"><option value="">—</option>${_mlOpts.map(o=>`<option value="${o}" ${(d.machine_line||'')=== o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td>${mlBadge(d.machine_line)}</td>`}
+      ${_ge?`<td><select class="ge-select" id="ge_dl_sp_${d.id}" style="width:100px"><option value="">—</option><option value="Setup" ${(d.setup_proses||'')==='Setup'?'selected':''}>Setup</option><option value="Proses" ${(d.setup_proses||'')==='Proses'?'selected':''}>Proses</option></select></td>`:`<td>${spBadge(d.setup_proses)}</td>`}
       <td class="muted mono" style="font-size:.72rem">${d.created_dt||d.created||'—'}</td>
       ${_ge?`<td><div style="display:flex;gap:.3rem">
         <button class="btn btn-primary btn-xs" onclick="geSaveDlfoh('${d.id}')">💾 Simpan</button>
@@ -2745,7 +2786,7 @@ function renderKap(){try{
     // Parse lines dari notes
     var klines=[];try{klines=JSON.parse(k.notes||'[]');}catch(e){klines=[];}
     var linesSummary=klines.length?klines.map(function(l){
-      return`<span class="badge badge-violet" style="font-size:.65rem">${l.machine_line}</span>`;
+      return mlBadge(l.machine_line,'font-size:.65rem');
     }).join(' '):'<span class="muted">—</span>';
     return`<tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('kap',k.id)?' checked':''} onchange="toggleRowSelect('kap','${k.id}',this.checked)"></td>
@@ -2941,7 +2982,7 @@ function renderItemFg(){
     return;
   }
   tbody.innerHTML = data.map(r=>{
-    const machines = (r.machines||[]).map(m=>`<span class="badge badge-violet" style="font-size:.65rem">${m.machine_line}</span>`).join(' ') || '<span class="muted">—</span>';
+    const machines = (r.machines||[]).map(m=>mlBadge(m.machine_line,'font-size:.65rem')).join(' ') || '<span class="muted">—</span>';
     return `<tr>
       <td class="mono">${r.code}</td>
       <td>${r.name}</td>
@@ -3363,7 +3404,7 @@ function renderBomGroups(){
     <div style="margin-bottom:1.25rem;border:1px solid var(--b1);border-radius:var(--r2);overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;background:var(--s2);border-bottom:1px solid var(--b1)">
         <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
-          <span class="badge badge-green">&#9881; ${g.machine_line}</span>
+          <span class="badge ${mlBadgeClass(g.machine_line)}">&#9881; ${g.machine_line}</span>
           ${g.machine_id?`<span class="badge badge-cyan" style="font-size:.6rem">🔧 ${g.machine_id}</span>`:''}
           <span style="font-size:.7rem;color:var(--t3)">${g.lines.length} item &middot; ${g.dlfohLines.length} DL-FOH</span>
         </div>
@@ -4063,7 +4104,7 @@ function renderBom(){try{
       ${col('bom','product')?(_ge?`<td><input class="ge-input" id="ge_bom_prod_${b.id}" value="${geEsc(b.product)}"></td>`:`<td><strong>${b.product}</strong></td>`):''}
       ${col('bom','customer')?(_ge?`<td><input class="ge-input" id="ge_bom_cust_${b.id}" value="${geEsc(b.customer||'')}"></td>`:`<td class="muted">${b.customer||'—'}</td>`):''}
       ${col('bom','price')?(_ge?`<td><input class="ge-input" id="ge_bom_price_${b.id}" value="${geEsc(b.price_id||'')}" style="width:110px" placeholder="Price ID"></td>`:`<td>${b.price_id?'<span class="badge badge-amber">'+b.price_id+'</span>':'—'}</td>`):''}
-      ${col('bom','mlines')?`<td>${(b.machine_lines||[]).map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')||'—'}</td>`:''}
+      ${col('bom','mlines')?`<td>${(b.machine_lines||[]).map(ml=>mlBadge(ml)).join('<span style="color:var(--muted);margin:0 3px"> </span>')||'—'}</td>`:''}
       ${col('bom','status')?`<td><span class="badge ${statusBadge}" style="font-size:.65rem">${si.label}</span></td>`:''}
       ${col('bom','cby')?`<td class="audit-cell">${b.created_by||'—'}</td>`:''}
       ${col('bom','cdt')?`<td class="audit-cell">${b.created_dt||b.created||'—'}</td>`:''}
@@ -4168,7 +4209,7 @@ function renderMesin(){try{
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('mesin','${m.id}')?' checked':''} onchange="toggleRowSelect('mesin','${m.id}',this.checked)"></td>
     ${col('mesin','mid')?`<td><span class="run-num">${m.machine_id}</span></td>`:''}
     ${col('mesin','mname')?(_ge?`<td><input class="ge-input" id="ge_m_name_${m.id}" value="${geEsc(m.machine_name)}"></td>`:`<td>${m.machine_name}</td>`):''}
-    ${col('mesin','mline')?(_ge?`<td><select class="ge-select" id="ge_m_line_${m.id}" style="width:130px">${_mlOpts.map(o=>`<option value="${o}" ${m.machine_line===o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td><span style="color:var(--muted);margin-right:5px;font-size:.85rem">|</span><span class="badge badge-violet">${m.machine_line||'—'}</span></td>`):''}
+    ${col('mesin','mline')?(_ge?`<td><select class="ge-select" id="ge_m_line_${m.id}" style="width:130px">${_mlOpts.map(o=>`<option value="${o}" ${m.machine_line===o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td>${mlBadge(m.machine_line)}</td>`):''}
     ${col('mesin','created')?`<td class="muted mono" style="font-size:.72rem">${m.created_dt||m.created||'—'}</td>`:''}
     ${col('mesin','updated')?`<td class="muted mono" style="font-size:.72rem">${m.modified_dt||m.updated||'—'}</td>`:''}
     ${col('mesin','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveMesin('${m.id}')">💾 Simpan</button>${GE.mesin!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('mesin')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-amber btn-xs" onclick="openMesinForm('${m.id}')">✏</button><button class="btn btn-ghost btn-xs" onclick="showHistory('mesin','${m.id}')">📜 Riwayat</button><button class="btn btn-danger btn-xs" onclick="deleteMesin('${m.id}')">🗑</button></div></td>`):''}
@@ -4650,7 +4691,7 @@ function renderMBomGroups(){
     <div style="margin-bottom:1.25rem;border:1px solid var(--b1);border-radius:var(--r2);overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;background:var(--s2);border-bottom:1px solid var(--b1)">
         <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
-          <span class="badge badge-violet">&#9881; ${g.machine_line}</span>
+          <span class="badge ${mlBadgeClass(g.machine_line)}">&#9881; ${g.machine_line}</span>
           <span style="font-size:.7rem;color:var(--t3)">${g.lines.length} item</span>
         </div>
         <button class="btn btn-danger btn-xs" onclick="removeMBomGroup(${gIdx})">&#10005; Hapus</button>
@@ -4753,7 +4794,7 @@ function renderMBomDlfohRow(gIdx,dIdx,dl){
   // Always use DB.dlfoh as source of truth for type when cat matches
   if(rec && dl.cat) dl.type=rec.type;
   const t = dl.type || (rec ? rec.type : '—');
-  const cls=t==='Machine'?'badge-violet':t==='Labour'?'badge-green':t==='Overhead'?'badge-amber':'';
+  const cls=dlTypeBadgeClass(t);
   return '<tr data-mdg="'+gIdx+'" data-mdi="'+dIdx+'">'
     +'<td><div style="display:flex;gap:.2rem;align-items:center">'
     +'<input class="li-input mbom-dl-cat" style="width:72px" value="'+(dl.cat||'')+'" placeholder="Cat ID" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].cat=this.value;recalcMBomDlfohRow('+gIdx+','+dIdx+')">'
@@ -4810,9 +4851,8 @@ function recalcMBomGroupDlfoh(gIdx){
       const sc=row.querySelector('.mbom-dl-setup'); if(sc&&!dl.setup_manual) sc.value=fmt_num(dl.setup,3);
       const fc=row.querySelector('.mbom-dl-factor'); if(fc&&!dl.factor_manual) fc.value=fmt_num(dl.factor,3);
       const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,3);
-      const cls=displayType==='Machine'?'badge-violet':displayType==='Labour'?'badge-green':displayType==='Overhead'?'badge-amber':'';
       const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
-      if(tb){tb.className='badge '+cls;tb.style.fontSize='.6rem';tb.textContent=displayType;}
+      if(tb){tb.className='badge '+dlTypeBadgeClass(displayType);tb.style.fontSize='.6rem';tb.textContent=displayType;}
     }
   });
 }
@@ -4829,9 +4869,8 @@ function recalcMBomDlfohRow(gIdx,dIdx){
   const row=document.querySelector('tr[data-mdg="'+gIdx+'"][data-mdi="'+dIdx+'"]');
   if(row){
     const hc=row.querySelector('.mbom-dl-hour'); if(hc) hc.value=fmt_num(th,3);
-    const cls=displayType==='Machine'?'badge-violet':displayType==='Labour'?'badge-green':displayType==='Overhead'?'badge-amber':'';
     const tb=ge('mbom_dtype_'+gIdx+'_'+dIdx);
-    if(tb){tb.className='badge '+cls;tb.style.fontSize='.6rem';tb.textContent=displayType;}
+    if(tb){tb.className='badge '+dlTypeBadgeClass(displayType);tb.style.fontSize='.6rem';tb.textContent=displayType;}
   }
   // Saat baris pertama berubah, update prosesTime & setupTime group agar konsisten
   if(dIdx===0){g.prosesTime=dl.index;g.setupTime=dl.setup;}
@@ -4987,7 +5026,7 @@ function renderMBom(){try{
       +'<td class="muted">'+(b.no_spec||'&#8212;')+'</td>'
       +(_ge?'<td><input class="ge-input" id="ge_mb_prod_'+b.id+'" value="'+geEsc(b.product)+'"></td>'
            :'<td><strong>'+b.product+'</strong></td>')
-      +'<td>'+mlines.map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')+'</td>'
+      +'<td>'+mlines.map(ml=>mlBadge(ml)).join(' ')+'</td>'
       +'<td style="text-align:center"><span class="badge badge-amber">'+itemCount+' item</span></td>'
       +'<td class="audit-cell">'+createdBy+'</td>'
       +'<td class="audit-cell">'+createdDt+'</td>'
@@ -6125,7 +6164,7 @@ function renderHistory(){try{
     ${col('history','bomid')?`<td><span class="run-num">${b.bomid}</span></td>`:''}
     ${col('history','product')?`<td><strong>${b.product}</strong></td>`:''}
     ${col('history','customer')?`<td class="muted">${b.customer||'—'}</td>`:''}
-    ${col('history','mlines')?`<td>${((b.machine_lines&&b.machine_lines.length)?b.machine_lines:(b.groups||[]).map(g=>g.machine_line).filter(Boolean)).map(ml=>'<span class="badge badge-violet">'+ml+'</span>').join('<span style="color:var(--muted);margin:0 3px">|</span>')||'—'}</td>`:''}
+    ${col('history','mlines')?`<td>${((b.machine_lines&&b.machine_lines.length)?b.machine_lines:(b.groups||[]).map(g=>g.machine_line).filter(Boolean)).map(ml=>mlBadge(ml)).join(' ')||'—'}</td>`:''}
     ${col('history','status')?`<td><span class="badge ${statusInfo(b.status||'draft').badge}" style="font-size:.65rem">${statusInfo(b.status||'draft').label}</span></td>`:''}
     ${col('history','sby')?`<td class="audit-cell">${b.created_by||'—'}</td>`:''}
     ${col('history','aby')?`<td class="audit-cell">${b.approved_by||'—'}</td>`:''}
@@ -6220,15 +6259,10 @@ function viewBomDetail(id, src){try{
     const dlfohRows=(g.dlfohLines||[]).map(dl=>{
       const catRec=DB.dlfoh.find(d=>d.catid===dl.cat);
       const t=catRec?catRec.type:'—';
-      const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
-      const sp=catRec?catRec.setup_proses||'—':'—';
-      // total_hour sesuai setup_proses: Setup→setup saja, Proses→index×factor saja
-      const effHour=sp==='Setup'?(dl.setup||0):((dl.index||0)*(dl.factor||1));
       return `<tr>
         <td class="mono">${dl.cat||'—'}</td>
         <td>${catRec?catRec.desc:'—'}</td>
-        <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
-        <td><span class="badge badge-violet" style="font-size:.6rem">${sp}</span></td>
+        <td><span class="badge ${dlTypeBadgeClass(t)}" style="font-size:.6rem">${t}</span></td>
         <td class="mono" style="text-align:right">${fmt_num(dl.index||0,3)}</td>
         <td class="mono" style="text-align:right">${fmt_num(dl.setup||0,3)}</td>
         <td class="mono" style="text-align:right">${fmt_num(dl.factor||1,3)}</td>
@@ -6241,7 +6275,7 @@ function viewBomDetail(id, src){try{
     <div style="margin-bottom:1rem;border:1px solid var(--b1);border-radius:var(--r);overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s2);padding:.5rem .75rem;gap:.75rem;flex-wrap:wrap">
         <div style="display:flex;align-items:center;gap:.5rem">
-          <span class="badge badge-violet">⚙️ ${g.machine_line}</span>
+          <span class="badge ${mlBadgeClass(g.machine_line)}">⚙️ ${g.machine_line}</span>
           ${g.machine_id?'<span class="badge badge-cyan" style="font-size:.6rem">🔧 '+g.machine_id+'</span>':''}
           ${g.kap_id?'<span class="badge" style="background:var(--blue-d);color:var(--blue);border:1px solid rgba(96,165,250,.2);font-size:.6rem">⚡ '+g.kap_id+'</span>':''}
         </div>
@@ -6633,7 +6667,7 @@ function viewKapDetail(id){try{
       <th style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;color:var(--t3);font-size:.68rem;text-transform:uppercase">Setup Time (Jam)</th>
     </tr></thead>
     <tbody>${klines.map(function(l){return`<tr>
-      <td style="padding:.35rem .6rem;border:1px solid var(--b2)"><span class="badge badge-violet">${l.machine_line}</span></td>
+      <td style="padding:.35rem .6rem;border:1px solid var(--b2)">${mlBadge(l.machine_line)}</td>
       <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.duration||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>
       <td style="padding:.35rem .6rem;border:1px solid var(--b2);text-align:right;font-family:var(--fm)">${Number(l.setup||0).toLocaleString('id-ID',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>
     </tr>`;}).join('')}</tbody>
