@@ -313,8 +313,8 @@ router.post('/bom/:id/recalculate', requireEdit, async (req, res) => {
         // totalAmt = jumlah dalam mata uang asli (IDR→IDR, USD→USD), bukan dikonversi ke USD
         const totalAmt = totalQty * price * (1 + (landed + hedging) / 100);
         // total_idr = total_amt × rate (formula: total * rate)
-        // rate per-line: IDR per 1 unit currency (1 untuk IDR, ~17500 untuk USD)
-        const lineRate = parseFloat(l.usd_rate) > 0 ? parseFloat(l.usd_rate) : (currRate || usdRate);
+        // IDR adalah base currency → rate = 1; currency lain ambil dari usd_rate DB atau currRate master
+        const lineRate = currency === 'IDR' ? 1 : (parseFloat(l.usd_rate) > 0 ? parseFloat(l.usd_rate) : (currRate || usdRate));
         const totalIdr = totalAmt * lineRate;
 
         await query(
