@@ -700,12 +700,8 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           </select>
         </div>
         <div class="form-group">
-          <div class="flabel req">Rate Proses (IDR/Jam)</div>
+          <div class="flabel req">Rate (IDR/Jam)</div>
           <input class="finput" type="number" id="dlfoh_rate_process" placeholder="0">
-        </div>
-        <div class="form-group">
-          <div class="flabel req">Rate Setup (IDR/Jam)</div>
-          <input class="finput" type="number" id="dlfoh_rate_setup" placeholder="0">
         </div>
         <div class="form-group">
           <div class="flabel">Machine Line</div>
@@ -2056,7 +2052,7 @@ function buildSearchData(type){
   }
   else if(type==='price') sm_data=DB.prices.map(p=>({code:p.id,name:p.created_dt||p.created||'',sub:p.lines.length+' lines'}));
   else if(type==='exrate') sm_data=DB.exrates.map(e=>({code:e.currency_id,name:e.currency_id,sub:latestRate(e)}));
-  else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Proses: Rp '+Number(d.rate_process||d.rate||0).toLocaleString('id-ID')+' | Setup: Rp '+Number(d.rate_setup||d.rate||0).toLocaleString('id-ID')}));
+  else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Rate: Rp '+Number(d.rate_process||d.rate||0).toLocaleString('id-ID')}));
   else if(type==='kap') sm_data=DB.kap.map(k=>({code:k.id,name:k.item_name,sub:k.proses+' | '+(DB.mesin.find(m=>m.machine_id===k.mesin)||{machine_name:k.mesin}).machine_name}));
   else if(type==='masterbom') {
     // Filter berdasarkan product_code yang dipilih di BOM form agar hanya tampil Master BOM yang relevan
@@ -2538,7 +2534,6 @@ function openDlfohForm(id){try{
   setVal('dlfoh_desc','');
   setVal('dlfoh_type','');
   setVal('dlfoh_rate_process','');
-  setVal('dlfoh_rate_setup','');
   setVal('dlfoh_machine_line','');
   document.getElementById('dlfoh_created').value=nowStr();
   if(id){
@@ -2550,8 +2545,7 @@ function openDlfohForm(id){try{
       (function(){const _e=ge('dlfoh_catid');if(_e)_e.disabled=true;})();
       (function(){const _e=ge('dlfoh_desc');if(_e)_e.value=rec.desc;})();
       (function(){const _e=ge('dlfoh_type');if(_e)_e.value=rec.type;})();
-      (function(){const _e=ge('dlfoh_rate_process');if(_e)_e.value=rec.rate_process||0;})();
-      (function(){const _e=ge('dlfoh_rate_setup');if(_e)_e.value=rec.rate_setup||0;})();
+      (function(){const _e=ge('dlfoh_rate_process');if(_e)_e.value=rec.rate_process||rec.rate||0;})();
       (function(){const _e=ge('dlfoh_machine_line');if(_e)_e.value=rec.machine_line||'';})();
       (function(){const _e=ge('dlfoh_setup_proses');if(_e)_e.value=rec.setup_proses||'';})();
       (function(){const _e=ge('dlfoh_created');if(_e)_e.value=rec.created_dt||rec.created||'';})();
@@ -2573,8 +2567,8 @@ function saveDlfoh(){try{
   const desc=document.getElementById('dlfoh_desc').value.trim();
   const type=document.getElementById('dlfoh_type').value;
   const rate_process=parseFloat(document.getElementById('dlfoh_rate_process').value)||0;
-  const rate_setup=parseFloat(document.getElementById('dlfoh_rate_setup').value)||0;
-  const rate=rate_process; // backward compat: rate = rate_process
+  const rate_setup=rate_process; // sama dengan rate_process (1 rate)
+  const rate=rate_process;
   const machine_line=document.getElementById('dlfoh_machine_line').value;
   const setup_proses=document.getElementById('dlfoh_setup_proses').value;
   if(!catid||!type){toast('Category ID dan Type wajib.','error');return;}
@@ -2589,8 +2583,7 @@ function saveDlfoh(){try{
     const rec=DB.dlfoh.find(d=>d.id===editId);
     if(rec){
       if(rec.desc!==desc) recordHistory('dlfoh',editId,'Description',rec.desc,desc);
-      if(rec.rate_process!==rate_process) recordHistory('dlfoh',editId,'Rate Proses',rec.rate_process||0,rate_process);
-      if(rec.rate_setup!==rate_setup) recordHistory('dlfoh',editId,'Rate Setup',rec.rate_setup||0,rate_setup);
+      if(rec.rate_process!==rate_process) recordHistory('dlfoh',editId,'Rate',rec.rate_process||0,rate_process);
       if(rec.machine_line!==machine_line) recordHistory('dlfoh',editId,'Machine Line',rec.machine_line||'',machine_line);
       if(rec.setup_proses!==setup_proses) recordHistory('dlfoh',editId,'Setup/Proses',rec.setup_proses||'',setup_proses);
       rec.desc=desc;rec.type=type;rec.rate=rate;rec.rate_process=rate_process;rec.rate_setup=rate_setup;rec.machine_line=machine_line;rec.setup_proses=setup_proses;rec.updated_dt=nowStr();rec.updated=nowStr();
@@ -3667,10 +3660,9 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
   dl.total_hour=th;
   // DL type pakai dlLot, FOH type pakai fohLot
   const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
-  // total_cost = (proses × rate_process) + (setup × rate_setup), dikali lotMult
+  // total_cost = total_hour × rate, dikali lotMult (1 rate untuk proses dan setup)
   const rp=rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0;
-  const rs=rec?parseFloat(rec.rate_setup)||parseFloat(rec.rate)||0:0;
-  dl.total_cost=(dl.index*(dl.factor||1)*rp + (dl.setup||0)*rs)*lotMult;
+  dl.total_cost=th*rp*lotMult;
   const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
   if(row){
     const hourCell=row.querySelector('.dlfoh-hour-cell');
@@ -3707,10 +3699,9 @@ function recalcGroupDlfoh(gIdx){
     dl.total_hour=th;
     // DL type pakai dlLot, FOH type (FFOH/VFOH) pakai fohLot
     const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
-    // total_cost = (proses × rate_process) + (setup × rate_setup), dikali lotMult
+    // total_cost = total_hour × rate, dikali lotMult (1 rate untuk proses dan setup)
     const rp=rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0;
-    const rs=rec?parseFloat(rec.rate_setup)||parseFloat(rec.rate)||0:0;
-    dl.total_cost=(idx*(dl.factor||1)*rp + (dl.setup||0)*rs)*lotMult;
+    dl.total_cost=th*rp*lotMult;
     const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
     if(row){
       const idxCell=row.querySelector('.dlfoh-process-cell');
@@ -8330,9 +8321,9 @@ function geSaveExrate(id) {
 function geSaveDlfoh(id) {
   var desc = (document.getElementById('ge_dl_desc_'+id)||{}).value||'';
   var type = (document.getElementById('ge_dl_type_'+id)||{}).value||'';
-  var rate_process = parseFloat((document.getElementById('ge_dl_rate_process_'+id)||{}).value)||0;
-  var rate_setup = parseFloat((document.getElementById('ge_dl_rate_setup_'+id)||{}).value)||0;
-  var rate = rate_process; // backward compat
+  var rate_process = parseFloat((document.getElementById('ge_dl_rate_'+id)||{}).value)||0;
+  var rate_setup = rate_process; // sama dengan rate_process (1 rate)
+  var rate = rate_process;
   var machine_line = (document.getElementById('ge_dl_ml_'+id)||{}).value||'';
   var setup_proses = (document.getElementById('ge_dl_sp_'+id)||{}).value||'';
   if(!desc.trim()){toast('Deskripsi tidak boleh kosong','error');return;}
