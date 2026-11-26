@@ -3458,11 +3458,9 @@ function renderBomGroups(){
             </table>
           </div>
           <!-- Total DL-FOH dan Sub Total machine line — semua di kanan -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.4rem;flex-wrap:wrap;gap:.4rem">
-            ${g.fromMaster?'':(`<button class="btn btn-ghost btn-sm" onclick="addDlfohLineToGroup(${gIdx})">+ Tambah Category</button>`)}
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end">
-              <div class="stat-pill"><span class="sp-label">Total DL-FOH (IDR)</span><span class="sp-val" id="grp_dlfoh_idr_${gIdx}">0</span></div>
-            </div>
+          <div style="display:flex;align-items:center;justify-content:flex-end;margin-top:.4rem;flex-wrap:wrap;gap:.4rem">
+            ${g.fromMaster?'':(`<button class="btn btn-ghost btn-sm" style="margin-right:auto" onclick="addDlfohLineToGroup(${gIdx})">+ Tambah Category</button>`)}
+            <div class="stat-pill" style="border-color:var(--amber)"><span class="sp-label">Total DL-FOH (IDR)</span><span class="sp-val" style="color:var(--amber)" id="grp_dlfoh_idr_${gIdx}">0</span></div>
           </div>
           <!-- Sub Total per machine line = Material + DL-FOH, di kanan -->
           <div style="display:flex;justify-content:flex-end;margin-top:.45rem;padding-top:.45rem;border-top:1px solid var(--b1)">
