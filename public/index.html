@@ -895,15 +895,15 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         </div>
         <div class="form-group">
           <div class="flabel">Loose Tube Qty</div>
-          <!-- Jumlah tube dalam kabel fiber -->
+          <!-- Auto-fill dari Master Item FG, tidak bisa diedit manual -->
           <input class="finput" type="number" id="kap_loose_tube_qty" placeholder="0" step="1" min="0"
-            oninput="calcKapTotalFiber()">
+            disabled style="background:var(--bg2,#1a1a2e);color:var(--t3,#8888aa);cursor:not-allowed">
         </div>
         <div class="form-group">
           <div class="flabel">Fiber/Tube Qty</div>
-          <!-- Jumlah fiber per tube; Total Fiber = Loose Tube × Fiber/Tube -->
+          <!-- Auto-fill dari Master Item FG, tidak bisa diedit manual -->
           <input class="finput" type="number" id="kap_fiber_per_tube_qty" placeholder="0" step="1" min="0"
-            oninput="calcKapTotalFiber()">
+            disabled style="background:var(--bg2,#1a1a2e);color:var(--t3,#8888aa);cursor:not-allowed">
         </div>
         <div class="form-group">
           <div class="flabel">Total Fiber (auto)</div>
@@ -2744,12 +2744,7 @@ function openKapForm(id){try{
     (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})();
     document.getElementById('kap_created').value=nowStr();
     setText('kap_form_title','Tambah Master Route');
-    // Pastikan tube & fiber qty bisa diedit saat tambah baru
-    (function(){
-      var lt=ge('kap_loose_tube_qty'),ft=ge('kap_fiber_per_tube_qty');
-      if(lt){lt.disabled=false;lt.style.background='';lt.style.color='';lt.style.cursor='';}
-      if(ft){ft.disabled=false;ft.style.background='';ft.style.color='';ft.style.cursor='';}
-    })();
+    // Field Loose Tube & Fiber/Tube tetap disabled — diisi otomatis dari Item Code FG
     // Baris line akan auto-generate setelah Item Code dipilih dari Master FG
   }
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
