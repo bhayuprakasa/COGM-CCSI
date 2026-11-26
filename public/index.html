@@ -3316,6 +3316,10 @@ function openBomForm(id){try{
     bomUsdRate=getLatestRate('USD');
   }
   renderBomGroups();
+  // Recalculate setiap line setelah render agar total_amt & total_idr
+  // pakai formula baru (total * rate) meskipun data lama belum direcalculate di DB
+  bomGroups.forEach((_,gIdx)=>recalcGroupMaterials(gIdx));
+  recalcAllGroups();
   renderBomRouting();
   const bfs=ge('bom_form_section');if(bfs)bfs.scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openBomForm:",e);}}
