@@ -310,11 +310,12 @@ router.post('/bom/:id/recalculate', requireEdit, async (req, res) => {
         const price    = parseFloat(l.price) || 0;
         const landed   = parseFloat(l.landed) || 0;
         const hedging  = parseFloat(l.hedging) || 0;
-        // totalAmt (USD) = konversi harga ke USD melalui currRate/usdRate
-        const totalAmt = usdRate > 0 ? totalQty * price * (1 + (landed + hedging) / 100) * currRate / usdRate : 0;
-        // totalIdr = gunakan usd_rate per-line; fallback ke usdRate global jika belum diset
-        const lineUsdRate = parseFloat(l.usd_rate) > 0 ? parseFloat(l.usd_rate) : usdRate;
-        const totalIdr = totalAmt * lineUsdRate;
+        // totalAmt = jumlah dalam mata uang asli (IDR→IDR, USD→USD), bukan dikonversi ke USD
+        const totalAmt = totalQty * price * (1 + (landed + hedging) / 100);
+        // total_idr = total_amt × rate (formula: total * rate)
+        // rate per-line: IDR per 1 unit currency (1 untuk IDR, ~17500 untuk USD)
+        const lineRate = parseFloat(l.usd_rate) > 0 ? parseFloat(l.usd_rate) : (currRate || usdRate);
+        const totalIdr = totalAmt * lineRate;
 
         await query(
           `UPDATE bom_lines SET total_amt = ?, total_idr = ? WHERE id = ?`,

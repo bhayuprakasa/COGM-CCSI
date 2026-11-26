@@ -3653,11 +3653,10 @@ function recalcBomLine(gIdx,lIdx){try{
   const totalQty=qty*factor*(1+scrap/100);
   // lengthQty dari group (jumlah fiber/tube yang diproduksi)
   const lengthQty=bomGroups[gIdx].lengthQty||1;
-  // totalIdr langsung: price (dalam currency) × rate (IDR/currency) — tidak perlu routing via USD
-  const totalIdr=(totalQty*price)*(1+(landed+hedging)/100)*lineRate*lengthQty;
-  // totalAmt (USD) untuk kolom TOTAL — konversi dari IDR ke USD
-  const usdRate=getLatestRate('USD')||1;
-  const totalAmt=usdRate>0?totalIdr/usdRate:0;
+  // total_amt = jumlah dalam mata uang asli (IDR→IDR, USD→USD)
+  const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*lengthQty;
+  // total_idr = total_amt × rate (formula: total * rate)
+  const totalIdr=totalAmt*lineRate;
   if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,3);
   if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,3);
   if(row.querySelector('.bom-line-totalidr')) row.querySelector('.bom-line-totalidr').value=Number(totalIdr.toFixed(0)).toLocaleString('id-ID');
@@ -3778,10 +3777,10 @@ function recalcGroupMaterials(gIdx){
     // lineRate: IDR per 1 unit currency — dari data object (sudah sinkron dengan DOM via recalcBomLine)
     const lineRate=parseFloat(l.usd_rate)||getRateForLine(currency)||1;
     const totalQty=qty*factor*(1+scrap/100);
-    // totalIdr langsung: price × rate — tidak routing via USD
-    const totalIdr=(totalQty*price)*(1+(landed+hedging)/100)*lineRate*lengthQty;
-    const usdRate2=getLatestRate('USD')||1;
-    const totalAmt=usdRate2>0?totalIdr/usdRate2:0;
+    // total_amt = jumlah dalam mata uang asli (IDR→IDR, USD→USD)
+    const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*lengthQty;
+    // total_idr = total_amt × rate (formula: total * rate)
+    const totalIdr=totalAmt*lineRate;
     l.total_qty=totalQty; l.total_amt=totalAmt; l.total_idr=totalIdr;
     const row=container.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
     if(!row) return;
@@ -3812,10 +3811,12 @@ function onBomLengthQtyChange(val){
 }
 
 function recalcAllGroups(){
+  const _usdRateAll=getLatestRate('USD')||1;
   let grandUSD=0,grandIDR=0;
   bomGroups.forEach((g,gIdx)=>{
-    const subUSD=g.lines.reduce((s,l)=>s+(l.total_amt||0),0);
+    // total_idr dalam IDR; konversi ke USD via usdRate untuk tampilan kolom USD
     const subIDR=g.lines.reduce((s,l)=>s+(l.total_idr||0),0);
+    const subUSD=_usdRateAll>0?subIDR/_usdRateAll:0;
     grandUSD+=subUSD; grandIDR+=subIDR;
     const eu=document.getElementById('grp_usd_'+gIdx);
     const ei=document.getElementById('grp_idr_'+gIdx);
@@ -3985,10 +3986,11 @@ function recalcSummaryMaterial(){try{
   const allLines=bomGroups.flatMap(g=>g.lines);
   // Fiber lines: items whose name/code contains fiber/serat/optik keywords
   const fiberLines=allLines.filter(l=>/fiber|serat|optik|fo\b|sm\b|mm\b/i.test((l.item_name||'')+(l.item_code||'')));
-  const totalFiberUSD=fiberLines.reduce((s,l)=>s+(l.total_amt||0),0);
-  const totalMatUSD=allLines.reduce((s,l)=>s+(l.total_amt||0),0);
+  // total_idr dalam IDR; konversi ke USD untuk agregasi summary
+  const usdRate=getLatestRate('USD')||1;
+  const totalFiberUSD=usdRate>0?fiberLines.reduce((s,l)=>s+(l.total_idr||0),0)/usdRate:0;
+  const totalMatUSD=usdRate>0?allLines.reduce((s,l)=>s+(l.total_idr||0),0)/usdRate:0;
   const totalMatWoFiberUSD=totalMatUSD-totalFiberUSD;
-  const usdRate=getLatestRate('USD');
   // Filter per tipe baru: DL, FFOH, VFOH
   const dlTotalIDR=bomGroups.flatMap(g=>g.dlfohLines)
     .filter(dl=>{const r=DB.dlfoh.find(d=>d.catid===dl.cat);return r&&r.type==='DL';})
@@ -6286,10 +6288,12 @@ function viewBomDetail(id, src){try{
   </div>`;
 
   // ── Machine Line Groups ──
+  const _usdRateGrp=getLatestRate('USD')||1;
   let grandTotalUSD=0, grandTotalIDR=0;
   groups.forEach(g=>{
-    const grpUSD=(g.lines||[]).reduce((s,l)=>s+(l.total_amt||0),0);
+    // total_idr dalam IDR; konversi ke USD via usdRate untuk tampilan kolom USD
     const grpIDR=(g.lines||[]).reduce((s,l)=>s+(l.total_idr||0),0);
+    const grpUSD=_usdRateGrp>0?grpIDR/_usdRateGrp:0;
     grandTotalUSD+=grpUSD; grandTotalIDR+=grpIDR;
 
     const matRows=(g.lines||[]).map(l=>`<tr>
@@ -6399,8 +6403,9 @@ function viewBomDetail(id, src){try{
   // ── Summary Material ──
   const allLines=groups.flatMap(g=>g.lines||[]);
   const fiberLines=allLines.filter(l=>/fiber|serat|optik|fo\b|sm\b|mm\b/i.test((l.item_name||'')+(l.item_code||'')));
-  const totalFiberUSD=fiberLines.reduce((s,l)=>s+(l.total_amt||0),0);
-  const totalMatUSD=allLines.reduce((s,l)=>s+(l.total_amt||0),0);
+  // total_idr dalam IDR; konversi ke USD via usdRateView
+  const totalFiberUSD=usdRateView>0?fiberLines.reduce((s,l)=>s+(l.total_idr||0),0)/usdRateView:0;
+  const totalMatUSD=usdRateView>0?allLines.reduce((s,l)=>s+(l.total_idr||0),0)/usdRateView:0;
   const totalMatWoFiberUSD=totalMatUSD-totalFiberUSD;
   const dlUSD=usdRateView>0?dlfohTotals.Labour/usdRateView:0;
   const fixedUSD=usdRateView>0?dlfohTotals.Machine/usdRateView:0;
@@ -7270,29 +7275,33 @@ function getCogsBomData(bomId){
   var fiberLines=allLines.filter(function(l){
     return /fiber|serat|optik|fo\b|sm\b|mm\b/i.test((l.item_name||'')+(l.item_code||''));
   });
-  var fiberUSD  =fiberLines.reduce(function(s,l){return s+(parseFloat(l.total_amt)||0);},0);
-  var totalUSD  =allLines.reduce(function(s,l){return s+(parseFloat(l.total_amt)||0);},0);
+  // total_idr dalam IDR; konversi ke USD via usdRate untuk fiberUSD dan rmOthers
+  var usdRate   =getLatestRate('USD')||1;
+  var totalIDRSum  =allLines.reduce(function(s,l){return s+(parseFloat(l.total_idr)||0);},0);
+  var fiberIDRSum  =fiberLines.reduce(function(s,l){return s+(parseFloat(l.total_idr)||0);},0);
 
-  // Fallback: jika total_amt semua 0 tapi BOM punya price_id, hitung ulang dari price list
-  if(totalUSD===0 && bom.price_id && DB.prices){
+  // Fallback: jika total_idr semua 0 tapi BOM punya price_id, hitung ulang dari price list
+  if(totalIDRSum===0 && bom.price_id && DB.prices){
     var priceRec=DB.prices.find(function(p){return p.id===bom.price_id;});
     if(priceRec){
       allLines.forEach(function(l){
         var pl=(priceRec.lines||[]).find(function(pl){return pl.item_code===l.item_code;});
         if(pl && (l.total_qty||0)>0){
-          var rateConv=getLatestConversion(pl.currency||'USD');
-          var amt=(parseFloat(l.total_qty)||0)*(parseFloat(pl.price)||0)
-                  *(1+((parseFloat(pl.landed)||0)+(parseFloat(pl.hedging)||0))/100)*rateConv;
-          l._calc_total_amt=amt;
+          // total_idr = total_amt(original currency) × rate
+          var lineRateFb=getRateForLine(pl.currency||'USD');
+          var idr=(parseFloat(l.total_qty)||0)*(parseFloat(pl.price)||0)
+                 *(1+((parseFloat(pl.landed)||0)+(parseFloat(pl.hedging)||0))/100)*lineRateFb;
+          l._calc_total_idr=idr;
         }
       });
-      var getAmt=function(l){return parseFloat(l.total_amt)||parseFloat(l._calc_total_amt)||0;};
-      fiberUSD=fiberLines.reduce(function(s,l){return s+getAmt(l);},0);
-      totalUSD=allLines.reduce(function(s,l){return s+getAmt(l);},0);
+      var getIDR=function(l){return parseFloat(l.total_idr)||parseFloat(l._calc_total_idr)||0;};
+      fiberIDRSum=fiberLines.reduce(function(s,l){return s+getIDR(l);},0);
+      totalIDRSum=allLines.reduce(function(s,l){return s+getIDR(l);},0);
     }
   }
+  var fiberUSD  =usdRate>0?fiberIDRSum/usdRate:0;
+  var totalUSD  =usdRate>0?totalIDRSum/usdRate:0;
   var rmOthers  =totalUSD-fiberUSD;
-  var usdRate   =getLatestRate('USD');
 
   // Auto-detect jenis fiber dari item_name fiber line, lalu fallback ke product name
   var jenisFiber='';
