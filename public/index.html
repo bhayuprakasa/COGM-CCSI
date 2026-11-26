@@ -875,22 +875,14 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <input class="finput" id="kap_item_name" placeholder="Auto dari item code">
         </div>
         <div class="form-group">
-          <div class="flabel">Loose Tube Qty</div>
-          <!-- Jumlah tube dalam kabel fiber -->
-          <input class="finput" type="number" id="kap_loose_tube_qty" placeholder="0" step="1" min="0"
-            oninput="calcKapTotalFiber()">
+          <div class="flabel">Proses</div>
+          <!-- Nama proses produksi, misal: Colouring, Stranding, Jacketing -->
+          <input class="finput" id="kap_proses" placeholder="Nama proses">
         </div>
         <div class="form-group">
-          <div class="flabel">Fiber/Tube Qty</div>
-          <!-- Jumlah fiber per tube; Total Fiber = Loose Tube × Fiber/Tube -->
-          <input class="finput" type="number" id="kap_fiber_per_tube_qty" placeholder="0" step="1" min="0"
-            oninput="calcKapTotalFiber()">
-        </div>
-        <div class="form-group">
-          <div class="flabel">Total Fiber (auto)</div>
-          <!-- Dihitung otomatis: Loose Tube × Fiber/Tube, tidak bisa diedit -->
-          <input class="finput" type="number" id="kap_total_fiber_qty" placeholder="0" disabled
-            style="background:var(--bg2,#1a1a2e);color:var(--t3,#8888aa);cursor:not-allowed">
+          <div class="flabel">Setup (jam)</div>
+          <!-- Waktu setup mesin sebelum produksi dimulai -->
+          <input class="finput" type="number" id="kap_setup" placeholder="0" step="0.001" min="0">
         </div>
       </div>
       <!-- Section Line: auto-generate dari Machine Lines Master Item FG -->
@@ -2634,9 +2626,8 @@ function openKapForm(id){try{
   setVal('kap_edit_id','');
   setVal('kap_item_code','');
   setVal('kap_item_name','');
-  setVal('kap_loose_tube_qty','0');
-  setVal('kap_fiber_per_tube_qty','0');
-  setVal('kap_total_fiber_qty','0');
+  setVal('kap_proses','');
+  setVal('kap_setup','0');
   // Reset baris line
   document.getElementById('kap_lines_container').innerHTML='';
   if(id){
@@ -2648,16 +2639,9 @@ function openKapForm(id){try{
       (function(){const _e=ge('kap_created');if(_e)_e.value=rec.created_dt||rec.created||'';})();
       (function(){const _e=ge('kap_item_code');if(_e)_e.value=rec.item_code;})();
       (function(){const _e=ge('kap_item_name');if(_e)_e.value=rec.item_name;})();
-      // Load fiber spec dari kolom tube/fiber DB
-      setVal('kap_loose_tube_qty',rec.tube||0);
-      setVal('kap_fiber_per_tube_qty',rec.fiber||0);
-      setVal('kap_total_fiber_qty',(parseInt(rec.tube)||0)*(parseInt(rec.fiber)||0));
-      // Disable tube & fiber qty saat edit — nilai diambil dari Master Item FG
-      (function(){
-        var lt=ge('kap_loose_tube_qty'),ft=ge('kap_fiber_per_tube_qty');
-        if(lt){lt.disabled=true;lt.style.background='var(--bg2,#1a1a2e)';lt.style.color='var(--t3,#8888aa)';lt.style.cursor='not-allowed';}
-        if(ft){ft.disabled=true;ft.style.background='var(--bg2,#1a1a2e)';ft.style.color='var(--t3,#8888aa)';ft.style.cursor='not-allowed';}
-      })();
+      // Load proses dan setup dari record
+      setVal('kap_proses',rec.proses||'');
+      setVal('kap_setup',rec.setup||0);
       // Parse lines dari notes (disimpan sebagai JSON)
       var lines=[];
       try{lines=JSON.parse(rec.notes||'[]');}catch(e){lines=[];}
@@ -2675,12 +2659,7 @@ function openKapForm(id){try{
     (function(){const _e=ge('kap_id_disp');if(_e)_e.value=newKapId;})();
     document.getElementById('kap_created').value=nowStr();
     setText('kap_form_title','Tambah Master Route');
-    // Pastikan tube & fiber qty bisa diedit saat tambah baru
-    (function(){
-      var lt=ge('kap_loose_tube_qty'),ft=ge('kap_fiber_per_tube_qty');
-      if(lt){lt.disabled=false;lt.style.background='';lt.style.color='';lt.style.cursor='';}
-      if(ft){ft.disabled=false;ft.style.background='';ft.style.color='';ft.style.cursor='';}
-    })();
+      // Reset proses & setup untuk form tambah baru
     // Baris line akan auto-generate setelah Item Code dipilih dari Master FG
   }
   document.getElementById('kap_form_card').scrollIntoView({behavior:'smooth'});
@@ -2696,13 +2675,12 @@ function saveKap(){try{
   if(!item_name){toast('Item Name wajib diisi.','error');return;}
   const lines=getKapLines();
   if(!lines.length){toast('Pilih Item Code FG yang memiliki Machine Lines terlebih dahulu.','error');return;}
-  // Ambil nilai fiber spec dari form
-  const looseTube=parseInt((ge('kap_loose_tube_qty')||{value:'0'}).value)||0;
-  const fiberPerTube=parseInt((ge('kap_fiber_per_tube_qty')||{value:'0'}).value)||0;
+  // Ambil nilai proses dan setup dari form
+  const proses=(ge('kap_proses')||{value:''}).value.trim();
+  const setup=parseFloat((ge('kap_setup')||{value:'0'}).value)||0;
   // Simpan lines sebagai JSON di field notes
   const notes=JSON.stringify(lines);
-  // tube = Loose Tube Qty, fiber = Fiber/Tube Qty (sesuai kolom DB kapasitas)
-  const kpay={item_code,item_name,proses:'',machine_id:'',machine_name:'',tube:looseTube,fiber:fiberPerTube,kecepatan:0,dl:0,efisiensi:0,notes};
+  const kpay={item_code,item_name,proses,setup,machine_id:'',machine_name:'',tube:0,fiber:0,kecepatan:0,dl:0,efisiensi:0,notes};
   if(typeof API!=='undefined'){
     if(editId){apiSave(API.kapasitas.update(editId,kpay),function(){toast('Kapasitas diupdate.','success');closeKapForm();loadAllData().then(function(){renderKap();updateCounts();});});return;}
     else{apiSave(API.kapasitas.create(Object.assign({kapid},kpay)),function(){toast('Kapasitas disimpan.','success');closeKapForm();loadAllData().then(function(){renderKap();updateCounts();});});return;}
@@ -2730,9 +2708,8 @@ function renderKap(){try{
   if(thead) thead.innerHTML='<tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll(\'kap\',this.checked)" title="Pilih Semua"></th>'+[
     col('kap','kapid')&&'<th>Kap. ID</th>',col('kap','created')&&'<th>Created</th>',
     col('kap','icode')&&'<th>Item Code</th>',col('kap','iname')&&'<th>Item Name</th>',
-    col('kap','ltube')&&'<th style="text-align:right">Loose Tube</th>',
-    col('kap','ftube')&&'<th style="text-align:right">Fiber/Tube</th>',
-    col('kap','tfiber')&&'<th style="text-align:right">Total Fiber</th>',
+    col('kap','proses')&&'<th>Proses</th>',
+    col('kap','setup')&&'<th style="text-align:right">Setup (jam)</th>',
     col('kap','lines')&&'<th>Lines</th>',col('kap','action')&&'<th>Aksi</th>'
   ].filter(Boolean).join('')+'</tr>';
   const tbody=document.getElementById('kap_tbody');
@@ -2753,9 +2730,8 @@ function renderKap(){try{
     ${col('kap','created')?`<td class="muted mono" style="font-size:.7rem;white-space:nowrap">${k.created_dt||k.created||'—'}</td>`:''}
     ${col('kap','icode')?(_ge?`<td><input class="ge-input" id="ge_kap_code_${k.id}" value="${geEsc(k.item_code)}" style="width:110px" placeholder="Item code"></td>`:`<td class="mono">${k.item_code}</td>`):''}
     ${col('kap','iname')?(_ge?`<td><input class="ge-input" id="ge_kap_name_${k.id}" value="${geEsc(k.item_name)}" style="width:160px" placeholder="Item name"></td>`:`<td style="white-space:nowrap">${k.item_name}</td>`):''}
-    ${col('kap','ltube')?`<td style="text-align:right;font-family:var(--fm)">${k.tube||0}</td>`:''}
-    ${col('kap','ftube')?`<td style="text-align:right;font-family:var(--fm)">${k.fiber||0}</td>`:''}
-    ${col('kap','tfiber')?`<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">${(parseInt(k.tube)||0)*(parseInt(k.fiber)||0)}</td>`:''}
+    ${col('kap','proses')?`<td>${k.proses?`<span class="badge badge-violet">${k.proses}</span>`:'<span class="muted">—</span>'}</td>`:''}
+    ${col('kap','setup')?`<td style="text-align:right;font-family:var(--fm);color:var(--cyan)">${k.setup||0}</td>`:''}
     ${col('kap','lines')?`<td style="font-size:.72rem">${linesSummary}</td>`:''}
     ${col('kap','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveKap('${k.id}')">💾 Simpan</button>${GE.kap!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('kap')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewKapDetail('${k.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openKapForm('${k.id}')">✏</button><button class="btn btn-danger btn-xs" onclick="deleteKap('${k.id}')">🗑</button></div></td>`):''}
   </tr>`;}).join('');
@@ -6404,9 +6380,8 @@ const COL_DEFS = {
     {key:'created', label:'Created'},
     {key:'icode',   label:'Item Code'},
     {key:'iname',   label:'Item Name'},
-    {key:'ltube',   label:'Loose Tube'},
-    {key:'ftube',   label:'Fiber/Tube'},
-    {key:'tfiber',  label:'Total Fiber'},
+    {key:'proses',  label:'Proses'},
+    {key:'setup',   label:'Setup (jam)'},
     {key:'lines',   label:'Lines'},
     {key:'action',  label:'Aksi',         always:true},
   ],
@@ -7672,13 +7647,6 @@ function onIpCurrencyChange(currency){
   ipSetDefaultsByCurrency(currency);
 }
 
-// Hitung total_fiber_qty otomatis di form Master Route
-function calcKapTotalFiber(){
-  var loose=parseInt((ge('kap_loose_tube_qty')||{value:'0'}).value)||0;
-  var fpt=parseInt((ge('kap_fiber_per_tube_qty')||{value:'0'}).value)||0;
-  var el=ge('kap_total_fiber_qty');
-  if(el) el.value=loose*fpt||0;
-}
 
 // Auto-fill Item Name + fiber spec saat mengetik kap_item_code (lookup dari DB_fgItems)
 function onKapItemCodeInput(val){
@@ -7690,12 +7658,7 @@ function onKapItemCodeInput(val){
   var fgRec=DB_fgItems&&DB_fgItems.find(function(p){return p.code===code;});
   var nameEl=ge('kap_item_name');
   if(nameEl) nameEl.value=fgRec?(fgRec.name||''):'';
-  // Auto-fill Loose Tube & Fiber/Tube dari master item FG
-  if(fgRec){
-    setVal('kap_loose_tube_qty',fgRec.loose_tube_qty||0);
-    setVal('kap_fiber_per_tube_qty',fgRec.fiber_qty||0);
-  }
-  calcKapTotalFiber();
+  // Auto-fill item name saja; proses & setup diisi manual
   // Auto-generate baris Line dari Machine Lines Master Item FG
   // Ambil data mesin dari DB.itemfg (bukan DB_fgItems yang tidak punya machines)
   var ifgRec=(DB.itemfg||[]).find(function(r){return r.code===code;});
