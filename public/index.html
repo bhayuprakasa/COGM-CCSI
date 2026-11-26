@@ -3471,8 +3471,7 @@ function renderBomGroups(){
           <div class="line-tbl-wrap">
             <table class="line-tbl">
               <thead><tr>
-                <th>Category</th><th>Type</th><th>S/P</th><th>Process</th><th>Set Up</th>
-                <th>Total Hour</th><th>Rate Proses</th><th>Rate Setup</th><th>Total Cost (IDR)</th><th></th>
+                <th>Category</th><th>Type</th><th>S/P</th><th>Hour</th><th>Rate</th><th>Total Cost (IDR)</th><th></th>
               </tr></thead>
               <tbody id="dlfoh_body_${gIdx}">
                 ${g.dlfohLines.map((dl,dIdx)=>renderDlfohRow(gIdx,dIdx,dl)).join('')}
@@ -3585,18 +3584,10 @@ function renderDlfohRow(gIdx,dIdx,dl){
       </td>
       <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
       <td><span class="badge badge-violet" style="font-size:.6rem">${rec?rec.setup_proses||'—':'—'}</span></td>
-      <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,3)}"
-        data-manual="${dl.index_manual?'1':'0'}"
-        ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
-        </td>
-      <td><input class="li-input dlfoh-line-setup dlfoh-setup-cell" type="number" style="width:54px" value="${dl.setup||0}"
-        data-manual="${dl.setup_manual?'1':'0'}"
-        ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
-        </td>
+      <input type="hidden" class="dlfoh-process-cell" data-manual="${dl.index_manual?'1':'0'}" value="${dl.index||0}">
+      <input type="hidden" class="dlfoh-line-setup dlfoh-setup-cell" data-manual="${dl.setup_manual?'1':'0'}" value="${dl.setup||0}">
       <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,3)}" readonly></td>
-      <!-- Rate Proses & Rate Setup: dipisah, masing-masing × waktu proses/setup -->
       <td><input class="li-input dlfoh-rate-process-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
-      <td><input class="li-input dlfoh-rate-setup-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate_setup)||parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
       <td><input class="li-input dlfoh-cost-cell" style="width:92px" value="${Number(dl.total_cost||0).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="bomGroups[${gIdx}].dlfohLines.splice(${dIdx},1);renderBomGroups()">&#10005;</button>`)}</td>
     </tr>`;
@@ -3685,11 +3676,9 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
   if(row){
     const hourCell=row.querySelector('.dlfoh-hour-cell');
     const rateProsesCell=row.querySelector('.dlfoh-rate-process-cell');
-    const rateSetupCell=row.querySelector('.dlfoh-rate-setup-cell');
     const costCell=row.querySelector('.dlfoh-cost-cell');
     if(hourCell) hourCell.value=fmt_num(th,3);
     if(rateProsesCell) rateProsesCell.value=Number(rp).toLocaleString('id-ID');
-    if(rateSetupCell) rateSetupCell.value=Number(rs).toLocaleString('id-ID');
     if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
   }
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
@@ -3729,13 +3718,11 @@ function recalcGroupDlfoh(gIdx){
       const setupCell=row.querySelector('.dlfoh-setup-cell');
       const hourCell=row.querySelector('.dlfoh-hour-cell');
       const rateProsesCell=row.querySelector('.dlfoh-rate-process-cell');
-      const rateSetupCell=row.querySelector('.dlfoh-rate-setup-cell');
       const costCell=row.querySelector('.dlfoh-cost-cell');
       if(idxCell&&!dl.index_manual) idxCell.value=fmt_num(idx,3);
       if(setupCell&&!dl.setup_manual) setupCell.value=fmt_num(dl.setup,3);
       if(hourCell) hourCell.value=fmt_num(th,3);
       if(rateProsesCell) rateProsesCell.value=Number(rp).toLocaleString('id-ID');
-      if(rateSetupCell) rateSetupCell.value=Number(rs).toLocaleString('id-ID');
       if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
       const t=rec?rec.type:'—';
       // badge color: DL=green, FFOH=violet, VFOH=amber
