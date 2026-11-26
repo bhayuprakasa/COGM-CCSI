@@ -128,7 +128,6 @@ async function initSchema() {
         item_code VARCHAR(100), item_name VARCHAR(255), proses VARCHAR(255),
         machine_id VARCHAR(100), machine_name VARCHAR(255),
         tube INT DEFAULT 0, fiber INT DEFAULT 0,
-        setup DECIMAL(15,4) DEFAULT 0,
         kecepatan DECIMAL(15,4) DEFAULT 0, dl INT DEFAULT 0,
         efisiensi DECIMAL(10,4) DEFAULT 0, notes TEXT,
         created_by VARCHAR(100), created_dt VARCHAR(50),
@@ -375,8 +374,6 @@ async function initSchema() {
       { table:'masterbom',       col:'no_spec',           def:"VARCHAR(255) DEFAULT ''" },
       // Scrap Fix (nilai tetap) di masterbom_lines
       { table:'masterbom_lines', col:'scrap_fix',         def:'DECIMAL(15,4) DEFAULT 0' },
-      // Setup time (jam) di kapasitas — menggantikan tube/fiber yang tidak lagi digunakan di form
-      { table:'kapasitas',       col:'setup',             def:'DECIMAL(15,4) DEFAULT 0' },
     ];
 
     // Batch check all columns at once — include all tables and columns being migrated
