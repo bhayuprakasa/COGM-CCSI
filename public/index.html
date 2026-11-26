@@ -3533,8 +3533,8 @@ function renderBomLineRow(gIdx,lIdx,l){
       <td><input class="li-input bom-line-price" type="number" style="width:74px" value="${l.price||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-landed" type="number" style="width:52px" value="${l.landed||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-hedging" type="number" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
-      <!-- Rate USD/IDR per line: dipakai untuk konversi total_amt (USD) → total_idr -->
-      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${l.usd_rate||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <!-- Rate per line: IDR per 1 unit currency — selalu ambil dari master exchange rate sesuai currency baris -->
+      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getLatestRate((l.currency||'USD').toUpperCase().trim());l.usd_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,3)}" readonly></td>
       <td><input class="li-input bom-line-totalidr" style="width:98px" value="${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
@@ -3747,7 +3747,8 @@ function recalcGroupMaterials(gIdx){
       l.landed=parseFloat(row0.querySelector('.bom-line-landed').value)||0;
       l.hedging=parseFloat(row0.querySelector('.bom-line-hedging').value)||0;
       l.currency=(row0.querySelector('.bom-line-currency')||{value:l.currency||'USD'}).value||l.currency||'USD';
-      l.usd_rate=parseFloat((row0.querySelector('.bom-line-rate')||{value:0}).value)||l.usd_rate||getLatestRate('USD');
+      // Baca rate dari DOM (sudah ter-auto-fill oleh renderBomLine); fallback ke master exchange rate sesuai currency
+      l.usd_rate=parseFloat((row0.querySelector('.bom-line-rate')||{value:0}).value)||getLatestRate(l.currency||'USD')||1;
     }
     const qty=parseFloat(l.qty)||0;
     const scrap=parseFloat(l.scrap)||0;
