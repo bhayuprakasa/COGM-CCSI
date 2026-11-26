@@ -3442,7 +3442,7 @@ function renderBomGroups(){
           <div class="line-tbl-wrap">
             <table class="line-tbl">
               <thead><tr>
-                <th>Category</th><th>Type</th><th>Process</th><th>Set Up</th>
+                <th>Category</th><th>Type</th><th>S/P</th><th>Process</th><th>Set Up</th>
                 <th>Total Hour</th><th>Rate</th><th>Total Cost (IDR)</th><th></th>
               </tr></thead>
               <tbody id="dlfoh_body_${gIdx}">
@@ -3555,6 +3555,7 @@ function renderDlfohRow(gIdx,dIdx,dl){
         </div>
       </td>
       <td><span class="badge ${cls}" style="font-size:.6rem">${t}</span></td>
+      <td><span class="badge badge-violet" style="font-size:.6rem">${rec?rec.setup_proses||'—':'—'}</span></td>
       <td><input class="li-input dlfoh-process-cell" type="number" style="width:70px" value="${fmt_num(dl.index||0,3)}"
         data-manual="${dl.index_manual?'1':'0'}"
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].index=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].index_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
@@ -3640,9 +3641,11 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
   // Recalc only total_hour and total_cost for a single row (index or setup was manually edited)
   const g=bomGroups[gIdx];
   const dl=g.dlfohLines[dIdx];
-  const th=dl.index*(dl.factor||1)+(dl.setup||0);
-  dl.total_hour=th;
   const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
+  // Jika setup_proses="Setup" → pakai setup saja; "Proses" → index × factor saja
+  const sp=rec?(rec.setup_proses||''):'';
+  const th=sp==='Setup'?(dl.setup||0):(dl.index*(dl.factor||1));
+  dl.total_hour=th;
   // DL type pakai dlLot, FOH type pakai fohLot
   const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
   dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*lotMult;
@@ -3675,9 +3678,11 @@ function recalcGroupDlfoh(gIdx){
     // Only overwrite factor if user has NOT manually edited it
     if(!dl.factor_manual) dl.factor=lengthQty;
     const idx=dl.index;
-    const th=idx*(dl.factor||1)+(dl.setup||0);
-    dl.total_hour=th;
     const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
+    // Jika setup_proses="Setup" → total_hour dari setup saja; "Proses" → index × factor saja
+    const sp=rec?(rec.setup_proses||''):'';
+    const th=sp==='Setup'?(dl.setup||0):(idx*(dl.factor||1));
+    dl.total_hour=th;
     // DL type pakai dlLot, FOH type (FFOH/VFOH) pakai fohLot
     const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
     dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*lotMult;
@@ -3697,6 +3702,9 @@ function recalcGroupDlfoh(gIdx){
       // badge color: DL=green, FFOH=violet, VFOH=amber
       const cls=t==='DL'?'badge-green':t==='FFOH'?'badge-violet':'badge-amber';
       row.cells[1].innerHTML='<span class="badge '+cls+'" style="font-size:.6rem">'+t+'</span>';
+      // Update S/P badge (cells[2] = kolom Setup/Proses)
+      const spBadge=rec?(rec.setup_proses||'—'):'—';
+      row.cells[2].innerHTML='<span class="badge badge-violet" style="font-size:.6rem">'+spBadge+'</span>';
     }
   });
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
@@ -6258,7 +6266,7 @@ function viewBomDetail(id, src){try{
         <td class="mono" style="text-align:right">${fmt_num(dl.index||0,3)}</td>
         <td class="mono" style="text-align:right">${fmt_num(dl.setup||0,3)}</td>
         <td class="mono" style="text-align:right">${fmt_num(dl.factor||1,3)}</td>
-        <td class="mono" style="text-align:right">${fmt_num(dl.total_hour||0,3)}</td>
+        <td class="mono" style="text-align:right">${fmt_num(effHour,3)}</td>
         <td class="mono" style="text-align:right;color:var(--amber)">${Number((dl.total_cost||0).toFixed(0)).toLocaleString('id-ID')}</td>
       </tr>`;
     }).join('');
@@ -6298,7 +6306,7 @@ function viewBomDetail(id, src){try{
         <div style="overflow-x:auto">
           <table class="tbl" style="min-width:600px">
             <thead><tr>
-              <th>Category</th><th>Description</th><th>Type</th>
+              <th>Category</th><th>Description</th><th>Type</th><th>S/P</th>
               <th style="text-align:right">Index</th><th style="text-align:right">Set Up</th>
               <th style="text-align:right">Factor</th><th style="text-align:right">Total Hour</th>
               <th style="text-align:right">Total Cost (IDR)</th>
