@@ -347,8 +347,8 @@ router.post('/kapasitas', requireEdit, async (req,res) => {
     const ex=await query(`SELECT id FROM kapasitas WHERE kapid=?`,[d.kapid]);
     if(ex.length) return res.status(400).json({error:'Kapasitas ID sudah ada.'});
     const id='KAP-'+d.kapid;
-    await query(`INSERT INTO kapasitas (id,kapid,item_code,item_name,proses,machine_id,machine_name,tube,fiber,kecepatan,dl,efisiensi,notes,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [id,d.kapid,d.item_code||'',d.item_name||'',d.proses||'',d.machine_id||'',d.machine_name||'',d.tube||0,d.fiber||0,d.kecepatan||0,d.dl||0,d.efisiensi||0,d.notes||'',who(req),now(),who(req),now()]);
+    await query(`INSERT INTO kapasitas (id,kapid,item_code,item_name,proses,setup,machine_id,machine_name,tube,fiber,kecepatan,dl,efisiensi,notes,created_by,created_dt,modified_by,modified_dt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [id,d.kapid,d.item_code||'',d.item_name||'',d.proses||'',d.setup||0,d.machine_id||'',d.machine_name||'',d.tube||0,d.fiber||0,d.kecepatan||0,d.dl||0,d.efisiensi||0,d.notes||'',who(req),now(),who(req),now()]);
     res.json({id,kapid:d.kapid});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
@@ -356,8 +356,8 @@ router.post('/kapasitas', requireEdit, async (req,res) => {
 router.put('/kapasitas/:id', requireEdit, async (req,res) => {
   try {
     const d=req.body;
-    await query(`UPDATE kapasitas SET item_code=?,item_name=?,proses=?,machine_id=?,machine_name=?,tube=?,fiber=?,kecepatan=?,dl=?,efisiensi=?,notes=?,modified_by=?,modified_dt=? WHERE id=?`,
-      [d.item_code,d.item_name,d.proses,d.machine_id,d.machine_name,d.tube||0,d.fiber||0,d.kecepatan||0,d.dl||0,d.efisiensi||0,d.notes||'',who(req),now(),req.params.id]);
+    await query(`UPDATE kapasitas SET item_code=?,item_name=?,proses=?,setup=?,machine_id=?,machine_name=?,tube=?,fiber=?,kecepatan=?,dl=?,efisiensi=?,notes=?,modified_by=?,modified_dt=? WHERE id=?`,
+      [d.item_code,d.item_name,d.proses,d.setup||0,d.machine_id,d.machine_name,d.tube||0,d.fiber||0,d.kecepatan||0,d.dl||0,d.efisiensi||0,d.notes||'',who(req),now(),req.params.id]);
     res.json({ok:true});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
