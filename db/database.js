@@ -394,6 +394,26 @@ async function initSchema() {
       }
     }
 
+    // ── Rename bom_lines.usd_rate → exchange_rate (rate per-line, bukan hanya USD) ──
+    // Cek apakah kolom lama masih ada dan kolom baru belum ada
+    const [[{ hasOld }]] = await conn.execute(
+      `SELECT COUNT(*) AS hasOld FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'bom_lines' AND COLUMN_NAME = 'usd_rate'`,
+      [cfg.database]
+    );
+    const [[{ hasNew }]] = await conn.execute(
+      `SELECT COUNT(*) AS hasNew FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'bom_lines' AND COLUMN_NAME = 'exchange_rate'`,
+      [cfg.database]
+    );
+    if (hasOld && !hasNew) {
+      await conn.execute(`ALTER TABLE bom_lines CHANGE COLUMN usd_rate exchange_rate DECIMAL(20,4) DEFAULT 0`);
+      console.log('   + Renamed bom_lines.usd_rate → exchange_rate');
+    } else if (!hasNew) {
+      await conn.execute(`ALTER TABLE bom_lines ADD COLUMN exchange_rate DECIMAL(20,4) DEFAULT 0`);
+      console.log('   + Added bom_lines.exchange_rate');
+    }
+
     // ── Data migration: isi rate_process & rate_setup dari rate lama jika masih 0 ──
     await conn.execute(
       `UPDATE dlfoh SET rate_process = rate WHERE (rate_process IS NULL OR rate_process = 0) AND rate > 0`
