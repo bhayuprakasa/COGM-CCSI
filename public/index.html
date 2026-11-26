@@ -6320,7 +6320,7 @@ function viewBomDetail(id, src){try{
       <td class="mono" style="text-align:right">${fmt_num(l.price||0,3)}</td>
       <td class="mono" style="text-align:right">${fmt_num(l.landed||0,3)}%</td>
       <td class="mono" style="text-align:right">${fmt_num(l.hedging||0,3)}%</td>
-      <td class="mono" style="text-align:right;color:var(--cyan)">${Number((l.exchange_rate||0).toFixed(0)).toLocaleString('id-ID')}</td>
+      <td class="mono" style="text-align:right;color:var(--cyan)">${Number(((l.currency||'USD').toUpperCase()==='IDR'?1:(parseFloat(l.exchange_rate)||0)).toFixed(0)).toLocaleString('id-ID')}</td>
       <td class="mono" style="text-align:right;color:var(--cyan)">${fmt_num(l.total_amt||0,3)}</td>
       <td class="mono" style="text-align:right;color:var(--amber)">${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}</td>
     </tr>`).join('');
