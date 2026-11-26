@@ -3520,6 +3520,9 @@ function renderBomGroups(){
               row.querySelector('.bom-line-price').value=l.price;
               row.querySelector('.bom-line-hedging').value=l.hedging;
               row.querySelector('.bom-line-landed').value=l.landed;
+              // Sync rate ke currency baru — tanpa ini IDR item tampil rate=17500 dari initial render USD
+              const _riFb=row.querySelector('.bom-line-rate');
+              if(_riFb){const _rFb=getRateForLine(l.currency||'USD');_riFb.value=_rFb;l.exchange_rate=_rFb;}
             }
           }
         }
@@ -5183,6 +5186,19 @@ function onMasterBomSelect(mbomId){
   // Re-apply price if already selected
   const priceId=(ge('bom_price_id')||{value:''}).value;
   if(priceId) onBomPriceSelect(priceId);
+  // Safety pass: pastikan semua IDR lines punya rate=1, apapun hasil autoFillPrice
+  (function(){
+    const _c=document.getElementById('bom_machine_groups')||document;
+    bomGroups.forEach(function(g,gIdx){
+      g.lines.forEach(function(l,lIdx){
+        if((l.currency||'USD').toUpperCase()==='IDR'){
+          l.exchange_rate=1;
+          const _r=_c.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
+          if(_r){const _ri=_r.querySelector('.bom-line-rate');if(_ri) _ri.value=1;}
+        }
+      });
+    });
+  })();
 
   toast('Header dan lines dari Master BOM "'+rec.bomid+'" berhasil dimuat.','success');
 }
