@@ -3309,6 +3309,10 @@ function openBomForm(id){try{
     bomUsdRate=getLatestRate('USD');
   }
   renderBomGroups();
+  // Recalculate setiap line setelah render agar total_amt & total_idr
+  // pakai formula baru (total * rate) meskipun data lama belum direcalculate di DB
+  bomGroups.forEach((_,gIdx)=>recalcGroupMaterials(gIdx));
+  recalcAllGroups();
   renderBomRouting();
   const bfs=ge('bom_form_section');if(bfs)bfs.scrollIntoView({behavior:'smooth'});
 }catch(e){console.warn("openBomForm:",e);}}
@@ -6245,6 +6249,16 @@ function viewBomDetail(id, src){try{
           setup:parseFloat(d.setup)||0,factor:parseFloat(d.factor)||1,
           total_hour:parseFloat(d.total_hour)||0,total_cost:parseFloat(d.total_cost)||0,
         });})
+      });
+    });
+
+    // Recalc total_idr pakai formula baru (total_amt × rate) agar data lama dari DB tetap benar
+    groups.forEach(function(g){
+      g.lines.forEach(function(l){
+        var lineRate=parseFloat(l.usd_rate)>0?parseFloat(l.usd_rate):(getRateForLine(l.currency||'USD')||1);
+        var tAmt=l.total_qty*l.price*(1+(l.landed+l.hedging)/100)*g.lengthQty;
+        l.total_amt=tAmt;
+        l.total_idr=tAmt*lineRate;
       });
     });
 
