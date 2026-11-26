@@ -3576,22 +3576,21 @@ function recalcBomLine(gIdx,lIdx){try{
   const landed=parseFloat(row.querySelector('.bom-line-landed').value)||0;
   const hedging=parseFloat(row.querySelector('.bom-line-hedging').value)||0;
   const currency=(row.querySelector('.bom-line-currency')?row.querySelector('.bom-line-currency').value:'USD').trim()||'USD';
-  // lineUsdRate: rate per line (input oleh user, bisa beda dengan global rate)
-  const lineUsdRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getLatestRate('USD');
+  // lineRate: IDR per 1 unit currency — diambil dari input RATE, default dari master exchange rate
+  const lineRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getLatestRate(currency)||1;
   // totalQty = qty × factor × (1 + scrap%)
   const totalQty=qty*factor*(1+scrap/100);
   // lengthQty dari group (jumlah fiber/tube yang diproduksi)
   const lengthQty=bomGroups[gIdx].lengthQty||1;
-  // rateConv: konversi price dari [currency] ke USD (misal IDR→USD: 1/16000)
-  const rateConv=getLatestConversion(currency);
-  // totalAmt (USD) = totalQty × price × (1 + (landed%+hedging%)/100) × rateConv × lengthQty
-  const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv*lengthQty;
-  // totalIdr = totalAmt (USD) × rate per line
-  const totalIdr=totalAmt*lineUsdRate;
+  // totalIdr langsung: price (dalam currency) × rate (IDR/currency) — tidak perlu routing via USD
+  const totalIdr=(totalQty*price)*(1+(landed+hedging)/100)*lineRate*lengthQty;
+  // totalAmt (USD) untuk kolom TOTAL — konversi dari IDR ke USD
+  const usdRate=getLatestRate('USD')||1;
+  const totalAmt=usdRate>0?totalIdr/usdRate:0;
   if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,3);
   if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,3);
   if(row.querySelector('.bom-line-totalidr')) row.querySelector('.bom-line-totalidr').value=Number(totalIdr.toFixed(0)).toLocaleString('id-ID');
-  Object.assign(l,{price,landed,hedging,currency,usd_rate:lineUsdRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
+  Object.assign(l,{price,landed,hedging,currency,usd_rate:lineRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
   recalcAllGroups();
 }catch(e){console.warn('recalcBomLine g='+gIdx+' l='+lIdx+':',e);}}
 
@@ -3692,11 +3691,13 @@ function recalcGroupMaterials(gIdx){
     const landed=parseFloat(l.landed)||0;
     const hedging=parseFloat(l.hedging)||0;
     const currency=(l.currency||'USD').trim()||'USD';
-    const lineUsdRate=parseFloat(l.usd_rate)||getLatestRate('USD');
+    // lineRate: IDR per 1 unit currency — dari data object (sudah sinkron dengan DOM via recalcBomLine)
+    const lineRate=parseFloat(l.usd_rate)||getLatestRate(currency)||1;
     const totalQty=qty*factor*(1+scrap/100);
-    const rateConv=getLatestConversion(currency);
-    const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv*lengthQty;
-    const totalIdr=totalAmt*lineUsdRate;
+    // totalIdr langsung: price × rate — tidak routing via USD
+    const totalIdr=(totalQty*price)*(1+(landed+hedging)/100)*lineRate*lengthQty;
+    const usdRate2=getLatestRate('USD')||1;
+    const totalAmt=usdRate2>0?totalIdr/usdRate2:0;
     l.total_qty=totalQty; l.total_amt=totalAmt; l.total_idr=totalIdr;
     const row=container.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
     if(!row) return;
@@ -3788,6 +3789,15 @@ function onBomLineCurrencyChange(gIdx,lIdx,cur){
   const row=_bmg.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
   if(row) row.querySelector('.bom-line-currency').value=cur;
   const l=bomGroups[gIdx].lines[lIdx]; if(l) l.currency=cur;
+  // Auto-fill RATE dari master exchange rate sesuai currency per baris
+  if(row){
+    const rateInput=row.querySelector('.bom-line-rate');
+    if(rateInput){
+      const rateForCurrency=getLatestRate(cur.toUpperCase().trim());
+      rateInput.value=rateForCurrency;
+      if(l) l.usd_rate=rateForCurrency;
+    }
+  }
   autoFillPrice(gIdx,lIdx,row,l);
   recalcBomLine(gIdx,lIdx);
 }
@@ -3802,6 +3812,7 @@ function autoFillPrice(gIdx,lIdx,row,l){
   if(!pl) return;
   // Fill currency from purchase price first, then price/landed/hedging
   const currencyInput=row.querySelector('.bom-line-currency');
+  const finalCurrency=pl.currency||l.currency||'USD';
   if(currencyInput && pl.currency){
     currencyInput.value=pl.currency;
     l.currency=pl.currency;
@@ -3809,10 +3820,17 @@ function autoFillPrice(gIdx,lIdx,row,l){
     const cuHidden=document.getElementById('__bcu_'+gIdx+'_'+lIdx);
     if(cuHidden) cuHidden.value=pl.currency;
   }
+  // Auto-fill RATE dari master exchange rate sesuai currency
+  const rateInput=row.querySelector('.bom-line-rate');
+  if(rateInput){
+    const rateForCur=getLatestRate(finalCurrency.toUpperCase().trim());
+    rateInput.value=rateForCur;
+    l.usd_rate=rateForCur;
+  }
   row.querySelector('.bom-line-price').value=pl.price;
   row.querySelector('.bom-line-landed').value=pl.landed;
   row.querySelector('.bom-line-hedging').value=pl.hedging;
-  Object.assign(l,{currency:pl.currency||l.currency, price:+pl.price, landed:+pl.landed, hedging:+pl.hedging});
+  Object.assign(l,{currency:finalCurrency, price:+pl.price, landed:+pl.landed, hedging:+pl.hedging});
 }
 
 function onBomPriceSelect(priceId){
