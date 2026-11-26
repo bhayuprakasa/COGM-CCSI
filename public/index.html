@@ -700,8 +700,12 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           </select>
         </div>
         <div class="form-group">
-          <div class="flabel req">Rate (IDR/Jam)</div>
-          <input class="finput" type="number" id="dlfoh_rate" placeholder="0">
+          <div class="flabel req">Rate Proses (IDR/Jam)</div>
+          <input class="finput" type="number" id="dlfoh_rate_process" placeholder="0">
+        </div>
+        <div class="form-group">
+          <div class="flabel req">Rate Setup (IDR/Jam)</div>
+          <input class="finput" type="number" id="dlfoh_rate_setup" placeholder="0">
         </div>
         <div class="form-group">
           <div class="flabel">Machine Line</div>
@@ -735,7 +739,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     <div class="card-body" style="padding:0">
       <div class="tbl-wrap">
         <table class="tbl">
-          <thead><tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll('dlfoh',this.checked)" title="Pilih Semua"></th><th>Category ID</th><th>Description</th><th>Type</th><th>Rate</th><th>Machine Line</th><th>Setup/Proses</th><th>Created</th><th>Aksi</th></tr></thead>
+          <thead><tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll('dlfoh',this.checked)" title="Pilih Semua"></th><th>Category ID</th><th>Description</th><th>Type</th><th>Rate Proses</th><th>Rate Setup</th><th>Machine Line</th><th>Setup/Proses</th><th>Created</th><th>Aksi</th></tr></thead>
           <tbody id="dlfoh_tbody"></tbody>
         </table>
       </div>
@@ -2052,11 +2056,30 @@ function buildSearchData(type){
   }
   else if(type==='price') sm_data=DB.prices.map(p=>({code:p.id,name:p.created_dt||p.created||'',sub:p.lines.length+' lines'}));
   else if(type==='exrate') sm_data=DB.exrates.map(e=>({code:e.currency_id,name:e.currency_id,sub:latestRate(e)}));
-  else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Rp '+Number(d.rate).toLocaleString('id-ID')+'/jam'}));
+  else if(type==='dlfoh') sm_data=DB.dlfoh.map(d=>({code:d.catid,name:d.desc,sub:d.type+' | Proses: Rp '+Number(d.rate_process||d.rate||0).toLocaleString('id-ID')+' | Setup: Rp '+Number(d.rate_setup||d.rate||0).toLocaleString('id-ID')}));
   else if(type==='kap') sm_data=DB.kap.map(k=>({code:k.id,name:k.item_name,sub:k.proses+' | '+(DB.mesin.find(m=>m.machine_id===k.mesin)||{machine_name:k.mesin}).machine_name}));
-  else if(type==='masterbom') sm_data=DB.masterbom.map(b=>({code:b.bomid,name:b.product,sub:b.machine_line+' | '+(b.lines||[]).length+' items'}));
+  else if(type==='masterbom') {
+    // Filter berdasarkan product_code yang dipilih di BOM form agar hanya tampil Master BOM yang relevan
+    var _selProdCode = (ge('bom_product_code')||{value:''}).value;
+    var _mbomFiltered = _selProdCode
+      ? DB.masterbom.filter(b => b.product_code === _selProdCode)
+      : DB.masterbom;
+    sm_data = _mbomFiltered.map(b=>({
+      code: b.bomid,
+      name: b.product,
+      // machine_lines adalah array dari API, machine_line tidak ada di level record
+      sub: (b.machine_lines||[]).join(', ')+' | '+(b.lines||[]).length+' items'
+    }));
+  }
   // Kapasitas sebagai Master Route — ditampilkan per kapid untuk dropdown BOM form
-  else if(type==='masterkap') sm_data=DB.kap.map(k=>({code:k.kapid,name:k.item_name||k.item_code,sub:k.item_code+' | '+k.proses}));
+  else if(type==='masterkap') {
+    // Filter berdasarkan item_code yang cocok dengan produk yang dipilih di BOM form
+    var _selKapCode = (ge('bom_product_code')||{value:''}).value;
+    var _kapFiltered = _selKapCode
+      ? DB.kap.filter(k => k.item_code === _selKapCode)
+      : DB.kap;
+    sm_data = _kapFiltered.map(k=>({code:k.kapid,name:k.item_name||k.item_code,sub:k.item_code+' | '+k.proses}));
+  }
   else if(type==='fgrl') {
     // FG items dari DB.kap (Master Route) — unique by item_code
     const seen=new Set();
@@ -2514,7 +2537,8 @@ function openDlfohForm(id){try{
   (function(){const _e=ge('dlfoh_catid');if(_e)_e.disabled=false;})();
   setVal('dlfoh_desc','');
   setVal('dlfoh_type','');
-  setVal('dlfoh_rate','');
+  setVal('dlfoh_rate_process','');
+  setVal('dlfoh_rate_setup','');
   setVal('dlfoh_machine_line','');
   document.getElementById('dlfoh_created').value=nowStr();
   if(id){
@@ -2526,7 +2550,8 @@ function openDlfohForm(id){try{
       (function(){const _e=ge('dlfoh_catid');if(_e)_e.disabled=true;})();
       (function(){const _e=ge('dlfoh_desc');if(_e)_e.value=rec.desc;})();
       (function(){const _e=ge('dlfoh_type');if(_e)_e.value=rec.type;})();
-      (function(){const _e=ge('dlfoh_rate');if(_e)_e.value=rec.rate;})();
+      (function(){const _e=ge('dlfoh_rate_process');if(_e)_e.value=rec.rate_process||0;})();
+      (function(){const _e=ge('dlfoh_rate_setup');if(_e)_e.value=rec.rate_setup||0;})();
       (function(){const _e=ge('dlfoh_machine_line');if(_e)_e.value=rec.machine_line||'';})();
       (function(){const _e=ge('dlfoh_setup_proses');if(_e)_e.value=rec.setup_proses||'';})();
       (function(){const _e=ge('dlfoh_created');if(_e)_e.value=rec.created_dt||rec.created||'';})();
@@ -2547,13 +2572,15 @@ function saveDlfoh(){try{
   const catid=document.getElementById('dlfoh_catid').value.trim();
   const desc=document.getElementById('dlfoh_desc').value.trim();
   const type=document.getElementById('dlfoh_type').value;
-  const rate=parseFloat(document.getElementById('dlfoh_rate').value)||0;
+  const rate_process=parseFloat(document.getElementById('dlfoh_rate_process').value)||0;
+  const rate_setup=parseFloat(document.getElementById('dlfoh_rate_setup').value)||0;
+  const rate=rate_process; // backward compat: rate = rate_process
   const machine_line=document.getElementById('dlfoh_machine_line').value;
   const setup_proses=document.getElementById('dlfoh_setup_proses').value;
   if(!catid||!type){toast('Category ID dan Type wajib.','error');return;}
   if(typeof API!=='undefined'){
-    if(editId){apiSave(API.dlfoh.update(editId,{desc,type,rate,machine_line,setup_proses}),function(){toast('DL-FOH diupdate.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
-    else{apiSave(API.dlfoh.create({catid,desc,type,rate,machine_line,setup_proses}),function(){toast('DL-FOH disimpan.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
+    if(editId){apiSave(API.dlfoh.update(editId,{desc,type,rate,rate_process,rate_setup,machine_line,setup_proses}),function(){toast('DL-FOH diupdate.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
+    else{apiSave(API.dlfoh.create({catid,desc,type,rate,rate_process,rate_setup,machine_line,setup_proses}),function(){toast('DL-FOH disimpan.','success');closeDlfohForm();loadAllData().then(function(){renderDlfoh();updateCounts();});});}
     return;
   }
   const created=document.getElementById('dlfoh_created').value;
@@ -2562,15 +2589,16 @@ function saveDlfoh(){try{
     const rec=DB.dlfoh.find(d=>d.id===editId);
     if(rec){
       if(rec.desc!==desc) recordHistory('dlfoh',editId,'Description',rec.desc,desc);
-      if(rec.rate!==rate) recordHistory('dlfoh',editId,'Rate',rec.rate,rate);
+      if(rec.rate_process!==rate_process) recordHistory('dlfoh',editId,'Rate Proses',rec.rate_process||0,rate_process);
+      if(rec.rate_setup!==rate_setup) recordHistory('dlfoh',editId,'Rate Setup',rec.rate_setup||0,rate_setup);
       if(rec.machine_line!==machine_line) recordHistory('dlfoh',editId,'Machine Line',rec.machine_line||'',machine_line);
       if(rec.setup_proses!==setup_proses) recordHistory('dlfoh',editId,'Setup/Proses',rec.setup_proses||'',setup_proses);
-      rec.desc=desc;rec.type=type;rec.rate=rate;rec.machine_line=machine_line;rec.setup_proses=setup_proses;rec.updated_dt=nowStr();rec.updated=nowStr();
+      rec.desc=desc;rec.type=type;rec.rate=rate;rec.rate_process=rate_process;rec.rate_setup=rate_setup;rec.machine_line=machine_line;rec.setup_proses=setup_proses;rec.updated_dt=nowStr();rec.updated=nowStr();
     }
     toast('DL-FOH diupdate.','success');
   } else {
     if(DB.dlfoh.find(d=>d.catid===catid)){toast('Category ID sudah ada!','error');return;}
-    DB.dlfoh.push({id:'DLFOH-'+catid,catid,desc,type,rate,machine_line,setup_proses,created,updated:nowStr()});
+    DB.dlfoh.push({id:'DLFOH-'+catid,catid,desc,type,rate,rate_process,rate_setup,machine_line,setup_proses,created,updated:nowStr()});
     toast('DL-FOH disimpan.','success');
   }
   closeDlfohForm(); renderDlfoh(); updateCounts();
@@ -3442,8 +3470,7 @@ function renderBomGroups(){
           <div class="line-tbl-wrap">
             <table class="line-tbl">
               <thead><tr>
-                <th>Category</th><th>Type</th><th>S/P</th><th>Process</th><th>Set Up</th>
-                <th>Total Hour</th><th>Rate</th><th>Total Cost (IDR)</th><th></th>
+                <th>Category</th><th>Type</th><th>S/P</th><th>Hour</th><th>Rate</th><th>Total Cost (IDR)</th><th></th>
               </tr></thead>
               <tbody id="dlfoh_body_${gIdx}">
                 ${g.dlfohLines.map((dl,dIdx)=>renderDlfohRow(gIdx,dIdx,dl)).join('')}
@@ -3528,8 +3555,8 @@ function renderBomLineRow(gIdx,lIdx,l){
       <td><input class="li-input bom-line-price" type="number" style="width:74px" value="${l.price||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-landed" type="number" style="width:52px" value="${l.landed||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-hedging" type="number" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
-      <!-- Rate USD/IDR per line: dipakai untuk konversi total_amt (USD) → total_idr -->
-      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${l.usd_rate||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <!-- Rate per line: IDR per 1 unit currency — selalu ambil dari master exchange rate sesuai currency baris -->
+      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getLatestRate((l.currency||'USD').toUpperCase().trim());l.usd_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,3)}" readonly></td>
       <td><input class="li-input bom-line-totalidr" style="width:98px" value="${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
@@ -3565,8 +3592,7 @@ function renderDlfohRow(gIdx,dIdx,dl){
         ${fm?rdStyle:(`oninput="bomGroups[${gIdx}].dlfohLines[${dIdx}].setup=parseFloat(this.value)||0;bomGroups[${gIdx}].dlfohLines[${dIdx}].setup_manual=true;this.dataset.manual='1';recalcGroupDlfohFromRow(${gIdx},${dIdx})"`)}>
         </td>
       <td><input class="li-input dlfoh-hour-cell" style="width:68px" value="${fmt_num(dl.total_hour||0,3)}" readonly></td>
-      <!-- Rate & Total Cost: format locale ID agar tampil titik-koma ribuan -->
-      <td><input class="li-input dlfoh-rate-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
+      <td><input class="li-input dlfoh-rate-process-cell" style="width:80px" value="${Number(rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0).toLocaleString('id-ID')}" readonly></td>
       <td><input class="li-input dlfoh-cost-cell" style="width:92px" value="${Number(dl.total_cost||0).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="bomGroups[${gIdx}].dlfohLines.splice(${dIdx},1);renderBomGroups()">&#10005;</button>`)}</td>
     </tr>`;
@@ -3618,22 +3644,21 @@ function recalcBomLine(gIdx,lIdx){try{
   const landed=parseFloat(row.querySelector('.bom-line-landed').value)||0;
   const hedging=parseFloat(row.querySelector('.bom-line-hedging').value)||0;
   const currency=(row.querySelector('.bom-line-currency')?row.querySelector('.bom-line-currency').value:'USD').trim()||'USD';
-  // lineUsdRate: rate per line (input oleh user, bisa beda dengan global rate)
-  const lineUsdRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getLatestRate('USD');
+  // lineRate: IDR per 1 unit currency — diambil dari input RATE, default dari master exchange rate
+  const lineRate=parseFloat((row.querySelector('.bom-line-rate')||{}).value)||getLatestRate(currency)||1;
   // totalQty = qty × factor × (1 + scrap%)
   const totalQty=qty*factor*(1+scrap/100);
   // lengthQty dari group (jumlah fiber/tube yang diproduksi)
   const lengthQty=bomGroups[gIdx].lengthQty||1;
-  // rateConv: konversi price dari [currency] ke USD (misal IDR→USD: 1/16000)
-  const rateConv=getLatestConversion(currency);
-  // totalAmt (USD) = totalQty × price × (1 + (landed%+hedging%)/100) × rateConv × lengthQty
-  const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv*lengthQty;
-  // totalIdr = totalAmt (USD) × rate per line
-  const totalIdr=totalAmt*lineUsdRate;
+  // totalIdr langsung: price (dalam currency) × rate (IDR/currency) — tidak perlu routing via USD
+  const totalIdr=(totalQty*price)*(1+(landed+hedging)/100)*lineRate*lengthQty;
+  // totalAmt (USD) untuk kolom TOTAL — konversi dari IDR ke USD
+  const usdRate=getLatestRate('USD')||1;
+  const totalAmt=usdRate>0?totalIdr/usdRate:0;
   if(row.querySelector('.bom-line-totalqty')) row.querySelector('.bom-line-totalqty').value=fmt_num(totalQty,3);
   if(row.querySelector('.bom-line-totalamt')) row.querySelector('.bom-line-totalamt').value=fmt_num(totalAmt,3);
   if(row.querySelector('.bom-line-totalidr')) row.querySelector('.bom-line-totalidr').value=Number(totalIdr.toFixed(0)).toLocaleString('id-ID');
-  Object.assign(l,{price,landed,hedging,currency,usd_rate:lineUsdRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
+  Object.assign(l,{price,landed,hedging,currency,usd_rate:lineRate,total_qty:totalQty,total_amt:totalAmt,total_idr:totalIdr});
   recalcAllGroups();
 }catch(e){console.warn('recalcBomLine g='+gIdx+' l='+lIdx+':',e);}}
 
@@ -3648,14 +3673,17 @@ function recalcGroupDlfohFromRow(gIdx,dIdx){
   dl.total_hour=th;
   // DL type pakai dlLot, FOH type pakai fohLot
   const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
-  dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*lotMult;
+  // total_cost = (proses × rate_process) + (setup × rate_setup), dikali lotMult
+  const rp=rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0;
+  const rs=rec?parseFloat(rec.rate_setup)||parseFloat(rec.rate)||0:0;
+  dl.total_cost=(dl.index*(dl.factor||1)*rp + (dl.setup||0)*rs)*lotMult;
   const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
   if(row){
     const hourCell=row.querySelector('.dlfoh-hour-cell');
-    const rateCell=row.querySelector('.dlfoh-rate-cell');
+    const rateProsesCell=row.querySelector('.dlfoh-rate-process-cell');
     const costCell=row.querySelector('.dlfoh-cost-cell');
     if(hourCell) hourCell.value=fmt_num(th,3);
-    if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
+    if(rateProsesCell) rateProsesCell.value=Number(rp).toLocaleString('id-ID');
     if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
   }
   const groupTotal=g.dlfohLines.reduce((s,dl)=>s+(dl.total_cost||0),0);
@@ -3685,18 +3713,21 @@ function recalcGroupDlfoh(gIdx){
     dl.total_hour=th;
     // DL type pakai dlLot, FOH type (FFOH/VFOH) pakai fohLot
     const lotMult=(rec&&rec.type==='DL')?(g.dlLot||1):(g.fohLot||1);
-    dl.total_cost=(rec?parseFloat(rec.rate)||0:0)*th*lotMult;
+    // total_cost = (proses × rate_process) + (setup × rate_setup), dikali lotMult
+    const rp=rec?parseFloat(rec.rate_process)||parseFloat(rec.rate)||0:0;
+    const rs=rec?parseFloat(rec.rate_setup)||parseFloat(rec.rate)||0:0;
+    dl.total_cost=(idx*(dl.factor||1)*rp + (dl.setup||0)*rs)*lotMult;
     const row=document.querySelector('tr[data-dg="'+gIdx+'"][data-di="'+dIdx+'"]');
     if(row){
       const idxCell=row.querySelector('.dlfoh-process-cell');
       const setupCell=row.querySelector('.dlfoh-setup-cell');
       const hourCell=row.querySelector('.dlfoh-hour-cell');
-      const rateCell=row.querySelector('.dlfoh-rate-cell');
+      const rateProsesCell=row.querySelector('.dlfoh-rate-process-cell');
       const costCell=row.querySelector('.dlfoh-cost-cell');
       if(idxCell&&!dl.index_manual) idxCell.value=fmt_num(idx,3);
       if(setupCell&&!dl.setup_manual) setupCell.value=fmt_num(dl.setup,3);
       if(hourCell) hourCell.value=fmt_num(th,3);
-      if(rateCell) rateCell.value=Number(rec?parseFloat(rec.rate)||0:0).toLocaleString('id-ID');
+      if(rateProsesCell) rateProsesCell.value=Number(rp).toLocaleString('id-ID');
       if(costCell) costCell.value=Number(dl.total_cost||0).toLocaleString('id-ID');
       const t=rec?rec.type:'—';
       const cls=dlTypeBadgeClass(t);
@@ -3731,7 +3762,8 @@ function recalcGroupMaterials(gIdx){
       l.landed=parseFloat(row0.querySelector('.bom-line-landed').value)||0;
       l.hedging=parseFloat(row0.querySelector('.bom-line-hedging').value)||0;
       l.currency=(row0.querySelector('.bom-line-currency')||{value:l.currency||'USD'}).value||l.currency||'USD';
-      l.usd_rate=parseFloat((row0.querySelector('.bom-line-rate')||{value:0}).value)||l.usd_rate||getLatestRate('USD');
+      // Baca rate dari DOM (sudah ter-auto-fill oleh renderBomLine); fallback ke master exchange rate sesuai currency
+      l.usd_rate=parseFloat((row0.querySelector('.bom-line-rate')||{value:0}).value)||getLatestRate(l.currency||'USD')||1;
     }
     const qty=parseFloat(l.qty)||0;
     const scrap=parseFloat(l.scrap)||0;
@@ -3740,11 +3772,13 @@ function recalcGroupMaterials(gIdx){
     const landed=parseFloat(l.landed)||0;
     const hedging=parseFloat(l.hedging)||0;
     const currency=(l.currency||'USD').trim()||'USD';
-    const lineUsdRate=parseFloat(l.usd_rate)||getLatestRate('USD');
+    // lineRate: IDR per 1 unit currency — dari data object (sudah sinkron dengan DOM via recalcBomLine)
+    const lineRate=parseFloat(l.usd_rate)||getLatestRate(currency)||1;
     const totalQty=qty*factor*(1+scrap/100);
-    const rateConv=getLatestConversion(currency);
-    const totalAmt=(totalQty*price)*(1+(landed+hedging)/100)*rateConv*lengthQty;
-    const totalIdr=totalAmt*lineUsdRate;
+    // totalIdr langsung: price × rate — tidak routing via USD
+    const totalIdr=(totalQty*price)*(1+(landed+hedging)/100)*lineRate*lengthQty;
+    const usdRate2=getLatestRate('USD')||1;
+    const totalAmt=usdRate2>0?totalIdr/usdRate2:0;
     l.total_qty=totalQty; l.total_amt=totalAmt; l.total_idr=totalIdr;
     const row=container.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
     if(!row) return;
@@ -3836,6 +3870,15 @@ function onBomLineCurrencyChange(gIdx,lIdx,cur){
   const row=_bmg.querySelector('tr[data-g="'+gIdx+'"][data-l="'+lIdx+'"]');
   if(row) row.querySelector('.bom-line-currency').value=cur;
   const l=bomGroups[gIdx].lines[lIdx]; if(l) l.currency=cur;
+  // Auto-fill RATE dari master exchange rate sesuai currency per baris
+  if(row){
+    const rateInput=row.querySelector('.bom-line-rate');
+    if(rateInput){
+      const rateForCurrency=getLatestRate(cur.toUpperCase().trim());
+      rateInput.value=rateForCurrency;
+      if(l) l.usd_rate=rateForCurrency;
+    }
+  }
   autoFillPrice(gIdx,lIdx,row,l);
   recalcBomLine(gIdx,lIdx);
 }
@@ -3850,6 +3893,7 @@ function autoFillPrice(gIdx,lIdx,row,l){
   if(!pl) return;
   // Fill currency from purchase price first, then price/landed/hedging
   const currencyInput=row.querySelector('.bom-line-currency');
+  const finalCurrency=pl.currency||l.currency||'USD';
   if(currencyInput && pl.currency){
     currencyInput.value=pl.currency;
     l.currency=pl.currency;
@@ -3857,10 +3901,17 @@ function autoFillPrice(gIdx,lIdx,row,l){
     const cuHidden=document.getElementById('__bcu_'+gIdx+'_'+lIdx);
     if(cuHidden) cuHidden.value=pl.currency;
   }
+  // Auto-fill RATE dari master exchange rate sesuai currency
+  const rateInput=row.querySelector('.bom-line-rate');
+  if(rateInput){
+    const rateForCur=getLatestRate(finalCurrency.toUpperCase().trim());
+    rateInput.value=rateForCur;
+    l.usd_rate=rateForCur;
+  }
   row.querySelector('.bom-line-price').value=pl.price;
   row.querySelector('.bom-line-landed').value=pl.landed;
   row.querySelector('.bom-line-hedging').value=pl.hedging;
-  Object.assign(l,{currency:pl.currency||l.currency, price:+pl.price, landed:+pl.landed, hedging:+pl.hedging});
+  Object.assign(l,{currency:finalCurrency, price:+pl.price, landed:+pl.landed, hedging:+pl.hedging});
 }
 
 function onBomPriceSelect(priceId){
@@ -8267,14 +8318,16 @@ function geSaveExrate(id) {
 function geSaveDlfoh(id) {
   var desc = (document.getElementById('ge_dl_desc_'+id)||{}).value||'';
   var type = (document.getElementById('ge_dl_type_'+id)||{}).value||'';
-  var rate = parseFloat((document.getElementById('ge_dl_rate_'+id)||{}).value)||0;
+  var rate_process = parseFloat((document.getElementById('ge_dl_rate_process_'+id)||{}).value)||0;
+  var rate_setup = parseFloat((document.getElementById('ge_dl_rate_setup_'+id)||{}).value)||0;
+  var rate = rate_process; // backward compat
   var machine_line = (document.getElementById('ge_dl_ml_'+id)||{}).value||'';
   var setup_proses = (document.getElementById('ge_dl_sp_'+id)||{}).value||'';
   if(!desc.trim()){toast('Deskripsi tidak boleh kosong','error');return;}
-  apiSave(API.dlfoh.update(id,{desc:desc.trim(),type,rate,machine_line,setup_proses}), function(){
+  apiSave(API.dlfoh.update(id,{desc:desc.trim(),type,rate,rate_process,rate_setup,machine_line,setup_proses}), function(){
     if(GE.dlfoh!=='__all__') GE.dlfoh=null;
     var rec=DB.dlfoh.find(function(r){return r.id==id||r.id===id;});
-    if(rec){rec.desc=desc.trim();rec.type=type;rec.rate=rate;rec.machine_line=machine_line;rec.setup_proses=setup_proses;}
+    if(rec){rec.desc=desc.trim();rec.type=type;rec.rate=rate;rec.rate_process=rate_process;rec.rate_setup=rate_setup;rec.machine_line=machine_line;rec.setup_proses=setup_proses;}
     renderDlfoh();
     toast('DLFOH berhasil disimpan','success');
   });
