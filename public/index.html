@@ -3166,8 +3166,8 @@ function openBomForm(id){try{
     setVal('bom_master_route_id',rec.master_route_id||'');
     // Restore product code (hidden) agar pencarian FG konsisten saat edit
     setVal('bom_product_code',rec.product_code||'');
-    // bomUsdRate tetap dipakai untuk usd_rate_snapshot di payload (reference rate)
-    bomUsdRate=parseFloat(rec.usd_rate_snapshot)||getLatestRate('USD');
+    // bomUsdRate selalu diambil dari master exchange terbaru saat edit/buka form
+    bomUsdRate=getLatestRate('USD')||parseFloat(rec.usd_rate_snapshot);
     // Restore price_id agar autoFillPrice bisa jalan saat renderBomGroups
     setVal('bom_price_id', rec.price_id||'');
     // Restore item_code FG dan routing snapshot
@@ -8531,7 +8531,7 @@ function geSaveAll(page) {
       var payload={product,customer:customer.trim(),
         project:rec.project,fiber_cnt:rec.fiber_cnt,buffer_qty:rec.buffer_qty,fiber_qty:rec.fiber_qty,
         price_id:price_id.trim()||null,master_bom_id:rec.master_bom_id,
-        usd_rate_snapshot:rec.usd_rate_snapshot,groups:rec.groups||[]};
+        usd_rate_snapshot:getLatestRate('USD')||rec.usd_rate_snapshot,groups:rec.groups||[]};
       p=Promise.resolve(API.bom.update(id,payload))
         .then(function(){rec.product=product;rec.customer=customer.trim();rec.price_id=price_id.trim()||null;saved++;})
         .catch(function(){errors++;});
@@ -8567,7 +8567,7 @@ function geSaveBom(id) {
     project:rec.project, fiber_cnt:rec.fiber_cnt,
     buffer_qty:rec.buffer_qty, fiber_qty:rec.fiber_qty,
     price_id:price_id.trim()||null, master_bom_id:rec.master_bom_id,
-    usd_rate_snapshot:rec.usd_rate_snapshot,
+    usd_rate_snapshot:getLatestRate('USD')||rec.usd_rate_snapshot,
     groups:rec.groups||[]
   };
   apiSave(API.bom.update(id,payload), function(){
