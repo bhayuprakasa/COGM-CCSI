@@ -6269,6 +6269,16 @@ function viewBomDetail(id, src){try{
       });
     });
 
+    // Recalc total_idr pakai formula baru (total_amt × rate) agar data lama dari DB tetap benar
+    groups.forEach(function(g){
+      g.lines.forEach(function(l){
+        var lineRate=parseFloat(l.usd_rate)>0?parseFloat(l.usd_rate):(getRateForLine(l.currency||'USD')||1);
+        var tAmt=l.total_qty*l.price*(1+(l.landed+l.hedging)/100)*g.lengthQty;
+        l.total_amt=tAmt;
+        l.total_idr=tAmt*lineRate;
+      });
+    });
+
     setText('bdm_title','Detail BOM — '+bom.bomid);
 
   // ── Header info ──
