@@ -119,7 +119,6 @@ async function deleteMBomGroups(mbomId) {
   const grps = await query(`SELECT id FROM masterbom_groups WHERE masterbom_id=?`,[mbomId]);
   for (const g of grps) {
     await query(`DELETE FROM masterbom_lines WHERE group_id=?`,[g.id]);
-    await query(`DELETE FROM masterbom_dlfoh WHERE group_id=?`,[g.id]); // cleanup data lama
   }
   await query(`DELETE FROM masterbom_groups WHERE masterbom_id=?`,[mbomId]);
 }
