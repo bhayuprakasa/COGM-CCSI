@@ -5,7 +5,7 @@ const path  = require('path');
 const fs    = require('fs');
 
 const CFG_PATH = path.join(__dirname, '..', 'config.json');
-let cfg = { host:'localhost', port:3306, user:'root', password:'', database:'cogm_db' };
+let cfg = { host:'localhost', port:3306, user:'root', password:'', database:'cogs_db' };
 if (fs.existsSync(CFG_PATH)) {
   try { Object.assign(cfg, JSON.parse(fs.readFileSync(CFG_PATH,'utf8'))); }
   catch(e) { console.warn('config.json error:', e.message); }

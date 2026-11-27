@@ -5,16 +5,16 @@ const API_BASE = window.location.origin + '/api';
 // ── Server version check — clear old token if server changed ──
 (function(){
   const CURRENT_VERSION = '2.0-mysql';
-  const savedVersion = localStorage.getItem('cogm_server_version');
+  const savedVersion = localStorage.getItem('cogs_server_version');
   if (savedVersion !== CURRENT_VERSION) {
-    localStorage.removeItem('cogm_token'); // clear old JSON-server token
-    localStorage.setItem('cogm_server_version', CURRENT_VERSION);
+    localStorage.removeItem('cogs_token'); // clear old JSON-server token
+    localStorage.setItem('cogs_server_version', CURRENT_VERSION);
     console.log('🔄 Server version changed to MySQL — session cleared, please login again.');
   }
 })();
 
 // Token always read fresh from localStorage — never stale
-function getToken() { return localStorage.getItem('cogm_token') || ''; }
+function getToken() { return localStorage.getItem('cogs_token') || ''; }
 
 // ── HTTP helpers ──
 async function apiGet(path) {
@@ -68,7 +68,7 @@ window.serverLogin = async function(username, password) {
   const data = await r.json();
   if (!r.ok) throw new Error(data.error || 'Login gagal');
   // Store token in localStorage — getToken() will pick it up automatically
-  localStorage.setItem('cogm_token', data.token);
+  localStorage.setItem('cogs_token', data.token);
   // Also update _authToken in main script scope if it exists
   if (typeof _authToken !== 'undefined') _authToken = data.token;
   return data.user;
@@ -76,7 +76,7 @@ window.serverLogin = async function(username, password) {
 
 window.serverLogout = async function() {
   try { await apiPost('/auth/logout', {}); } catch(e) {}
-  localStorage.removeItem('cogm_token');
+  localStorage.removeItem('cogs_token');
   if (typeof _authToken !== 'undefined') _authToken = '';
 };
 
@@ -155,7 +155,7 @@ window.apiSave = function(apiCall, onSuccess) {
     var msg = e.message || '';
     // Auto-logout on ANY 401 / session expired error
     if (msg.includes('erakhir') || msg.includes('401') || msg.includes('login') || msg.includes('autentikasi')) {
-      localStorage.removeItem('cogm_token');
+      localStorage.removeItem('cogs_token');
       if (typeof _authToken !== 'undefined') _authToken = '';
       if (typeof currentUser !== 'undefined') currentUser = null;
       if (typeof toast !== 'undefined') toast('Sesi berakhir — silakan login ulang.', 'error');

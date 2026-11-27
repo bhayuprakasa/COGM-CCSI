@@ -460,7 +460,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
   <div class="nav-item" onclick="goPage('bom')"><span class="ni">📋</span> COGS Calculated</div>
-  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> COGM Approved</div>
+  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> COGS Approved</div>
   <div class="nav-item" id="nav_cogs" onclick="goPage('cogs')"><span class="ni">📊</span> COGS Summary</div>
   <div class="nav-section">Panduan</div>
   <div class="nav-item" onclick="goPage('guide')"><span class="ni">📖</span> Panduan Sistem</div>
@@ -1297,14 +1297,14 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <div class="page" id="page_guide">
   <div style="max-width:900px;margin:0 auto;padding:.5rem 0 2rem">
 
-    <!-- COGM Formula Card -->
+    <!-- COGS Formula Card -->
     <div class="card" style="margin-bottom:1.25rem">
       <div class="card-head">
-        <div class="card-title"><span class="card-title-icon">📐</span> Rumus COGM (Cost of Goods Manufactured)</div>
+        <div class="card-title"><span class="card-title-icon">📐</span> Rumus COGS (Cost of Goods Manufactured)</div>
       </div>
       <div class="card-body">
         <div style="background:var(--s3);border:1px solid var(--cyan2);border-radius:var(--r1);padding:1rem 1.25rem;font-family:monospace;font-size:.88rem;line-height:1.9;color:var(--cyan)">
-          COGM = Direct Material + Direct Labor + Manufacturing Overhead + Depreciation<br>
+          COGS = Direct Material + Direct Labor + Manufacturing Overhead + Depreciation<br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + WIP Awal − WIP Akhir
         </div>
         <div style="margin-top:1rem;overflow-x:auto">
@@ -1328,13 +1328,13 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         </div>
         <div style="margin-top:.75rem;display:flex;gap:1.5rem;flex-wrap:wrap">
           <div style="background:var(--s3);border:1px solid var(--b2);border-radius:var(--r1);padding:.6rem 1rem;font-size:.8rem">
-            <span style="color:var(--t3)">COGS = </span><span style="color:var(--t1)">COGM + Finished Goods Awal − Finished Goods Akhir</span>
+            <span style="color:var(--t3)">COGS = </span><span style="color:var(--t1)">COGS + Finished Goods Awal − Finished Goods Akhir</span>
           </div>
           <div style="background:var(--s3);border:1px solid var(--b2);border-radius:var(--r1);padding:.6rem 1rem;font-size:.8rem">
-            <span style="color:var(--t3)">Cost/km = </span><span style="color:var(--t1)">COGM ÷ Total km diproduksi</span>
+            <span style="color:var(--t3)">Cost/km = </span><span style="color:var(--t1)">COGS ÷ Total km diproduksi</span>
           </div>
           <div style="background:var(--s3);border:1px solid var(--b2);border-radius:var(--r1);padding:.6rem 1rem;font-size:.8rem">
-            <span style="color:var(--t3)">Material% = </span><span style="color:var(--t1)">Direct Material ÷ COGM × 100</span>
+            <span style="color:var(--t3)">Material% = </span><span style="color:var(--t1)">Direct Material ÷ COGS × 100</span>
           </div>
         </div>
       </div>
@@ -1418,7 +1418,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">BOM aktual per order produksi</div>
               </div>
               <div onclick="goPage('history')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
-                <div style="font-size:.7rem;font-weight:700">📜 COGM Approved</div>
+                <div style="font-size:.7rem;font-weight:700">📜 COGS Approved</div>
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Riwayat & audit trail BOM</div>
               </div>
             </div>
@@ -1434,7 +1434,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               <div onclick="goPage('cogs')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
                 <div style="font-size:.7rem;font-weight:700;color:var(--amber,#f59e0b)">📊 COGS Summary</div>
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Laporan biaya produksi akhir</div>
-                <div style="font-size:.62rem;color:var(--t3);margin-top:3px;line-height:1.4">COGM → COGS per periode</div>
+                <div style="font-size:.62rem;color:var(--t3);margin-top:3px;line-height:1.4">COGS → COGS per periode</div>
               </div>
             </div>
           </div>
@@ -1492,7 +1492,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     <!-- Benchmark industri -->
     <div class="card">
       <div class="card-head">
-        <div class="card-title"><span class="card-title-icon">📊</span> Benchmark Komposisi COGM — Kabel Fiber Optic</div>
+        <div class="card-title"><span class="card-title-icon">📊</span> Benchmark Komposisi COGS — Kabel Fiber Optic</div>
       </div>
       <div class="card-body">
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem">
@@ -1697,16 +1697,16 @@ const API_BASE = window.location.origin + '/api';
 // ── Server version check — clear old token if server changed ──
 (function(){
   const CURRENT_VERSION = '2.0-mysql';
-  const savedVersion = localStorage.getItem('cogm_server_version');
+  const savedVersion = localStorage.getItem('cogs_server_version');
   if (savedVersion !== CURRENT_VERSION) {
-    localStorage.removeItem('cogm_token'); // clear old JSON-server token
-    localStorage.setItem('cogm_server_version', CURRENT_VERSION);
+    localStorage.removeItem('cogs_token'); // clear old JSON-server token
+    localStorage.setItem('cogs_server_version', CURRENT_VERSION);
     console.log('🔄 Server version changed to MySQL — session cleared, please login again.');
   }
 })();
 
 // Token always read fresh from localStorage — never stale
-function getToken() { return localStorage.getItem('cogm_token') || ''; }
+function getToken() { return localStorage.getItem('cogs_token') || ''; }
 
 // ── HTTP helpers ──
 async function apiGet(path) {
@@ -1760,7 +1760,7 @@ window.serverLogin = async function(username, password) {
   const data = await r.json();
   if (!r.ok) throw new Error(data.error || 'Login gagal');
   // Store token in localStorage — getToken() will pick it up automatically
-  localStorage.setItem('cogm_token', data.token);
+  localStorage.setItem('cogs_token', data.token);
   // Also update _authToken in main script scope if it exists
   if (typeof _authToken !== 'undefined') _authToken = data.token;
   return data.user;
@@ -1768,7 +1768,7 @@ window.serverLogin = async function(username, password) {
 
 window.serverLogout = async function() {
   try { await apiPost('/auth/logout', {}); } catch(e) {}
-  localStorage.removeItem('cogm_token');
+  localStorage.removeItem('cogs_token');
   if (typeof _authToken !== 'undefined') _authToken = '';
 };
 
@@ -1822,7 +1822,7 @@ window.loadAllData = async function() {
   // Migrasi satu kali: data COGS dari localStorage → API (jika ada dan DB.cogs masih kosong)
   if (!DB.cogs.length) {
     try {
-      var legacy = JSON.parse(localStorage.getItem('cogm_cogs_docs') || '[]');
+      var legacy = JSON.parse(localStorage.getItem('cogs_cogs_docs') || '[]');
       if (legacy.length) {
         for (var _cd of legacy) {
           try {
@@ -1834,7 +1834,7 @@ window.loadAllData = async function() {
             });
           } catch(e) { console.warn('Migration cogs row failed:', e); }
         }
-        localStorage.removeItem('cogm_cogs_docs');
+        localStorage.removeItem('cogs_cogs_docs');
         const migratedCogs = await apiGet('/cogs');
         DB.cogs = migratedCogs || [];
         console.log('✅ Migrated', legacy.length, 'COGS docs from localStorage to DB');
@@ -1897,7 +1897,7 @@ window.apiSave = function(apiCall, onSuccess) {
     var msg = e.message || '';
     // Auto-logout on ANY 401 / session expired error
     if (msg.includes('erakhir') || msg.includes('401') || msg.includes('login') || msg.includes('autentikasi')) {
-      localStorage.removeItem('cogm_token');
+      localStorage.removeItem('cogs_token');
       if (typeof _authToken !== 'undefined') _authToken = '';
       if (typeof currentUser !== 'undefined') currentUser = null;
       if (typeof toast !== 'undefined') toast('Sesi berakhir — silakan login ulang.', 'error');
@@ -1996,7 +1996,7 @@ const pageTitles={
   kapasitas:'⚡ Master Data <span>Master Route</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
   bom:'📋 <span>COGS Calculated</span>',
-  history:'📜 <span>COGM Approved</span>',
+  history:'📜 <span>COGS Approved</span>',
   cogs:'📊 <span>COGS Summary</span>',
   roles:'🔑 <span>Access Role</span>',
   guide:'📖 <span>Panduan Sistem</span>',
@@ -3299,7 +3299,7 @@ function openBomForm(id){try{
     // Fetch masterbom fresh dari server lalu apply re-sync (async agar dapat data terkini)
     if(typeof API!=='undefined' && _masterBomId){
       const _bfs=ge('bom_form_section');if(_bfs)_bfs.scrollIntoView({behavior:'smooth'});
-      fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+      fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
         .then(function(r){return r.json();})
         .then(function(list){DB.masterbom=list;_doResync(list);})
         .catch(function(){_doResync(DB.masterbom||[]);});
@@ -4296,7 +4296,7 @@ const DEFAULT_APPROVAL_LEVELS = [
 ];
 
 // Runtime levels - loaded from localStorage or defaults
-let APPROVAL_LEVELS = JSON.parse(localStorage.getItem('cogm_workflow')||'null') || JSON.parse(JSON.stringify(DEFAULT_APPROVAL_LEVELS));
+let APPROVAL_LEVELS = JSON.parse(localStorage.getItem('cogs_workflow')||'null') || JSON.parse(JSON.stringify(DEFAULT_APPROVAL_LEVELS));
 
 // All available approver roles for dropdown
 const APPROVER_ROLE_OPTIONS = [
@@ -4459,7 +4459,7 @@ function saveWorkflow(){
   // Update role select dropdown in user form
   updateRoleSelectOptions();
   // Persist to localStorage
-  localStorage.setItem('cogm_workflow', JSON.stringify(APPROVAL_LEVELS));
+  localStorage.setItem('cogs_workflow', JSON.stringify(APPROVAL_LEVELS));
   toast('Workflow berhasil disimpan! '+APPROVAL_LEVELS.length+' level approval aktif.','success');
   try{renderBom();}catch(e){}
   const summary=APPROVAL_LEVELS.map((lv,i)=>`L${i+1}: ${lv.label}`).join(' → ');
@@ -4486,7 +4486,7 @@ function resetWorkflow(){
   if(!confirm('Reset workflow ke default (3 level)? Konfigurasi saat ini akan hilang.')) return;
   APPROVAL_LEVELS=JSON.parse(JSON.stringify(DEFAULT_APPROVAL_LEVELS));
   APPROVAL_STATUS_MAP=rebuildApprovalStatusMap();
-  localStorage.removeItem('cogm_workflow');
+  localStorage.removeItem('cogs_workflow');
   renderWorkflowConfig();
   toast('Workflow direset ke default.','info');
 }
@@ -4584,7 +4584,7 @@ function openMBomForm(id){try{
 
     // Always reload fresh from API
     if(typeof API!=='undefined'){
-      fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+      fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
         .then(function(r){return r.json();})
         .then(function(list){DB.masterbom=list;populate(list.find(function(b){return b.id===id;}));})
         .catch(function(){populate(DB.masterbom.find(function(b){return b.id===id;}));});
@@ -5033,7 +5033,7 @@ function viewMBomDetail(id){try{
 
   // Reload from API to get fresh authoritative data
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(function(r){return r.json();})
       .then(function(list){
         DB.masterbom=list;
@@ -6012,7 +6012,7 @@ function closeAddUserForm(){ setDisp('add_user_card','none'); }
 
 function buildCustomAccessChecks(selected){
   const wrap = document.getElementById('custom_access_checks');
-  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',itemfg:'Master Item FG',kapasitas:'Master Route',bom:'COGS Calculated',history:'COGM Approved',cogs:'COGS Summary',roles:'Access Role'};
+  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',itemfg:'Master Item FG',kapasitas:'Master Route',bom:'COGS Calculated',history:'COGS Approved',cogs:'COGS Summary',roles:'Access Role'};
   wrap.innerHTML = ALL_PAGES.map(p=>`
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;padding:.3rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--b1)">
       <input type="checkbox" id="chk_${p}" ${selected.includes(p)?'checked':''} style="accent-color:var(--cyan)"> ${pageLabels[p]||p}
@@ -6094,7 +6094,7 @@ function openRejectModal(id){try{
     const modal=ge('approvalModal');if(modal)modal.classList.add('open');
   };
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+'/api/bom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+'/api/bom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(r=>r.json())
       .then(function(list){DB.bom=list;doOpen(list.find(function(x){return x.id===id;}));})
       .catch(function(){doOpen(DB.bom.find(function(b){return b.id===id;}));});
@@ -6132,7 +6132,7 @@ function openApprovalModal(id){try{
     const modal=ge('approvalModal');if(modal)modal.classList.add('open');
   };
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+'/api/bom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+'/api/bom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(r=>r.json())
       .then(function(list){DB.bom=list;doOpen(list.find(function(x){return x.id===id;}));})
       .catch(function(){doOpen(DB.bom.find(function(b){return b.id===id;}));});
@@ -6172,7 +6172,7 @@ function doApproval(action){try{
     loadAllData().then(function(){renderBom();renderHistory();});
     const msg=action==='approve'
       ?(newStatus==='approved'?'BOM Approved sepenuhnya ✅':'Diteruskan ke level berikutnya ✅')
-      :'BOM Ditolak (Rejected) — tercatat di COGM Approved.';
+      :'BOM Ditolak (Rejected) — tercatat di COGS Approved.';
     toast(msg,isTerminal&&action==='approve'?'success':'info');
   });
 }catch(e){console.warn("doApproval:",e);}}
@@ -6459,7 +6459,7 @@ function viewBomDetail(id, src){try{
   // Reload fresh from API
   var endpoint = src==='history' ? '/api/bom/history' : '/api/bom';
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+endpoint,{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+endpoint,{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(function(r){return r.json();})
       .then(function(list){
         if(src==='history') DB.bomHistory=list; else DB.bom=list;
@@ -6714,7 +6714,7 @@ function viewExrateDetail(id){try{
   }
 
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+'/api/exrates',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+'/api/exrates',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(r=>r.json())
       .then(list=>{DB.exrates=list;doRender(list.find(x=>x.id===id));})
       .catch(()=>doRender(DB.exrates.find(x=>x.id===id)));
@@ -6948,7 +6948,7 @@ function seedData(){
     setConnBadge('connected','DB Terhubung');
 
     // Check for saved session token
-    var saved=localStorage.getItem('cogm_token');
+    var saved=localStorage.getItem('cogs_token');
     if(saved){
       _authToken=saved;
       fetch('/api/auth/me',{headers:{'x-token':saved}}).then(function(r2){
@@ -6981,7 +6981,7 @@ function seedData(){
         });
       }).catch(function(){
         // Session expired — clear and show login
-        localStorage.removeItem('cogm_token');
+        localStorage.removeItem('cogs_token');
         _authToken='';
         setDisp('login_screen','flex');
       });
@@ -7265,11 +7265,11 @@ var cogsFilter = '';
 var cogsRowSeq = 0;
 
 function loadCogsDocs(){
-  try{ cogsDocs=JSON.parse(localStorage.getItem('cogm_cogs_docs')||'[]'); }
+  try{ cogsDocs=JSON.parse(localStorage.getItem('cogs_cogs_docs')||'[]'); }
   catch(e){ cogsDocs=[]; }
 }
 function saveCogsDocs(){
-  localStorage.setItem('cogm_cogs_docs',JSON.stringify(cogsDocs));
+  localStorage.setItem('cogs_cogs_docs',JSON.stringify(cogsDocs));
 }
 
 // Extract auto-fill values from a BOM record
@@ -7722,7 +7722,7 @@ var itemPriceFilter = '';
 function loadItemPrices(){
   if(typeof API==='undefined') return Promise.resolve([]);
   return fetch(window.location.origin+'/api/item-prices',{
-    headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'
+    headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'
   }).then(function(r){return r.json();})
     .then(function(list){DB_itemPrices=list;renderItemPrices();return list;})
     .catch(function(e){console.warn('loadItemPrices:',e);return [];});
@@ -7748,7 +7748,7 @@ var _origGoPagePrice=null;
   window.goPage=function(pageId){
     _orig(pageId);
     if(typeof API==='undefined') return;
-    var tok=localStorage.getItem('cogm_token')||'';
+    var tok=localStorage.getItem('cogs_token')||'';
     var headers={'x-token':tok};
     function reload(endpoint, assign){
       setTimeout(function(){
@@ -7982,7 +7982,7 @@ function viewItemPriceHistory(itemCode){
   modal.style.display='flex';
 
   fetch(window.location.origin+'/api/item-prices/'+encodeURIComponent(itemCode)+'/logs',{
-    headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'
+    headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'
   }).then(function(r){return r.json();})
     .then(function(logs){
       var idFmt=function(v){return Number((v||0).toFixed(0)).toLocaleString('id-ID');};
