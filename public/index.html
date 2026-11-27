@@ -497,6 +497,11 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       <div class="stat-row" style="margin-bottom:0">
         <div class="stat-pill"><span class="sp-label">Total Item Price</span><span class="sp-val" id="price_count">0</span></div>
       </div>
+      <div class="sa-wrap" id="sa_wrap_itemprice">
+        <input type="checkbox" class="sa-cb" id="sa_cb_itemprice" onchange="toggleSelectAll('itemprice',this.checked)" title="Pilih Semua">
+        <label class="sa-lbl" for="sa_cb_itemprice">Pilih Semua</label>
+        <button class="btn btn-danger btn-xs sa-del" id="sa_del_itemprice" onclick="deleteSelected('itemprice',deleteSelectedItemPriceRows)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_itemprice">0</span>)</button>
+      </div>
     </div>
     <div class="ab-right">
       <button class="btn btn-ghost" onclick="openUploadModal('itemprice')">⬆ Upload CSV</button>
@@ -581,6 +586,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       <div class="tbl-wrap">
         <table class="tbl">
           <thead><tr>
+            <th style="width:32px"></th>
             <th>Item Code</th>
             <th>Item Name</th>
             <th>UOM</th>
@@ -753,7 +759,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     <div class="card-body" style="padding:0">
       <div class="tbl-wrap">
         <table class="tbl">
-          <thead><tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll('dlfoh',this.checked)" title="Pilih Semua"></th><th>Category ID</th><th>Description</th><th>Type</th><th>Rate Proses</th><th>Rate Setup</th><th>Machine Line</th><th>Modified Date</th><th>Created</th><th>Aksi</th></tr></thead>
+          <thead><tr><th style="width:32px"></th><th>Category ID</th><th>Description</th><th>Type</th><th>Rate Proses</th><th>Rate Setup</th><th>Machine Line</th><th>Modified Date</th><th>Created</th><th>Aksi</th></tr></thead>
           <tbody id="dlfoh_tbody"></tbody>
         </table>
       </div>
@@ -768,13 +774,17 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
       <div class="stat-row" style="margin-bottom:0">
         <div class="stat-pill"><span class="sp-label">Total Item FG</span><span class="sp-val" id="ifg_count">0</span></div>
       </div>
+      <div class="sa-wrap" id="sa_wrap_itemfg">
+        <input type="checkbox" class="sa-cb" id="sa_cb_itemfg" onchange="toggleSelectAll('itemfg',this.checked)" title="Pilih Semua">
+        <label class="sa-lbl" for="sa_cb_itemfg">Pilih Semua</label>
+        <button class="btn btn-danger btn-xs sa-del" id="sa_del_itemfg" onclick="deleteSelected('itemfg',deleteSelectedItemFgRows)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_itemfg">0</span>)</button>
+      </div>
     </div>
     <div class="ab-right">
+      <button class="btn btn-ghost" id="ge_toggle_itemfg" onclick="geToggleAll('itemfg')" title="Edit item code langsung di tabel">✎ Edit Grid</button>
+      <button class="btn btn-primary" id="ge_saveall_itemfg" onclick="geSaveAll('itemfg')" style="display:none">💾 Simpan Semua</button>
       <button class="btn btn-primary" onclick="openItemFgForm()">+ Tambah Item FG</button>
     </div>
-    <button class="btn btn-primary" onclick="openItemFgForm()">+ Tambah Item FG</button>
-    <button class="btn btn-ghost" id="ge_toggle_itemfg" onclick="geToggleAll('itemfg')" title="Edit item code langsung di tabel">✎ Edit Grid</button>
-    <button class="btn btn-primary" id="ge_saveall_itemfg" onclick="geSaveAll('itemfg')" style="display:none">💾 Simpan Semua</button>
   </div>
 
   <!-- FORM TAMBAH/EDIT -->
@@ -846,6 +856,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         <table class="tbl">
           <thead>
             <tr>
+              <th style="width:32px"></th>
               <th>Item Code</th>
               <th>Item Name</th>
               <th>UOM</th>
@@ -2519,7 +2530,7 @@ function renderExrates(){try{
   initColState('exrate');
   const w=document.getElementById('coltoggle_exrate');if(w&&!w.innerHTML)w.innerHTML=buildColToggleHTML('exrate');
   const thead=document.getElementById('exrate_thead');
-  if(thead) thead.innerHTML='<tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll(\'exrate\',this.checked)" title="Pilih Semua"></th>'+[col('exrate','cid')&&'<th>Currency ID</th>',col('exrate','rate')&&'<th>Rate Terbaru</th>',col('exrate','updated')&&'<th>Tanggal Update</th>',col('exrate','action')&&'<th>Aksi</th>'].filter(Boolean).join('')+'</tr>';
+  if(thead) thead.innerHTML='<tr><th style="width:32px"></th>'+[col('exrate','cid')&&'<th>Currency ID</th>',col('exrate','rate')&&'<th>Rate Terbaru</th>',col('exrate','updated')&&'<th>Tanggal Update</th>',col('exrate','action')&&'<th>Aksi</th>'].filter(Boolean).join('')+'</tr>';
   const tbody=document.getElementById('exrate_tbody');
   const rows=DB.exrates.filter(e=>!exrateFilter||e.currency_id.toLowerCase().includes(exrateFilter));
   setText('exrate_count',DB.exrates.length);
@@ -2798,7 +2809,7 @@ function renderKap(){try{
   initColState('kap');
   const w=document.getElementById('coltoggle_kap');if(w&&!w.innerHTML)w.innerHTML=buildColToggleHTML('kap');
   const thead=document.getElementById('kap_thead');
-  if(thead) thead.innerHTML='<tr><th style="width:32px;text-align:center"><input type="checkbox" class="sa-cb" onchange="toggleSelectAll(\'kap\',this.checked)" title="Pilih Semua"></th>'+[
+  if(thead) thead.innerHTML='<tr><th style="width:32px"></th>'+[
     col('kap','kapid')&&'<th>Kap. ID</th>',col('kap','created')&&'<th>Created</th>',
     col('kap','icode')&&'<th>Item Code</th>',col('kap','iname')&&'<th>Item Name</th>',
     col('kap','ltube')&&'<th style="text-align:right">Loose Tube</th>',
@@ -3008,7 +3019,7 @@ function renderItemFg(){
   document.getElementById('ifg_count').textContent = (DB.itemfg||[]).length;
   const tbody = document.getElementById('ifg_tbody');
   if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="es-icon">🧵</div><p>Belum ada data Master Item FG.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="es-icon">🧵</div><p>Belum ada data Master Item FG.</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(r=>{
@@ -3027,6 +3038,7 @@ function renderItemFg(){
       : `<button class="btn btn-amber btn-xs" onclick="openItemFgForm('${r.id}')">✏</button>`
         + `<button class="btn btn-danger btn-xs" onclick="deleteItemFg('${r.id}')">🗑</button>`;
     return `<tr${_ge?' class="ge-row"':''}>
+      <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('itemfg',r.id)?'checked':''} onchange="toggleRowSelect('itemfg','${r.id}',this.checked)"></td>
       <td>${codeCell}</td>
       <td>${nameCell}</td>
       <td><span class="badge badge-teal" style="font-size:.65rem">${r.uom||'—'}</span></td>
@@ -6808,6 +6820,7 @@ function getAllIds(tbl){
   const maps={
     item:[],
     price:DB.prices.map(x=>x.id),
+    itemprice:DB_itemPrices.map(x=>x.item_code), // item_code sebagai primary key item price
     exrate:DB.exrates.map(x=>x.id),
     dlfoh:DB.dlfoh.map(x=>x.id),
     mesin:DB.mesin.map(x=>x.id),
@@ -6815,6 +6828,7 @@ function getAllIds(tbl){
     masterbom:DB.masterbom.map(x=>x.id),
     bom:DB.bom.map(x=>x.id),
     history:DB.bomHistory.map(x=>x.id),
+    itemfg:(DB.itemfg||[]).map(x=>x.id),
   };
   return maps[tbl]||[];
 }
@@ -6824,7 +6838,7 @@ function toggleSelectAll(tbl,checked){
   if(checked){ getAllIds(tbl).forEach(id=>sel.add(id)); }
   else { sel.clear(); }
   // re-render to sync row checkboxes
-  const renders={item:renderItems,price:renderPrices,exrate:renderExrates,dlfoh:renderDlfoh,kap:renderKap,masterbom:renderMBom,bom:renderBom,history:renderHistory};
+  const renders={item:renderItems,price:renderPrices,itemprice:renderItemPrices,exrate:renderExrates,dlfoh:renderDlfoh,kap:renderKap,masterbom:renderMBom,bom:renderBom,history:renderHistory,itemfg:renderItemFg};
   if(renders[tbl]) renders[tbl]();
   updateSaUI(tbl);
 }
@@ -6893,6 +6907,18 @@ function deleteSelectedBom(sel){
   _bulkDeleteAPI(draftIds, API.bom.delete.bind(API.bom),
     function(){ DB.bom=DB.bom.filter(x=>!draftIds.includes(x.id)); renderBom(); updateCounts(); toast(draftIds.length+' BOM dihapus.','info'); },
     function(){ loadAllData().then(function(){ renderBom(); updateCounts(); }); });
+}
+// Hapus item price yang dipilih; sel berisi item_code (primary key item price)
+function deleteSelectedItemPriceRows(sel){
+  _bulkDeleteAPI([...sel], API.itemPrice.delete.bind(API.itemPrice),
+    function(){ DB_itemPrices=DB_itemPrices.filter(x=>!sel.has(x.item_code)); renderItemPrices(); updateCounts(); toast(sel.size+' item price dihapus.','info'); },
+    function(){ loadAllData().then(function(){ renderItemPrices(); updateCounts(); }); });
+}
+// Hapus item FG yang dipilih; sel berisi id numeric
+function deleteSelectedItemFgRows(sel){
+  _bulkDeleteAPI([...sel], id=>fetch('/api/item-fg/'+id,{method:'DELETE',headers:{'x-token':getToken()}}).then(r=>r.json()),
+    function(){ DB.itemfg=(DB.itemfg||[]).filter(x=>!sel.has(x.id)); renderItemFg(); updateCounts(); toast(sel.size+' item FG dihapus.','info'); },
+    function(){ loadItemFg(); });
 }
 
 // ═══════════════════════════════════════════
@@ -8104,7 +8130,7 @@ function renderItemPrices(){
   });
   if(countEl) countEl.textContent=DB_itemPrices.length;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:2rem">'
+    tbody.innerHTML='<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:2rem">'
       +(DB_itemPrices.length?'Tidak ada item yang cocok pencarian.':'Belum ada raw material.')
       +'</td></tr>';
     return;
@@ -8122,6 +8148,8 @@ function renderItemPrices(){
 
     // ── Baris utama ──
     var mainRow = (_ge?'<tr class="ge-row">':'<tr>')
+      // Checkbox seleksi baris
+      +'<td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" '+(isSelected('itemprice',p.item_code)?'checked':'')+' onchange="toggleRowSelect(\'itemprice\',\''+p.item_code+'\',this.checked)"></td>'
       // Item Code — editable di GE (rename didukung backend sejak update)
       +'<td>'
       +(_ge
@@ -8183,7 +8211,7 @@ function renderItemPrices(){
       // Update form hanya untuk price, currency, hedging, landed
       // Loose Tube & Fiber diedit via Edit Grid
       updateRow = '<tr style="background:rgba(34,211,238,.04);border-top:1px dashed rgba(34,211,238,.2)">'
-        +'<td colspan="12" style="padding:.7rem 1rem">'
+        +'<td colspan="13" style="padding:.7rem 1rem">'
         +'<div style="display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap">'
         // Currency
         +'<div style="display:flex;flex-direction:column;gap:.25rem">'
