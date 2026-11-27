@@ -1141,22 +1141,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <div class="stat-pill" style="border-color:var(--amber)"><span class="sp-label">Subtotal (IDR)</span><span class="sp-val" style="color:var(--amber)" id="bom_total_idr_mat">0</span></div>
         </div>
 
-        <!-- DL-FOH PER HOUR SECTION -->
-        <div class="sec-head" style="margin-top:1.25rem">DL-FOH Per Hour</div>
-        <div style="overflow-x:auto">
-          <table class="tbl" style="min-width:400px">
-            <thead><tr>
-              <th style="text-align:left">Category</th>
-              <th style="text-align:right">Rate IDR</th>
-              <th style="text-align:right">Rate USD</th>
-            </tr></thead>
-            <tbody id="dlfoh_perhour_body"></tbody>
-          </table>
-        </div>
-        <!-- Total Amount = Material + DL-FOH, diupdate oleh recalcDlfohPerHour() -->
-        <div style="display:flex;justify-content:flex-end;margin-top:.5rem">
-          <div class="stat-pill"><span class="sp-label">Total Amount (IDR)</span><span class="sp-val" id="bom_grand_total_idr">0</span></div>
-        </div>
 
       </div>
     </div>
@@ -3928,50 +3912,9 @@ function recalcSummaries(){try{
 }catch(e){console.warn("recalcSummaries:",e);}}
 
 function recalcDlfohPerHour(){try{
-  // Akumulasi cost per tipe baru: DL, FFOH, VFOH
-  const totals={DL:0,FFOH:0,VFOH:0};
-  bomGroups.forEach(g=>{
-    g.dlfohLines.forEach(dl=>{
-      const rec=DB.dlfoh.find(d=>d.catid===dl.cat);
-      const type=rec?rec.type:'';
-      if(type==='DL') totals.DL+=(dl.total_cost||0);
-      else if(type==='FFOH') totals.FFOH+=(dl.total_cost||0);
-      else if(type==='VFOH') totals.VFOH+=(dl.total_cost||0);
-    });
-  });
-  const usdRate=getLatestRate('USD');
-  const rows=[
-    {label:'Direct Labor', key:'DL'},
-    {label:'Fixed FOH',    key:'FFOH'},
-    {label:'Variable FOH', key:'VFOH'},
-  ];
-  const tbody=document.getElementById('dlfoh_perhour_body');
-  if(!tbody) return;
-  // Hitung total DL-FOH IDR — langsung dari dl.total_cost semua group (konsisten dengan per-group total)
-  const totalDlfohIDR=bomGroups.reduce((s,g)=>s+g.dlfohLines.reduce((ss,dl)=>ss+(dl.total_cost||0),0),0);
-  const totalDlfohUSD=usdRate>0?totalDlfohIDR/usdRate:0;
-  tbody.innerHTML=rows.map(r=>{
-    const idr=totals[r.key]||0;
-    const usd=usdRate>0?idr/usdRate:0;
-    return '<tr>'
-      +'<td>'+r.label+'</td>'
-      +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem">'+Number(idr.toFixed(0)).toLocaleString('id-ID')+'</td>'
-      +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(usd,3)+'</td>'
-      +'</tr>';
-  }).join('')
-  // Total row di bawah DL-FOH Per Hour
-  +'<tr style="border-top:1px solid var(--b2);font-weight:600">'
-  +'<td>Total DL-FOH</td>'
-  +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--amber)">'+Number(totalDlfohIDR.toFixed(0)).toLocaleString('id-ID')+'</td>'
-  +'<td style="text-align:right;font-family:var(--fm);font-size:.78rem;color:var(--cyan)">'+fmt_num(totalDlfohUSD,3)+'</td>'
-  +'</tr>';
-  // Update Subtotal global (Material + DL-FOH) → bom_total_idr_mat (label sudah diubah ke Subtotal)
-  const grandSubtotal=_bomMaterialTotalIDR+totalDlfohIDR;
+  // Update Subtotal pill dengan material total saja (DL-FOH section dihapus dari UI)
   const subEl=document.getElementById('bom_total_idr_mat');
-  if(subEl) subEl.textContent=Number(grandSubtotal.toFixed(0)).toLocaleString('id-ID');
-  // Update Total Amount pill (sama dengan Subtotal)
-  const gtEl=document.getElementById('bom_grand_total_idr');
-  if(gtEl) gtEl.textContent=Number(grandSubtotal.toFixed(0)).toLocaleString('id-ID');
+  if(subEl) subEl.textContent=Number(_bomMaterialTotalIDR.toFixed(0)).toLocaleString('id-ID');
 }catch(e){console.warn("recalcDlfohPerHour:",e);}}
 
 function recalcSummaryMaterial(){try{
