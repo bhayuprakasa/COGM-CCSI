@@ -460,7 +460,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
   <div class="nav-item" onclick="goPage('bom')"><span class="ni">📋</span> COGS Calculated</div>
-  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> COGM Approved</div>
+  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> COGS Approved</div>
   <div class="nav-item" id="nav_cogs" onclick="goPage('cogs')"><span class="ni">📊</span> COGS Summary</div>
   <div class="nav-section">Panduan</div>
   <div class="nav-item" onclick="goPage('guide')"><span class="ni">📖</span> Panduan Sistem</div>
@@ -533,10 +533,6 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <!-- Diisi manual — tidak perlu lookup ke Master Item -->
           <input class="finput" id="ip_item_uom" placeholder="Contoh: KG, PCS, MTR">
         </div>
-        <div class="form-group">
-          <div class="flabel req">Effective Date</div>
-          <input class="finput" type="date" id="ip_effective_date">
-        </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;margin-bottom:.75rem">
         <div class="form-group">
@@ -553,7 +549,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         </div>
         <div class="form-group">
           <div class="flabel req">Price / Unit</div>
-          <input class="finput" type="number" id="ip_price" placeholder="0.000000" step="0.000001">
+          <input class="finput" type="number" id="ip_price" placeholder="0.00" step="0.01">
         </div>
         <div class="form-group">
           <div class="flabel">Hedging (%)</div>
@@ -1305,14 +1301,14 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <div class="page" id="page_guide">
   <div style="max-width:900px;margin:0 auto;padding:.5rem 0 2rem">
 
-    <!-- COGM Formula Card -->
+    <!-- COGS Formula Card -->
     <div class="card" style="margin-bottom:1.25rem">
       <div class="card-head">
-        <div class="card-title"><span class="card-title-icon">📐</span> Rumus COGM (Cost of Goods Manufactured)</div>
+        <div class="card-title"><span class="card-title-icon">📐</span> Rumus COGS (Cost of Goods Manufactured)</div>
       </div>
       <div class="card-body">
         <div style="background:var(--s3);border:1px solid var(--cyan2);border-radius:var(--r1);padding:1rem 1.25rem;font-family:monospace;font-size:.88rem;line-height:1.9;color:var(--cyan)">
-          COGM = Direct Material + Direct Labor + Manufacturing Overhead + Depreciation<br>
+          COGS = Direct Material + Direct Labor + Manufacturing Overhead + Depreciation<br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + WIP Awal − WIP Akhir
         </div>
         <div style="margin-top:1rem;overflow-x:auto">
@@ -1336,13 +1332,13 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         </div>
         <div style="margin-top:.75rem;display:flex;gap:1.5rem;flex-wrap:wrap">
           <div style="background:var(--s3);border:1px solid var(--b2);border-radius:var(--r1);padding:.6rem 1rem;font-size:.8rem">
-            <span style="color:var(--t3)">COGS = </span><span style="color:var(--t1)">COGM + Finished Goods Awal − Finished Goods Akhir</span>
+            <span style="color:var(--t3)">COGS = </span><span style="color:var(--t1)">COGS + Finished Goods Awal − Finished Goods Akhir</span>
           </div>
           <div style="background:var(--s3);border:1px solid var(--b2);border-radius:var(--r1);padding:.6rem 1rem;font-size:.8rem">
-            <span style="color:var(--t3)">Cost/km = </span><span style="color:var(--t1)">COGM ÷ Total km diproduksi</span>
+            <span style="color:var(--t3)">Cost/km = </span><span style="color:var(--t1)">COGS ÷ Total km diproduksi</span>
           </div>
           <div style="background:var(--s3);border:1px solid var(--b2);border-radius:var(--r1);padding:.6rem 1rem;font-size:.8rem">
-            <span style="color:var(--t3)">Material% = </span><span style="color:var(--t1)">Direct Material ÷ COGM × 100</span>
+            <span style="color:var(--t3)">Material% = </span><span style="color:var(--t1)">Direct Material ÷ COGS × 100</span>
           </div>
         </div>
       </div>
@@ -1426,7 +1422,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">BOM aktual per order produksi</div>
               </div>
               <div onclick="goPage('history')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
-                <div style="font-size:.7rem;font-weight:700">📜 COGM Approved</div>
+                <div style="font-size:.7rem;font-weight:700">📜 COGS Approved</div>
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Riwayat & audit trail BOM</div>
               </div>
             </div>
@@ -1442,7 +1438,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
               <div onclick="goPage('cogs')" style="padding:.5rem .6rem;background:var(--s3);cursor:pointer" class="guide-flow-item">
                 <div style="font-size:.7rem;font-weight:700;color:var(--amber,#f59e0b)">📊 COGS Summary</div>
                 <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Laporan biaya produksi akhir</div>
-                <div style="font-size:.62rem;color:var(--t3);margin-top:3px;line-height:1.4">COGM → COGS per periode</div>
+                <div style="font-size:.62rem;color:var(--t3);margin-top:3px;line-height:1.4">COGS → COGS per periode</div>
               </div>
             </div>
           </div>
@@ -1500,7 +1496,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     <!-- Benchmark industri -->
     <div class="card">
       <div class="card-head">
-        <div class="card-title"><span class="card-title-icon">📊</span> Benchmark Komposisi COGM — Kabel Fiber Optic</div>
+        <div class="card-title"><span class="card-title-icon">📊</span> Benchmark Komposisi COGS — Kabel Fiber Optic</div>
       </div>
       <div class="card-body">
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem">
@@ -1705,16 +1701,16 @@ const API_BASE = window.location.origin + '/api';
 // ── Server version check — clear old token if server changed ──
 (function(){
   const CURRENT_VERSION = '2.0-mysql';
-  const savedVersion = localStorage.getItem('cogm_server_version');
+  const savedVersion = localStorage.getItem('cogs_server_version');
   if (savedVersion !== CURRENT_VERSION) {
-    localStorage.removeItem('cogm_token'); // clear old JSON-server token
-    localStorage.setItem('cogm_server_version', CURRENT_VERSION);
+    localStorage.removeItem('cogs_token'); // clear old JSON-server token
+    localStorage.setItem('cogs_server_version', CURRENT_VERSION);
     console.log('🔄 Server version changed to MySQL — session cleared, please login again.');
   }
 })();
 
 // Token always read fresh from localStorage — never stale
-function getToken() { return localStorage.getItem('cogm_token') || ''; }
+function getToken() { return localStorage.getItem('cogs_token') || ''; }
 
 // ── HTTP helpers ──
 async function apiGet(path) {
@@ -1768,7 +1764,7 @@ window.serverLogin = async function(username, password) {
   const data = await r.json();
   if (!r.ok) throw new Error(data.error || 'Login gagal');
   // Store token in localStorage — getToken() will pick it up automatically
-  localStorage.setItem('cogm_token', data.token);
+  localStorage.setItem('cogs_token', data.token);
   // Also update _authToken in main script scope if it exists
   if (typeof _authToken !== 'undefined') _authToken = data.token;
   return data.user;
@@ -1776,7 +1772,7 @@ window.serverLogin = async function(username, password) {
 
 window.serverLogout = async function() {
   try { await apiPost('/auth/logout', {}); } catch(e) {}
-  localStorage.removeItem('cogm_token');
+  localStorage.removeItem('cogs_token');
   if (typeof _authToken !== 'undefined') _authToken = '';
 };
 
@@ -1830,7 +1826,7 @@ window.loadAllData = async function() {
   // Migrasi satu kali: data COGS dari localStorage → API (jika ada dan DB.cogs masih kosong)
   if (!DB.cogs.length) {
     try {
-      var legacy = JSON.parse(localStorage.getItem('cogm_cogs_docs') || '[]');
+      var legacy = JSON.parse(localStorage.getItem('cogs_cogs_docs') || '[]');
       if (legacy.length) {
         for (var _cd of legacy) {
           try {
@@ -1842,7 +1838,7 @@ window.loadAllData = async function() {
             });
           } catch(e) { console.warn('Migration cogs row failed:', e); }
         }
-        localStorage.removeItem('cogm_cogs_docs');
+        localStorage.removeItem('cogs_cogs_docs');
         const migratedCogs = await apiGet('/cogs');
         DB.cogs = migratedCogs || [];
         console.log('✅ Migrated', legacy.length, 'COGS docs from localStorage to DB');
@@ -1905,7 +1901,7 @@ window.apiSave = function(apiCall, onSuccess) {
     var msg = e.message || '';
     // Auto-logout on ANY 401 / session expired error
     if (msg.includes('erakhir') || msg.includes('401') || msg.includes('login') || msg.includes('autentikasi')) {
-      localStorage.removeItem('cogm_token');
+      localStorage.removeItem('cogs_token');
       if (typeof _authToken !== 'undefined') _authToken = '';
       if (typeof currentUser !== 'undefined') currentUser = null;
       if (typeof toast !== 'undefined') toast('Sesi berakhir — silakan login ulang.', 'error');
@@ -1966,6 +1962,21 @@ function toast(msg,type='info'){
 function fmt_idr(n){return 'Rp '+Number(n||0).toLocaleString('id-ID');}
 function fmt_num(n,d=3){return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});}
 
+// Pembatasan global: semua input type=number yang dapat diedit dibatasi maksimal 2 angka desimal.
+// Berjalan di capture phase agar eksekusi SEBELUM handler oninput pada elemen, sehingga
+// nilai yang diterima handler downstream sudah terpotong di 2 desimal.
+// Pengecualian: step="1" (field integer) dan field disabled/readonly.
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  if (el.type !== 'number' || el.step === '1' || el.disabled || el.readOnly) return;
+  const val = el.value;
+  if (!val || !val.includes('.')) return;
+  const dot = val.indexOf('.');
+  if (val.length - dot - 1 > 2) {
+    el.value = val.slice(0, dot + 3); // potong ke 2 angka setelah titik desimal
+  }
+}, true); // true = capture phase
+
 // Helper: badge class untuk Machine Line berdasarkan nama (konsisten di semua halaman)
 function mlBadgeClass(ml){
   if(!ml) return 'badge-ml-other';
@@ -2004,7 +2015,7 @@ const pageTitles={
   kapasitas:'⚡ Master Data <span>Master Route</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
   bom:'📋 <span>COGS Calculated</span>',
-  history:'📜 <span>COGM Approved</span>',
+  history:'📜 <span>COGS Approved</span>',
   cogs:'📊 <span>COGS Summary</span>',
   roles:'🔑 <span>Access Role</span>',
   guide:'📖 <span>Panduan Sistem</span>',
@@ -2312,7 +2323,7 @@ function renderPriceLines(){
         </div>
       </td>
       <td><input class="li-input" id="pl_nm_${i}" value="${l.item_name}" readonly placeholder="Auto"></td>
-      <td><input class="li-input" type="number" style="width:70px" value="${l.qty}" oninput="priceLines[${i}].qty=this.value"></td>
+      <td><input class="li-input" type="number" step="0.01" style="width:70px" value="${l.qty}" oninput="priceLines[${i}].qty=this.value"></td>
       <td>
         <div style="display:flex;gap:.3rem;align-items:center">
           <input class="li-input" style="width:60px" value="${l.currency}" id="pl_cur_${i}" placeholder="USD"
@@ -2320,9 +2331,9 @@ function renderPriceLines(){
           <button class="btn btn-ghost btn-xs" onclick="openSearchModal('exrate','pl_cur_${i}',null)" style="padding:.2rem .4rem;font-size:.7rem">🔍</button>
         </div>
       </td>
-      <td><input class="li-input" type="number" style="width:90px" value="${l.price}" oninput="priceLines[${i}].price=this.value"></td>
-      <td><input class="li-input" type="number" style="width:70px" value="${l.hedging}" oninput="priceLines[${i}].hedging=this.value"></td>
-      <td><input class="li-input" type="number" style="width:70px" value="${l.landed}" oninput="priceLines[${i}].landed=this.value"></td>
+      <td><input class="li-input" type="number" step="0.01" style="width:90px" value="${l.price}" oninput="priceLines[${i}].price=this.value"></td>
+      <td><input class="li-input" type="number" step="0.01" style="width:70px" value="${l.hedging}" oninput="priceLines[${i}].hedging=this.value"></td>
+      <td><input class="li-input" type="number" step="0.01" style="width:70px" value="${l.landed}" oninput="priceLines[${i}].landed=this.value"></td>
       <td><button class="btn btn-danger btn-xs" onclick="priceLines.splice(${i},1);renderPriceLines()">✕</button></td>
     </tr>
   `).join('');
@@ -2458,7 +2469,7 @@ function renderExrateLines(){
     return `
     <tr>
       <td><input class="li-input" type="date" value="${l.tanggal}" onchange="exrateLines[${i}].tanggal=this.value"></td>
-      <td><input class="li-input" type="number" style="width:130px" value="${rateVal}" id="er_rate_${i}"
+      <td><input class="li-input" type="number" step="0.01" style="width:130px" value="${rateVal}" id="er_rate_${i}"
         oninput="exrateLines[${i}].rate=parseFloat(this.value)||0;updateExrateConv(${i})"></td>
       <td><span id="er_conv_${i}" style="font-family:var(--fm);font-size:.8rem;color:var(--cyan);padding:.3rem .5rem">${conv}</span></td>
       <td><button class="btn btn-danger btn-xs" onclick="exrateLines.splice(${i},1);renderExrateLines()">✕</button></td>
@@ -2518,7 +2529,7 @@ function renderExrates(){try{
   tbody.innerHTML=rows.map(e=>{const _ge=GE.exrate==='__all__'||GE.exrate===e.id;const _lr=latestRate(e);return`<tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('exrate','${e.id}')?' checked':''} onchange="toggleRowSelect('exrate','${e.id}',this.checked)"></td>
     ${col('exrate','cid')?`<td><span class="badge badge-green">${e.currency_id}</span></td>`:''}
-    ${col('exrate','rate')?(_ge?`<td style="white-space:nowrap"><input class="ge-input" type="number" id="ge_er_rate_${e.id}" value="${_lr}" step="any" style="width:110px;display:inline-block"> <input class="ge-input" type="date" id="ge_er_date_${e.id}" value="${_erToday}" style="width:130px;display:inline-block"></td>`:`<td class="mono">${_lr}</td>`):''}
+    ${col('exrate','rate')?(_ge?`<td style="white-space:nowrap"><input class="ge-input" type="number" id="ge_er_rate_${e.id}" value="${_lr}" step="0.01" style="width:110px;display:inline-block"> <input class="ge-input" type="date" id="ge_er_date_${e.id}" value="${_erToday}" style="width:130px;display:inline-block"></td>`:`<td class="mono">${_lr}</td>`):''}
     ${col('exrate','updated')?`<td class="muted mono" style="font-size:.72rem">${e.updated_dt||e.updated||'—'}</td>`:''}
     ${col('exrate','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveExrate('${e.id}')">💾 Simpan</button>${GE.exrate!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('exrate')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewExrateDetail('${e.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openExrateForm('${e.id}')">✏</button><button class="btn btn-danger btn-xs" onclick="deleteExrate('${e.id}')">🗑</button></div></td>`):''}
   </tr>`}).join('');
@@ -2614,7 +2625,7 @@ function renderDlfoh(){try{
       <td><span class="run-num">${d.catid}</span></td>
       ${_ge?`<td><input class="ge-input" id="ge_dl_desc_${d.id}" value="${geEsc(d.desc)}"></td>`:`<td>${d.desc}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_type_${d.id}" style="width:90px"><option value="DL" ${d.type==='DL'?'selected':''}>DL</option><option value="FFOH" ${d.type==='FFOH'?'selected':''}>FFOH</option><option value="VFOH" ${d.type==='VFOH'?'selected':''}>VFOH</option></select></td>`:`<td>${dlTypeBadge(d.type)}</td>`}
-      ${_ge?`<td><input class="ge-input" type="number" id="ge_dl_rate_${d.id}" value="${d.rate}" style="width:120px"></td>`:`<td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>`}
+      ${_ge?`<td><input class="ge-input" type="number" step="0.01" id="ge_dl_rate_${d.id}" value="${d.rate}" style="width:120px"></td>`:`<td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_ml_${d.id}" style="width:130px"><option value="">—</option>${_mlOpts.map(o=>`<option value="${o}" ${(d.machine_line||'')=== o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td>${mlBadge(d.machine_line)}</td>`}
       <td class="muted mono" style="font-size:.72rem">${d.modified_dt||'—'}</td>
       <td class="muted mono" style="font-size:.72rem">${d.created_dt||d.created||'—'}</td>
@@ -2669,11 +2680,11 @@ function buildKapLineRow(ml,dur,setup){
     </div>
     <div class="form-group" style="flex:1;min-width:120px;margin:0">
       <div class="flabel req" style="margin-bottom:.25rem">Duration Process (Jam)</div>
-      <input class="finput kap-line-dur" type="number" step="0.001" min="0" placeholder="0.000" value="${dur||''}">
+      <input class="finput kap-line-dur" type="number" step="0.01" min="0" placeholder="0.00" value="${dur||''}">
     </div>
     <div class="form-group" style="flex:1;min-width:120px;margin:0">
       <div class="flabel" style="margin-bottom:.25rem">Setup (Jam)</div>
-      <input class="finput kap-line-setup" type="number" step="0.001" min="0" placeholder="0.000" value="${setup||''}">
+      <input class="finput kap-line-setup" type="number" step="0.01" min="0" placeholder="0.00" value="${setup||''}">
     </div>`;
   return row;
 }
@@ -3307,7 +3318,7 @@ function openBomForm(id){try{
     // Fetch masterbom fresh dari server lalu apply re-sync (async agar dapat data terkini)
     if(typeof API!=='undefined' && _masterBomId){
       const _bfs=ge('bom_form_section');if(_bfs)_bfs.scrollIntoView({behavior:'smooth'});
-      fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+      fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
         .then(function(r){return r.json();})
         .then(function(list){DB.masterbom=list;_doResync(list);})
         .catch(function(){_doResync(DB.masterbom||[]);});
@@ -3583,11 +3594,11 @@ function renderBomLineRow(gIdx,lIdx,l){
           <input type="hidden" id="__bcu_${gIdx}_${lIdx}" value="${l.currency||'USD'}">
         </div>
       </td>
-      <td><input class="li-input bom-line-price" type="number" style="width:74px" value="${l.price||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
-      <td><input class="li-input bom-line-landed" type="number" style="width:52px" value="${l.landed||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
-      <td><input class="li-input bom-line-hedging" type="number" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-price" type="number" step="0.01" style="width:74px" value="${l.price||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-landed" type="number" step="0.01" style="width:52px" value="${l.landed||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-hedging" type="number" step="0.01" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <!-- Rate per line: IDR per 1 unit currency — selalu ambil dari master exchange rate sesuai currency baris -->
-      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getRateForLine(l.currency||'USD');l.exchange_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-rate" type="number" step="0.01" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getRateForLine(l.currency||'USD');l.exchange_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,3)}" readonly></td>
       <td><input class="li-input bom-line-totalidr" style="width:98px" value="${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
@@ -4304,7 +4315,7 @@ const DEFAULT_APPROVAL_LEVELS = [
 ];
 
 // Runtime levels - loaded from localStorage or defaults
-let APPROVAL_LEVELS = JSON.parse(localStorage.getItem('cogm_workflow')||'null') || JSON.parse(JSON.stringify(DEFAULT_APPROVAL_LEVELS));
+let APPROVAL_LEVELS = JSON.parse(localStorage.getItem('cogs_workflow')||'null') || JSON.parse(JSON.stringify(DEFAULT_APPROVAL_LEVELS));
 
 // All available approver roles for dropdown
 const APPROVER_ROLE_OPTIONS = [
@@ -4467,7 +4478,7 @@ function saveWorkflow(){
   // Update role select dropdown in user form
   updateRoleSelectOptions();
   // Persist to localStorage
-  localStorage.setItem('cogm_workflow', JSON.stringify(APPROVAL_LEVELS));
+  localStorage.setItem('cogs_workflow', JSON.stringify(APPROVAL_LEVELS));
   toast('Workflow berhasil disimpan! '+APPROVAL_LEVELS.length+' level approval aktif.','success');
   try{renderBom();}catch(e){}
   const summary=APPROVAL_LEVELS.map((lv,i)=>`L${i+1}: ${lv.label}`).join(' → ');
@@ -4494,7 +4505,7 @@ function resetWorkflow(){
   if(!confirm('Reset workflow ke default (3 level)? Konfigurasi saat ini akan hilang.')) return;
   APPROVAL_LEVELS=JSON.parse(JSON.stringify(DEFAULT_APPROVAL_LEVELS));
   APPROVAL_STATUS_MAP=rebuildApprovalStatusMap();
-  localStorage.removeItem('cogm_workflow');
+  localStorage.removeItem('cogs_workflow');
   renderWorkflowConfig();
   toast('Workflow direset ke default.','info');
 }
@@ -4592,7 +4603,7 @@ function openMBomForm(id){try{
 
     // Always reload fresh from API
     if(typeof API!=='undefined'){
-      fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+      fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
         .then(function(r){return r.json();})
         .then(function(list){DB.masterbom=list;populate(list.find(function(b){return b.id===id;}));})
         .catch(function(){populate(DB.masterbom.find(function(b){return b.id===id;}));});
@@ -4783,10 +4794,10 @@ function renderMBomLineRow(gIdx,lIdx,l){
     +'<input type="hidden" id="__mbn_'+gIdx+'_'+lIdx+'" value="'+(l.item_name||'')+'"></div></td>'
     +'<td><input class="li-input mbom-line-name" style="width:108px" value="'+(l.item_name||'')+'" readonly></td>'
     +'<td><input class="li-input mbom-line-uom" style="width:44px" value="'+(l.uom||'')+'" readonly></td>'
-    +'<td><input class="li-input mbom-line-qty" type="number" style="width:58px" value="'+(l.qty||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
-    +'<td><input class="li-input mbom-line-scrap" type="number" style="width:50px" value="'+(l.scrap||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
-    +'<td><input class="li-input mbom-line-factor" type="number" style="width:50px" value="'+(l.factor||1)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
-    +'<td><input class="li-input mbom-line-scrapfix" type="number" style="width:60px" value="'+(l.scrap_fix||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')" title="Scrap nilai tetap, ditambahkan ke Total Qty berapapun qty-nya"></td>'
+    +'<td><input class="li-input mbom-line-qty" type="number" step="0.01" style="width:58px" value="'+(l.qty||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
+    +'<td><input class="li-input mbom-line-scrap" type="number" step="0.01" style="width:50px" value="'+(l.scrap||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
+    +'<td><input class="li-input mbom-line-factor" type="number" step="0.01" style="width:50px" value="'+(l.factor||1)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
+    +'<td><input class="li-input mbom-line-scrapfix" type="number" step="0.01" style="width:60px" value="'+(l.scrap_fix||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')" title="Scrap nilai tetap, ditambahkan ke Total Qty berapapun qty-nya"></td>'
     +'<td><input class="li-input mbom-line-totalqty" style="width:75px" value="'+fmt_num(l.total_qty||0,3)+'" readonly></td>'
     +'<td><button class="btn btn-danger btn-xs" onclick="deleteMBomLine('+gIdx+','+lIdx+')">&#10005;</button></td>'
     +'</tr>';
@@ -4852,10 +4863,10 @@ function renderMBomDlfohRow(gIdx,dIdx,dl){
     +'<button class="btn btn-ghost" style="padding:.15rem .25rem;font-size:.62rem" onclick="sm_extra={g:\'mbom_dlfoh\',gi:'+gIdx+',l:'+dIdx+'};openSearchModal(\'dlfoh\',\'__mdc_'+gIdx+'_'+dIdx+'\',null)">&#128269;</button>'
     +'<input type="hidden" id="__mdc_'+gIdx+'_'+dIdx+'" value="'+(dl.cat||'')+'"></div></td>'
     +'<td><span class="badge '+cls+'" style="font-size:.6rem" id="mbom_dtype_'+gIdx+'_'+dIdx+'">'+t+'</span></td>'
-    +'<td><input class="li-input mbom-dl-idx" type="number" style="width:72px" value="'+fmt_num(dl.index||0,3)+'" '
+    +'<td><input class="li-input mbom-dl-idx" type="number" step="0.01" style="width:72px" value="'+fmt_num(dl.index||0,3)+'" '
     +'oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index_manual=true;recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
-    +'<td><input class="li-input mbom-dl-setup" type="number" style="width:56px" value="'+(dl.setup||0)+'" data-manual="'+(dl.setup_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
-    +'<td><input class="li-input mbom-dl-factor" type="number" style="width:56px" value="'+(dl.factor||1)+'" data-manual="'+(dl.factor_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor=parseFloat(this.value)||1;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
+    +'<td><input class="li-input mbom-dl-setup" type="number" step="0.01" style="width:56px" value="'+(dl.setup||0)+'" data-manual="'+(dl.setup_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
+    +'<td><input class="li-input mbom-dl-factor" type="number" step="0.01" style="width:56px" value="'+(dl.factor||1)+'" data-manual="'+(dl.factor_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor=parseFloat(this.value)||1;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
     +'<td><input class="li-input mbom-dl-hour" style="width:70px" value="'+fmt_num(dl.total_hour||0,3)+'" readonly></td>'
     +'<td><button class="btn btn-danger btn-xs" onclick="deleteMBomDlfohLine('+gIdx+','+dIdx+')">&#10005;</button></td>'
     +'</tr>';
@@ -5041,7 +5052,7 @@ function viewMBomDetail(id){try{
 
   // Reload from API to get fresh authoritative data
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+'/api/masterbom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(function(r){return r.json();})
       .then(function(list){
         DB.masterbom=list;
@@ -5584,7 +5595,6 @@ function confirmUpload(){
         price:parseFloat(r['Price'])||0,
         hedging:parseFloat(r['Hedging'])||0,
         landed:parseFloat(r['Landed'])||0,
-        effective_date:(r['EffectiveDate']||'').trim(),
       };
       const existing=typeof DB_itemPrices!=='undefined'&&DB_itemPrices.find(p=>p.item_code===item_code);
       if(existing){
@@ -6020,7 +6030,7 @@ function closeAddUserForm(){ setDisp('add_user_card','none'); }
 
 function buildCustomAccessChecks(selected){
   const wrap = document.getElementById('custom_access_checks');
-  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',itemfg:'Master Item FG',kapasitas:'Master Route',bom:'COGS Calculated',history:'COGM Approved',cogs:'COGS Summary',roles:'Access Role'};
+  const pageLabels = {item:'Master Item',price:'Item Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',itemfg:'Master Item FG',kapasitas:'Master Route',bom:'COGS Calculated',history:'COGS Approved',cogs:'COGS Summary',roles:'Access Role'};
   wrap.innerHTML = ALL_PAGES.map(p=>`
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;padding:.3rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--b1)">
       <input type="checkbox" id="chk_${p}" ${selected.includes(p)?'checked':''} style="accent-color:var(--cyan)"> ${pageLabels[p]||p}
@@ -6102,7 +6112,7 @@ function openRejectModal(id){try{
     const modal=ge('approvalModal');if(modal)modal.classList.add('open');
   };
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+'/api/bom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+'/api/bom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(r=>r.json())
       .then(function(list){DB.bom=list;doOpen(list.find(function(x){return x.id===id;}));})
       .catch(function(){doOpen(DB.bom.find(function(b){return b.id===id;}));});
@@ -6140,7 +6150,7 @@ function openApprovalModal(id){try{
     const modal=ge('approvalModal');if(modal)modal.classList.add('open');
   };
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+'/api/bom',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+'/api/bom',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(r=>r.json())
       .then(function(list){DB.bom=list;doOpen(list.find(function(x){return x.id===id;}));})
       .catch(function(){doOpen(DB.bom.find(function(b){return b.id===id;}));});
@@ -6180,7 +6190,7 @@ function doApproval(action){try{
     loadAllData().then(function(){renderBom();renderHistory();});
     const msg=action==='approve'
       ?(newStatus==='approved'?'BOM Approved sepenuhnya ✅':'Diteruskan ke level berikutnya ✅')
-      :'BOM Ditolak (Rejected) — tercatat di COGM Approved.';
+      :'BOM Ditolak (Rejected) — tercatat di COGS Approved.';
     toast(msg,isTerminal&&action==='approve'?'success':'info');
   });
 }catch(e){console.warn("doApproval:",e);}}
@@ -6467,7 +6477,7 @@ function viewBomDetail(id, src){try{
   // Reload fresh from API
   var endpoint = src==='history' ? '/api/bom/history' : '/api/bom';
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+endpoint,{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+endpoint,{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(function(r){return r.json();})
       .then(function(list){
         if(src==='history') DB.bomHistory=list; else DB.bom=list;
@@ -6722,7 +6732,7 @@ function viewExrateDetail(id){try{
   }
 
   if(typeof API!=='undefined'){
-    fetch(window.location.origin+'/api/exrates',{headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'})
+    fetch(window.location.origin+'/api/exrates',{headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'})
       .then(r=>r.json())
       .then(list=>{DB.exrates=list;doRender(list.find(x=>x.id===id));})
       .catch(()=>doRender(DB.exrates.find(x=>x.id===id)));
@@ -6956,7 +6966,7 @@ function seedData(){
     setConnBadge('connected','DB Terhubung');
 
     // Check for saved session token
-    var saved=localStorage.getItem('cogm_token');
+    var saved=localStorage.getItem('cogs_token');
     if(saved){
       _authToken=saved;
       fetch('/api/auth/me',{headers:{'x-token':saved}}).then(function(r2){
@@ -6989,7 +6999,7 @@ function seedData(){
         });
       }).catch(function(){
         // Session expired — clear and show login
-        localStorage.removeItem('cogm_token');
+        localStorage.removeItem('cogs_token');
         _authToken='';
         setDisp('login_screen','flex');
       });
@@ -7273,11 +7283,11 @@ var cogsFilter = '';
 var cogsRowSeq = 0;
 
 function loadCogsDocs(){
-  try{ cogsDocs=JSON.parse(localStorage.getItem('cogm_cogs_docs')||'[]'); }
+  try{ cogsDocs=JSON.parse(localStorage.getItem('cogs_cogs_docs')||'[]'); }
   catch(e){ cogsDocs=[]; }
 }
 function saveCogsDocs(){
-  localStorage.setItem('cogm_cogs_docs',JSON.stringify(cogsDocs));
+  localStorage.setItem('cogs_cogs_docs',JSON.stringify(cogsDocs));
 }
 
 // Extract auto-fill values from a BOM record
@@ -7494,7 +7504,7 @@ function renderCogsFormRows(){
       +'<option value="">— Pilih BOM —</option>'+bomOpts.replace('value="'+r.bomId+'"','value="'+r.bomId+'" selected')+'</select></td>'
       +'<td><input class="li-input" style="width:140px" value="'+escHtml(r.product)+'" readonly placeholder="Auto"></td>'
       +'<td><input class="li-input" style="width:110px" value="'+escHtml(r.project)+'" readonly placeholder="Auto"></td>'
-      +'<td><input class="li-input" type="number" style="width:70px;text-align:right" value="'+(r.estQty||0)+'"'
+      +'<td><input class="li-input" type="number" step="0.01" style="width:70px;text-align:right" value="'+(r.estQty||0)+'"'
       +' oninput="cogsRowSetField('+r._k+',\'estQty\',parseFloat(this.value)||0)"></td>'
       +'<td><input class="li-input" style="width:90px" value="'+escHtml(r.jenisFiber)+'" placeholder="SM G652D"'
       +' oninput="cogsRowSetField('+r._k+',\'jenisFiber\',this.value)"></td>'
@@ -7730,7 +7740,7 @@ var itemPriceFilter = '';
 function loadItemPrices(){
   if(typeof API==='undefined') return Promise.resolve([]);
   return fetch(window.location.origin+'/api/item-prices',{
-    headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'
+    headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'
   }).then(function(r){return r.json();})
     .then(function(list){DB_itemPrices=list;renderItemPrices();return list;})
     .catch(function(e){console.warn('loadItemPrices:',e);return [];});
@@ -7756,7 +7766,7 @@ var _origGoPagePrice=null;
   window.goPage=function(pageId){
     _orig(pageId);
     if(typeof API==='undefined') return;
-    var tok=localStorage.getItem('cogm_token')||'';
+    var tok=localStorage.getItem('cogs_token')||'';
     var headers={'x-token':tok};
     function reload(endpoint, assign){
       setTimeout(function(){
@@ -7933,7 +7943,6 @@ function saveItemPrice(){
   // Landed: ambil raw string untuk cek mandatory
   var landedRaw=(ge('ip_landed')||{value:''}).value;
   var landed=landedRaw===''?null:parseFloat(landedRaw);
-  var effective_date=(ge('ip_effective_date')||{value:''}).value;
   var note=(ge('ip_note')||{value:''}).value;
   var keterangan=(ge('ip_keterangan')||{value:''}).value;
 
@@ -7994,7 +8003,7 @@ function viewItemPriceHistory(itemCode){
   modal.style.display='flex';
 
   fetch(window.location.origin+'/api/item-prices/'+encodeURIComponent(itemCode)+'/logs',{
-    headers:{'x-token':localStorage.getItem('cogm_token')||''},cache:'no-cache'
+    headers:{'x-token':localStorage.getItem('cogs_token')||''},cache:'no-cache'
   }).then(function(r){return r.json();})
     .then(function(logs){
       var idFmt=function(v){return Number((v||0).toFixed(0)).toLocaleString('id-ID');};
@@ -8063,6 +8072,25 @@ function parseIdNum(s) {
   var dotCount = (s.match(/\./g)||[]).length;
   if(dotCount>1) return parseFloat(s.replace(/\./g,'')) || 0;
   return parseFloat(s) || 0;
+}
+
+// Hitung selisih hari antara tanggal modified_dt dengan hari ini
+// dan kembalikan badge HTML berwarna sesuai durasi
+function modifiedAgeBadge(modified_dt){
+  if(!modified_dt||modified_dt==='—') return '<span style="color:var(--muted)">—</span>';
+  // Format modified_dt: "DD/MM/YYYY HH.mm.ss" atau "YYYY-MM-DD ..."
+  var d;
+  var s=modified_dt.trim();
+  // Coba parse format DD/MM/YYYY HH.mm.ss
+  var m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m) d=new Date(m[3]+'-'+m[2]+'-'+m[1]);
+  else d=new Date(s.substring(0,10)); // fallback YYYY-MM-DD
+  if(isNaN(d)) return '<span style="color:var(--muted)">'+escHtml(s)+'</span>';
+  var today=new Date(); today.setHours(0,0,0,0); d.setHours(0,0,0,0);
+  var days=Math.floor((today-d)/86400000);
+  var label=days===0?'Hari ini':days===1?'1 hari lalu':days+' hari lalu';
+  var color=days>=30?'#ef4444':days>=7?'#f59e0b':'#22c55e'; // merah / kuning / hijau
+  return '<span style="font-size:.72rem;font-family:var(--fm);font-weight:600;color:'+color+'" title="'+escHtml(s)+'">'+label+'</span>';
 }
 
 function renderItemPrices(){
@@ -8135,7 +8163,7 @@ function renderItemPrices(){
       // Keterangan
       +'<td class="muted" style="font-size:.72rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+geEsc(p.keterangan||'')+'">'+(p.keterangan||'—')+'</td>'
       +'<td class="muted" style="font-size:.72rem">'+(p.modified_by||'—')+'</td>'
-      +'<td class="muted mono" style="font-size:.72rem">'+(p.modified_dt||'—')+'</td>'
+      +'<td style="font-size:.72rem">'+modifiedAgeBadge(p.modified_dt)+'</td>'
       // Aksi
       +'<td><div style="display:flex;gap:.3rem;flex-wrap:wrap">'
       +(_ge
@@ -8326,8 +8354,8 @@ function ipToggleUpdate(code) {
   renderItemPrices();
 }
 
-// ── Save inline update: hanya currency, price, hedging, landed, effective_date ──
-// PUT /item-prices/:code  →  { currency, price, hedging, landed, effective_date }
+// ── Save inline update: hanya currency, price, hedging, landed ──
+// PUT /item-prices/:code  →  { currency, price, hedging, landed }
 // Loose Tube & Fiber tidak diupdate di sini — gunakan Edit Grid untuk field tersebut
 function ipSaveUpdate(code) {
   var currency    = (document.getElementById('ipu_curr_'+code)||{}).value||'USD';

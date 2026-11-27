@@ -384,7 +384,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
   <div class="nav-item" onclick="goPage('bom')"><span class="ni">📋</span> COGS Calculated</div>
-  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> COGM Approved</div>
+  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> COGS Approved</div>
   <div class="nav-section">Admin</div>
   <div class="nav-item" id="nav_roles" onclick="goPage('roles')"><span class="ni">🔑</span> Access Role</div>
   <div style="flex:1"></div>
@@ -1300,7 +1300,7 @@ const pageTitles={
   kapasitas:'⚡ Master Data <span>Master Route</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
   bom:'📋 <span>COGS Calculated</span>',
-  history:'📜 <span>COGM Approved</span>',
+  history:'📜 <span>COGS Approved</span>',
   roles:'🔑 <span>Access Role</span>',
 };
 function goPage(id){
@@ -3764,7 +3764,7 @@ function closeAddUserForm(){ setDisp('add_user_card','none'); }
 
 function buildCustomAccessChecks(selected){
   const wrap = document.getElementById('custom_access_checks');
-  const pageLabels = {item:'Master Item',price:'Purchase Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',mesin:'Master Mesin',kapasitas:'Master Route',bom:'COGS Calculated',history:'COGM Approved',roles:'Access Role'};
+  const pageLabels = {item:'Master Item',price:'Purchase Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',mesin:'Master Mesin',kapasitas:'Master Route',bom:'COGS Calculated',history:'COGS Approved',roles:'Access Role'};
   wrap.innerHTML = ALL_PAGES.map(p=>`
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;padding:.3rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--b1)">
       <input type="checkbox" id="chk_${p}" ${selected.includes(p)?'checked':''} style="accent-color:var(--cyan)"> ${pageLabels[p]||p}

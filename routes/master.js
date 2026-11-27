@@ -234,15 +234,26 @@ router.post('/exrates', requireEdit, async (req,res) => {
 router.put('/exrates/:id', requireEdit, async (req,res) => {
   try {
     await query(`UPDATE exrates SET updated_dt=? WHERE id=?`,[now(),req.params.id]);
-    // Get existing tanggal values to avoid duplicates
     const existing = await query(`SELECT tanggal FROM exrate_lines WHERE exrate_id=?`,[req.params.id]);
     const existingDates = new Set(existing.map(r=>r.tanggal));
-    // Only insert NEW lines (not already stored by tanggal)
-    const newLines = (req.body.lines||[]).filter(l=>!existingDates.has(l.tanggal));
-    if(newLines.length > 0) {
-      await insertExrateLines(req.params.id, newLines);
+    let added = 0, updated = 0;
+    for (const l of (req.body.lines||[])) {
+      const tanggal = l.tanggal||'';
+      const rate = l.rate||0;
+      const conv = l.rate_conversion||0;
+      if (existingDates.has(tanggal)) {
+        // UPDATE baris yang sudah ada berdasarkan tanggal
+        await query(`UPDATE exrate_lines SET rate=?,rate_conversion=? WHERE exrate_id=? AND tanggal=?`,
+          [rate, conv, req.params.id, tanggal]);
+        updated++;
+      } else {
+        // INSERT baris baru
+        await query(`INSERT INTO exrate_lines (exrate_id,tanggal,rate,rate_conversion) VALUES (?,?,?,?)`,
+          [req.params.id, tanggal, rate, conv]);
+        added++;
+      }
     }
-    res.json({ok:true, added: newLines.length});
+    res.json({ok:true, added, updated});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
