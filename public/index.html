@@ -553,7 +553,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
         </div>
         <div class="form-group">
           <div class="flabel req">Price / Unit</div>
-          <input class="finput" type="number" id="ip_price" placeholder="0.000000" step="0.000001">
+          <input class="finput" type="number" id="ip_price" placeholder="0.00" step="0.01">
         </div>
         <div class="form-group">
           <div class="flabel">Hedging (%)</div>
@@ -1958,6 +1958,21 @@ function toast(msg,type='info'){
 function fmt_idr(n){return 'Rp '+Number(n||0).toLocaleString('id-ID');}
 function fmt_num(n,d=3){return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});}
 
+// Pembatasan global: semua input type=number yang dapat diedit dibatasi maksimal 2 angka desimal.
+// Berjalan di capture phase agar eksekusi SEBELUM handler oninput pada elemen, sehingga
+// nilai yang diterima handler downstream sudah terpotong di 2 desimal.
+// Pengecualian: step="1" (field integer) dan field disabled/readonly.
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  if (el.type !== 'number' || el.step === '1' || el.disabled || el.readOnly) return;
+  const val = el.value;
+  if (!val || !val.includes('.')) return;
+  const dot = val.indexOf('.');
+  if (val.length - dot - 1 > 2) {
+    el.value = val.slice(0, dot + 3); // potong ke 2 angka setelah titik desimal
+  }
+}, true); // true = capture phase
+
 // Helper: badge class untuk Machine Line berdasarkan nama (konsisten di semua halaman)
 function mlBadgeClass(ml){
   if(!ml) return 'badge-ml-other';
@@ -2304,7 +2319,7 @@ function renderPriceLines(){
         </div>
       </td>
       <td><input class="li-input" id="pl_nm_${i}" value="${l.item_name}" readonly placeholder="Auto"></td>
-      <td><input class="li-input" type="number" style="width:70px" value="${l.qty}" oninput="priceLines[${i}].qty=this.value"></td>
+      <td><input class="li-input" type="number" step="0.01" style="width:70px" value="${l.qty}" oninput="priceLines[${i}].qty=this.value"></td>
       <td>
         <div style="display:flex;gap:.3rem;align-items:center">
           <input class="li-input" style="width:60px" value="${l.currency}" id="pl_cur_${i}" placeholder="USD"
@@ -2312,9 +2327,9 @@ function renderPriceLines(){
           <button class="btn btn-ghost btn-xs" onclick="openSearchModal('exrate','pl_cur_${i}',null)" style="padding:.2rem .4rem;font-size:.7rem">🔍</button>
         </div>
       </td>
-      <td><input class="li-input" type="number" style="width:90px" value="${l.price}" oninput="priceLines[${i}].price=this.value"></td>
-      <td><input class="li-input" type="number" style="width:70px" value="${l.hedging}" oninput="priceLines[${i}].hedging=this.value"></td>
-      <td><input class="li-input" type="number" style="width:70px" value="${l.landed}" oninput="priceLines[${i}].landed=this.value"></td>
+      <td><input class="li-input" type="number" step="0.01" style="width:90px" value="${l.price}" oninput="priceLines[${i}].price=this.value"></td>
+      <td><input class="li-input" type="number" step="0.01" style="width:70px" value="${l.hedging}" oninput="priceLines[${i}].hedging=this.value"></td>
+      <td><input class="li-input" type="number" step="0.01" style="width:70px" value="${l.landed}" oninput="priceLines[${i}].landed=this.value"></td>
       <td><button class="btn btn-danger btn-xs" onclick="priceLines.splice(${i},1);renderPriceLines()">✕</button></td>
     </tr>
   `).join('');
@@ -2450,7 +2465,7 @@ function renderExrateLines(){
     return `
     <tr>
       <td><input class="li-input" type="date" value="${l.tanggal}" onchange="exrateLines[${i}].tanggal=this.value"></td>
-      <td><input class="li-input" type="number" style="width:130px" value="${rateVal}" id="er_rate_${i}"
+      <td><input class="li-input" type="number" step="0.01" style="width:130px" value="${rateVal}" id="er_rate_${i}"
         oninput="exrateLines[${i}].rate=parseFloat(this.value)||0;updateExrateConv(${i})"></td>
       <td><span id="er_conv_${i}" style="font-family:var(--fm);font-size:.8rem;color:var(--cyan);padding:.3rem .5rem">${conv}</span></td>
       <td><button class="btn btn-danger btn-xs" onclick="exrateLines.splice(${i},1);renderExrateLines()">✕</button></td>
@@ -2510,7 +2525,7 @@ function renderExrates(){try{
   tbody.innerHTML=rows.map(e=>{const _ge=GE.exrate==='__all__'||GE.exrate===e.id;const _lr=latestRate(e);return`<tr${_ge?' class="ge-row"':''}>
       <td style="text-align:center;width:32px"><input type="checkbox" class="sa-cb" ${isSelected('exrate','${e.id}')?' checked':''} onchange="toggleRowSelect('exrate','${e.id}',this.checked)"></td>
     ${col('exrate','cid')?`<td><span class="badge badge-green">${e.currency_id}</span></td>`:''}
-    ${col('exrate','rate')?(_ge?`<td style="white-space:nowrap"><input class="ge-input" type="number" id="ge_er_rate_${e.id}" value="${_lr}" step="any" style="width:110px;display:inline-block"> <input class="ge-input" type="date" id="ge_er_date_${e.id}" value="${_erToday}" style="width:130px;display:inline-block"></td>`:`<td class="mono">${_lr}</td>`):''}
+    ${col('exrate','rate')?(_ge?`<td style="white-space:nowrap"><input class="ge-input" type="number" id="ge_er_rate_${e.id}" value="${_lr}" step="0.01" style="width:110px;display:inline-block"> <input class="ge-input" type="date" id="ge_er_date_${e.id}" value="${_erToday}" style="width:130px;display:inline-block"></td>`:`<td class="mono">${_lr}</td>`):''}
     ${col('exrate','updated')?`<td class="muted mono" style="font-size:.72rem">${e.updated_dt||e.updated||'—'}</td>`:''}
     ${col('exrate','action')?(_ge?`<td><div style="display:flex;gap:.3rem"><button class="btn btn-primary btn-xs" onclick="geSaveExrate('${e.id}')">💾 Simpan</button>${GE.exrate!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('exrate')">✕ Batal</button>`:''}</div></td>`:`<td><div style="display:flex;gap:.3rem"><button class="btn btn-ghost btn-xs" onclick="viewExrateDetail('${e.id}')">👁</button><button class="btn btn-amber btn-xs" onclick="openExrateForm('${e.id}')">✏</button><button class="btn btn-danger btn-xs" onclick="deleteExrate('${e.id}')">🗑</button></div></td>`):''}
   </tr>`}).join('');
@@ -2606,7 +2621,7 @@ function renderDlfoh(){try{
       <td><span class="run-num">${d.catid}</span></td>
       ${_ge?`<td><input class="ge-input" id="ge_dl_desc_${d.id}" value="${geEsc(d.desc)}"></td>`:`<td>${d.desc}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_type_${d.id}" style="width:90px"><option value="DL" ${d.type==='DL'?'selected':''}>DL</option><option value="FFOH" ${d.type==='FFOH'?'selected':''}>FFOH</option><option value="VFOH" ${d.type==='VFOH'?'selected':''}>VFOH</option></select></td>`:`<td>${dlTypeBadge(d.type)}</td>`}
-      ${_ge?`<td><input class="ge-input" type="number" id="ge_dl_rate_${d.id}" value="${d.rate}" style="width:120px"></td>`:`<td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>`}
+      ${_ge?`<td><input class="ge-input" type="number" step="0.01" id="ge_dl_rate_${d.id}" value="${d.rate}" style="width:120px"></td>`:`<td class="mono">${Number(d.rate).toLocaleString('id-ID')}</td>`}
       ${_ge?`<td><select class="ge-select" id="ge_dl_ml_${d.id}" style="width:130px"><option value="">—</option>${_mlOpts.map(o=>`<option value="${o}" ${(d.machine_line||'')=== o?'selected':''}>${o}</option>`).join('')}</select></td>`:`<td>${mlBadge(d.machine_line)}</td>`}
       <td class="muted mono" style="font-size:.72rem">${d.modified_dt||'—'}</td>
       <td class="muted mono" style="font-size:.72rem">${d.created_dt||d.created||'—'}</td>
@@ -2661,11 +2676,11 @@ function buildKapLineRow(ml,dur,setup){
     </div>
     <div class="form-group" style="flex:1;min-width:120px;margin:0">
       <div class="flabel req" style="margin-bottom:.25rem">Duration Process (Jam)</div>
-      <input class="finput kap-line-dur" type="number" step="0.001" min="0" placeholder="0.000" value="${dur||''}">
+      <input class="finput kap-line-dur" type="number" step="0.01" min="0" placeholder="0.00" value="${dur||''}">
     </div>
     <div class="form-group" style="flex:1;min-width:120px;margin:0">
       <div class="flabel" style="margin-bottom:.25rem">Setup (Jam)</div>
-      <input class="finput kap-line-setup" type="number" step="0.001" min="0" placeholder="0.000" value="${setup||''}">
+      <input class="finput kap-line-setup" type="number" step="0.01" min="0" placeholder="0.00" value="${setup||''}">
     </div>`;
   return row;
 }
@@ -3575,11 +3590,11 @@ function renderBomLineRow(gIdx,lIdx,l){
           <input type="hidden" id="__bcu_${gIdx}_${lIdx}" value="${l.currency||'USD'}">
         </div>
       </td>
-      <td><input class="li-input bom-line-price" type="number" style="width:74px" value="${l.price||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
-      <td><input class="li-input bom-line-landed" type="number" style="width:52px" value="${l.landed||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
-      <td><input class="li-input bom-line-hedging" type="number" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-price" type="number" step="0.01" style="width:74px" value="${l.price||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-landed" type="number" step="0.01" style="width:52px" value="${l.landed||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-hedging" type="number" step="0.01" style="width:52px" value="${l.hedging||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <!-- Rate per line: IDR per 1 unit currency — selalu ambil dari master exchange rate sesuai currency baris -->
-      <td><input class="li-input bom-line-rate" type="number" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getRateForLine(l.currency||'USD');l.exchange_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
+      <td><input class="li-input bom-line-rate" type="number" step="0.01" style="width:84px;color:var(--cyan)" value="${(()=>{const _r=getRateForLine(l.currency||'USD');l.exchange_rate=_r;return _r;})()||0}" oninput="recalcBomLine(${gIdx},${lIdx})"></td>
       <td><input class="li-input bom-line-totalamt" style="width:80px" value="${fmt_num(l.total_amt||0,3)}" readonly></td>
       <td><input class="li-input bom-line-totalidr" style="width:98px" value="${Number((l.total_idr||0).toFixed(0)).toLocaleString('id-ID')}" readonly></td>
       <td>${fm?'':(`<button class="btn btn-danger btn-xs" onclick="deleteBomLine(${gIdx},${lIdx})">&#10005;</button>`)}</td>
@@ -4775,10 +4790,10 @@ function renderMBomLineRow(gIdx,lIdx,l){
     +'<input type="hidden" id="__mbn_'+gIdx+'_'+lIdx+'" value="'+(l.item_name||'')+'"></div></td>'
     +'<td><input class="li-input mbom-line-name" style="width:108px" value="'+(l.item_name||'')+'" readonly></td>'
     +'<td><input class="li-input mbom-line-uom" style="width:44px" value="'+(l.uom||'')+'" readonly></td>'
-    +'<td><input class="li-input mbom-line-qty" type="number" style="width:58px" value="'+(l.qty||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
-    +'<td><input class="li-input mbom-line-scrap" type="number" style="width:50px" value="'+(l.scrap||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
-    +'<td><input class="li-input mbom-line-factor" type="number" style="width:50px" value="'+(l.factor||1)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
-    +'<td><input class="li-input mbom-line-scrapfix" type="number" style="width:60px" value="'+(l.scrap_fix||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')" title="Scrap nilai tetap, ditambahkan ke Total Qty berapapun qty-nya"></td>'
+    +'<td><input class="li-input mbom-line-qty" type="number" step="0.01" style="width:58px" value="'+(l.qty||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
+    +'<td><input class="li-input mbom-line-scrap" type="number" step="0.01" style="width:50px" value="'+(l.scrap||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
+    +'<td><input class="li-input mbom-line-factor" type="number" step="0.01" style="width:50px" value="'+(l.factor||1)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')"></td>'
+    +'<td><input class="li-input mbom-line-scrapfix" type="number" step="0.01" style="width:60px" value="'+(l.scrap_fix||0)+'" oninput="recalcMBomLine('+gIdx+','+lIdx+')" title="Scrap nilai tetap, ditambahkan ke Total Qty berapapun qty-nya"></td>'
     +'<td><input class="li-input mbom-line-totalqty" style="width:75px" value="'+fmt_num(l.total_qty||0,3)+'" readonly></td>'
     +'<td><button class="btn btn-danger btn-xs" onclick="deleteMBomLine('+gIdx+','+lIdx+')">&#10005;</button></td>'
     +'</tr>';
@@ -4844,10 +4859,10 @@ function renderMBomDlfohRow(gIdx,dIdx,dl){
     +'<button class="btn btn-ghost" style="padding:.15rem .25rem;font-size:.62rem" onclick="sm_extra={g:\'mbom_dlfoh\',gi:'+gIdx+',l:'+dIdx+'};openSearchModal(\'dlfoh\',\'__mdc_'+gIdx+'_'+dIdx+'\',null)">&#128269;</button>'
     +'<input type="hidden" id="__mdc_'+gIdx+'_'+dIdx+'" value="'+(dl.cat||'')+'"></div></td>'
     +'<td><span class="badge '+cls+'" style="font-size:.6rem" id="mbom_dtype_'+gIdx+'_'+dIdx+'">'+t+'</span></td>'
-    +'<td><input class="li-input mbom-dl-idx" type="number" style="width:72px" value="'+fmt_num(dl.index||0,3)+'" '
+    +'<td><input class="li-input mbom-dl-idx" type="number" step="0.01" style="width:72px" value="'+fmt_num(dl.index||0,3)+'" '
     +'oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].index_manual=true;recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
-    +'<td><input class="li-input mbom-dl-setup" type="number" style="width:56px" value="'+(dl.setup||0)+'" data-manual="'+(dl.setup_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
-    +'<td><input class="li-input mbom-dl-factor" type="number" style="width:56px" value="'+(dl.factor||1)+'" data-manual="'+(dl.factor_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor=parseFloat(this.value)||1;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
+    +'<td><input class="li-input mbom-dl-setup" type="number" step="0.01" style="width:56px" value="'+(dl.setup||0)+'" data-manual="'+(dl.setup_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup=parseFloat(this.value)||0;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].setup_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
+    +'<td><input class="li-input mbom-dl-factor" type="number" step="0.01" style="width:56px" value="'+(dl.factor||1)+'" data-manual="'+(dl.factor_manual?'1':'0')+'" oninput="mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor=parseFloat(this.value)||1;mbomGroups['+gIdx+'].dlfohLines['+dIdx+'].factor_manual=true;this.dataset.manual=\'1\';recalcMBomDlfohRow('+gIdx+','+dIdx+')"></td>'
     +'<td><input class="li-input mbom-dl-hour" style="width:70px" value="'+fmt_num(dl.total_hour||0,3)+'" readonly></td>'
     +'<td><button class="btn btn-danger btn-xs" onclick="deleteMBomDlfohLine('+gIdx+','+dIdx+')">&#10005;</button></td>'
     +'</tr>';
@@ -7486,7 +7501,7 @@ function renderCogsFormRows(){
       +'<option value="">— Pilih BOM —</option>'+bomOpts.replace('value="'+r.bomId+'"','value="'+r.bomId+'" selected')+'</select></td>'
       +'<td><input class="li-input" style="width:140px" value="'+escHtml(r.product)+'" readonly placeholder="Auto"></td>'
       +'<td><input class="li-input" style="width:110px" value="'+escHtml(r.project)+'" readonly placeholder="Auto"></td>'
-      +'<td><input class="li-input" type="number" style="width:70px;text-align:right" value="'+(r.estQty||0)+'"'
+      +'<td><input class="li-input" type="number" step="0.01" style="width:70px;text-align:right" value="'+(r.estQty||0)+'"'
       +' oninput="cogsRowSetField('+r._k+',\'estQty\',parseFloat(this.value)||0)"></td>'
       +'<td><input class="li-input" style="width:90px" value="'+escHtml(r.jenisFiber)+'" placeholder="SM G652D"'
       +' oninput="cogsRowSetField('+r._k+',\'jenisFiber\',this.value)"></td>'
