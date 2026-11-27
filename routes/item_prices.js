@@ -108,8 +108,19 @@ router.post('/item-prices', requireEdit, async (req,res) => {
 router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
   try {
     const {item_name, uom, currency, price, hedging, landed, effective_date, note,
-           loose_tube_qty, fiber_per_tube_qty} = req.body;
-    const item_code = req.params.itemCode;
+           loose_tube_qty, fiber_per_tube_qty, new_item_code} = req.body;
+    let item_code = req.params.itemCode;
+
+    // Rename item_code jika new_item_code berbeda dari yang sekarang
+    if (new_item_code && new_item_code.trim() !== item_code) {
+      const newCode = new_item_code.trim();
+      const [conflict] = await query(`SELECT 1 FROM item_prices WHERE item_code=?`, [newCode]);
+      if (conflict) return res.status(400).json({error:'Item Code "'+newCode+'" sudah digunakan.'});
+      // Update referensi di logs dulu, baru rename di item_prices
+      await query(`UPDATE item_price_logs SET item_code=? WHERE item_code=?`, [newCode, item_code]);
+      await query(`UPDATE item_prices SET item_code=? WHERE item_code=?`, [newCode, item_code]);
+      item_code = newCode; // lanjutkan update field lain dengan code baru
+    }
 
     const [existing] = await query(`SELECT * FROM item_prices WHERE item_code=?`, [item_code]);
     if(!existing) return res.status(404).json({error:'Harga item tidak ditemukan.'});
