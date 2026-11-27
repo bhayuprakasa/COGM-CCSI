@@ -72,7 +72,7 @@ initSchema().then(() => {
   const server = app.listen(PORT, '0.0.0.0', () => {
     const ip = getLocalIP();
     console.log('\n╔══════════════════════════════════════════╗');
-    console.log(  '║   COGM Manufacturing BOM System v2       ║');
+    console.log(  '║   COGS Manufacturing BOM System v2       ║');
     console.log(  '╠══════════════════════════════════════════╣');
     console.log(`║  Local  : http://localhost:${PORT}           ║`);
     console.log(`║  Network: http://${ip}:${PORT}`.padEnd(44)+'║');
@@ -99,13 +99,13 @@ initSchema().then(() => {
     console.error('   ➡ Pastikan XAMPP MySQL sudah START');
     console.error('   Buka XAMPP Control Panel → klik START di baris MySQL');
   } else if (err.code === 'ER_BAD_DB_ERROR') {
-    console.error('   ➡ Database "cogm_db" belum dibuat di phpMyAdmin');
+    console.error('   ➡ Database "cogs_db" belum dibuat di phpMyAdmin');
   } else if (err.code === 'ER_ACCESS_DENIED_ERROR') {
     console.error('   ➡ Username/password salah di config.json');
     console.error('   XAMPP default: user=root, password=kosong');
   } else if (err.code === 'ER_DUP_FIELDNAME') {
     console.error('   ➡ Kolom duplikat saat migrasi — ini seharusnya tertangani otomatis');
-    console.error('   Coba hapus database cogm_db di phpMyAdmin lalu buat ulang');
+    console.error('   Coba hapus database cogs_db di phpMyAdmin lalu buat ulang');
   } else {
     console.error('   ➡ Periksa file config.json dan pastikan MySQL berjalan');
   }

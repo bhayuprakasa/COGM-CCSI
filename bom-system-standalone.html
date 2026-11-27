@@ -423,7 +423,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="nav-item" onclick="goPage('masterbom')"><span class="ni">📐</span> Master BOM</div>
   <div class="nav-section">Dokumen</div>
   <div class="nav-item" onclick="goPage('bom')"><span class="ni">📋</span> COGS Calculated</div>
-  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> COGM Approved</div>
+  <div class="nav-item" id="nav_history" onclick="goPage('history')"><span class="ni">📜</span> COGS Approved</div>
   <div class="nav-section">Admin</div>
   <div class="nav-item" id="nav_roles" onclick="goPage('roles')"><span class="ni">🔑</span> Access Role</div>
   <div style="flex:1"></div>
@@ -1334,7 +1334,7 @@ const pageTitles={
   kapasitas:'⚡ Master Data <span>Master FG (Route)</span>',
   masterbom:'📐 Master Data <span>BOM</span>',
   bom:'📋 <span>COGS Calculated</span>',
-  history:'📜 <span>COGM Approved</span>',
+  history:'📜 <span>COGS Approved</span>',
   roles:'🔑 <span>Access Role</span>',
 };
 function goPage(id){
@@ -2837,7 +2837,7 @@ const DEFAULT_APPROVAL_LEVELS = [
 ];
 
 // Runtime levels - loaded from localStorage or defaults
-let APPROVAL_LEVELS = JSON.parse(localStorage.getItem('cogm_workflow')||'null') || JSON.parse(JSON.stringify(DEFAULT_APPROVAL_LEVELS));
+let APPROVAL_LEVELS = JSON.parse(localStorage.getItem('cogs_workflow')||'null') || JSON.parse(JSON.stringify(DEFAULT_APPROVAL_LEVELS));
 
 // All available approver roles for dropdown
 const APPROVER_ROLE_OPTIONS = [
@@ -2998,7 +2998,7 @@ function saveWorkflow(){
   // Update role select dropdown in user form
   updateRoleSelectOptions();
   // Persist to localStorage
-  localStorage.setItem('cogm_workflow', JSON.stringify(APPROVAL_LEVELS));
+  localStorage.setItem('cogs_workflow', JSON.stringify(APPROVAL_LEVELS));
   toast('Workflow berhasil disimpan! '+APPROVAL_LEVELS.length+' level approval aktif.','success');
   try{renderBom();}catch(e){}
   const summary=APPROVAL_LEVELS.map((lv,i)=>`L${i+1}: ${lv.label}`).join(' → ');
@@ -3025,7 +3025,7 @@ function resetWorkflow(){
   if(!confirm('Reset workflow ke default (3 level)? Konfigurasi saat ini akan hilang.')) return;
   APPROVAL_LEVELS=JSON.parse(JSON.stringify(DEFAULT_APPROVAL_LEVELS));
   APPROVAL_STATUS_MAP=rebuildApprovalStatusMap();
-  localStorage.removeItem('cogm_workflow');
+  localStorage.removeItem('cogs_workflow');
   renderWorkflowConfig();
   toast('Workflow direset ke default.','info');
 }
@@ -3994,7 +3994,7 @@ function closeAddUserForm(){ setDisp('add_user_card','none'); }
 
 function buildCustomAccessChecks(selected){
   const wrap = document.getElementById('custom_access_checks');
-  const pageLabels = {item:'Master Item',price:'Purchase Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',mesin:'Master Mesin',kapasitas:'Master FG (Route)',bom:'COGS Calculated',history:'COGM Approved',roles:'Access Role'};
+  const pageLabels = {item:'Master Item',price:'Purchase Price',exrate:'Exchange Rate',dlfoh:'DL-FOH',mesin:'Master Mesin',kapasitas:'Master FG (Route)',bom:'COGS Calculated',history:'COGS Approved',roles:'Access Role'};
   wrap.innerHTML = ALL_PAGES.map(p=>`
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;padding:.3rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--b1)">
       <input type="checkbox" id="chk_${p}" ${selected.includes(p)?'checked':''} style="accent-color:var(--cyan)"> ${pageLabels[p]||p}
@@ -4773,7 +4773,7 @@ function seedData(){
     setConnBadge('connected','DB Terhubung');
 
     // Check for saved session token
-    var saved=localStorage.getItem('cogm_token');
+    var saved=localStorage.getItem('cogs_token');
     if(saved){
       _authToken=saved;
       fetch('/api/auth/me',{headers:{'x-token':saved}}).then(function(r2){
@@ -4806,7 +4806,7 @@ function seedData(){
         });
       }).catch(function(){
         // Session expired — clear and show login
-        localStorage.removeItem('cogm_token');
+        localStorage.removeItem('cogs_token');
         _authToken='';
         setDisp('login_screen','flex');
       });
