@@ -133,7 +133,7 @@ async function initSchema() {
 
       `CREATE TABLE IF NOT EXISTS masterbom (
         id VARCHAR(100) PRIMARY KEY, bomid VARCHAR(50) UNIQUE NOT NULL,
-        product VARCHAR(255) NOT NULL, customer VARCHAR(255),
+        product VARCHAR(255) NOT NULL,
         project VARCHAR(255), fiber_cnt VARCHAR(50),
         buffer_qty VARCHAR(50), fiber_qty VARCHAR(50),
         created_by VARCHAR(100), created_dt VARCHAR(50),
@@ -154,16 +154,7 @@ async function initSchema() {
         item_code VARCHAR(100), item_name VARCHAR(255), uom VARCHAR(50),
         qty DECIMAL(15,4) DEFAULT 0, scrap DECIMAL(10,4) DEFAULT 0,
         factor DECIMAL(10,4) DEFAULT 1, total_qty DECIMAL(15,4) DEFAULT 0,
-        sort_order INT DEFAULT 0,
-        modified_by VARCHAR(100), modified_dt VARCHAR(50)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
-
-      `CREATE TABLE IF NOT EXISTS masterbom_dlfoh (
-        id INT AUTO_INCREMENT PRIMARY KEY, group_id VARCHAR(100) NOT NULL,
-        cat VARCHAR(100), type VARCHAR(50),
-        idx DECIMAL(15,6) DEFAULT 0, index_manual TINYINT DEFAULT 0,
-        setup DECIMAL(10,4) DEFAULT 0, factor DECIMAL(10,4) DEFAULT 1,
-        total_hour DECIMAL(15,6) DEFAULT 0, sort_order INT DEFAULT 0
+        sort_order INT DEFAULT 0
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
       `CREATE TABLE IF NOT EXISTS bom (
@@ -201,8 +192,7 @@ async function initSchema() {
         currency VARCHAR(20) DEFAULT 'USD', price DECIMAL(20,6) DEFAULT 0,
         landed DECIMAL(10,4) DEFAULT 0, hedging DECIMAL(10,4) DEFAULT 0,
         total_amt DECIMAL(20,6) DEFAULT 0, total_idr DECIMAL(20,4) DEFAULT 0,
-        sort_order INT DEFAULT 0,
-        modified_by VARCHAR(100), modified_dt VARCHAR(50)
+        sort_order INT DEFAULT 0
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
       `CREATE TABLE IF NOT EXISTS bom_dlfoh (
@@ -225,7 +215,7 @@ async function initSchema() {
       `CREATE TABLE IF NOT EXISTS price_lines (
         id INT AUTO_INCREMENT PRIMARY KEY,
         price_id VARCHAR(100) NOT NULL,
-        item_code VARCHAR(100), item_name VARCHAR(255), uom VARCHAR(50),
+        item_code VARCHAR(100), item_name VARCHAR(255),
         qty DECIMAL(15,4) DEFAULT 0,
         currency VARCHAR(20) DEFAULT 'USD',
         price DECIMAL(20,6) DEFAULT 0,
@@ -250,23 +240,6 @@ async function initSchema() {
         FOREIGN KEY (bom_id) REFERENCES bom(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
-      // Master routing tenaga kerja/overhead per FG item (terpisah dari BOM)
-      `CREATE TABLE IF NOT EXISTS fg_routes (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        item_code VARCHAR(100) NOT NULL,
-        item_name VARCHAR(255) DEFAULT '',
-        cat VARCHAR(100) NOT NULL,
-        cat_desc VARCHAR(255) DEFAULT '',
-        type VARCHAR(50) DEFAULT '',
-        process_time DECIMAL(15,6) DEFAULT 0,
-        setup_time DECIMAL(10,4) DEFAULT 0,
-        factor DECIMAL(10,4) DEFAULT 1,
-        sort_order INT DEFAULT 0,
-        created_by VARCHAR(100), created_dt VARCHAR(50),
-        modified_by VARCHAR(100), modified_dt VARCHAR(50),
-        INDEX idx_fg_routes_item (item_code)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
-
       // Machine lines per FG item — urutan proses mesin untuk setiap produk FG
       `CREATE TABLE IF NOT EXISTS item_fg_machines (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -276,7 +249,7 @@ async function initSchema() {
         INDEX idx_item_fg_machines_code (item_code)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
-      // Routing DL-FOH di level BOM (bukan group-level) — sumber dari fg_routes
+      // Routing DL-FOH di level BOM (snapshot dari kapasitas.notes saat BOM dibuat)
       `CREATE TABLE IF NOT EXISTS bom_routing (
         id INT AUTO_INCREMENT PRIMARY KEY,
         bom_id VARCHAR(100) NOT NULL,
@@ -337,10 +310,6 @@ async function initSchema() {
     // Uses INFORMATION_SCHEMA — one query per table, works on all MariaDB/MySQL versions
     console.log('   Running migrations...');
     const toAdd = [
-      { table:'masterbom_lines', col:'modified_by',       def:'VARCHAR(100)'            },
-      { table:'masterbom_lines', col:'modified_dt',       def:'VARCHAR(50)'             },
-      { table:'bom_lines',       col:'modified_by',       def:'VARCHAR(100)'            },
-      { table:'bom_lines',       col:'modified_dt',       def:'VARCHAR(50)'             },
       { table:'bom_lines',       col:'usd_rate',          def:'DECIMAL(20,4) DEFAULT 0' },
       { table:'bom',             col:'usd_rate_snapshot', def:'DECIMAL(20,4) DEFAULT 0' },
       { table:'bom',             col:'product_code',      def:"VARCHAR(100) DEFAULT ''" },
@@ -357,7 +326,7 @@ async function initSchema() {
       { table:'item_prices',     col:'fiber_per_tube_qty',def:'INT DEFAULT 0' },
       { table:'item_prices',     col:'total_fiber_qty',   def:'INT DEFAULT 0' },
       { table:'masterbom',       col:'product_code',      def:"VARCHAR(100) DEFAULT ''" },
-      // item_code di tabel bom — FG item yang di-link ke fg_routes
+      // item_code di tabel bom — FG item untuk referensi routing
       { table:'bom',             col:'item_code',         def:"VARCHAR(100) DEFAULT ''" },
       // master_route_id di tabel bom — link ke kapasitas.kapid yang dipakai sebagai Master Route
       { table:'bom',             col:'master_route_id',   def:"VARCHAR(100) DEFAULT ''" },
@@ -374,6 +343,43 @@ async function initSchema() {
       // Keterangan/deskripsi tambahan untuk item price
       { table:'item_prices',     col:'keterangan',        def:"TEXT DEFAULT ''" },
     ];
+
+    // ── Drop tabel yang sudah tidak terpakai ──
+    const tablesToDrop = ['fg_routes', 'masterbom_dlfoh'];
+    for (const tbl of tablesToDrop) {
+      const [[{ cnt }]] = await conn.execute(
+        `SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.TABLES
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?`, [cfg.database, tbl]
+      );
+      if (cnt > 0) {
+        await conn.execute(`DROP TABLE IF EXISTS ${tbl}`);
+        console.log(`   - Dropped unused table: ${tbl}`);
+      }
+    }
+
+    // ── Drop kolom yang sudah tidak terpakai ──
+    const colsToDrop = [
+      { table: 'masterbom',       col: 'customer'    },
+      { table: 'masterbom_lines', col: 'modified_by' },
+      { table: 'masterbom_lines', col: 'modified_dt' },
+      { table: 'bom_lines',       col: 'modified_by' },
+      { table: 'bom_lines',       col: 'modified_dt' },
+      { table: 'price_lines',     col: 'uom'         },
+    ];
+    const [dropCols] = await conn.execute(
+      `SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = ?
+         AND TABLE_NAME   IN ('masterbom','masterbom_lines','bom_lines','price_lines')
+         AND COLUMN_NAME  IN ('customer','modified_by','modified_dt','uom')`,
+      [cfg.database]
+    );
+    const dropSet = new Set(dropCols.map(r => `${r.TABLE_NAME.toLowerCase()}.${r.COLUMN_NAME.toLowerCase()}`));
+    for (const { table, col } of colsToDrop) {
+      if (dropSet.has(`${table}.${col}`)) {
+        await conn.execute(`ALTER TABLE ${table} DROP COLUMN ${col}`);
+        console.log(`   - Dropped unused column: ${table}.${col}`);
+      }
+    }
 
     // Batch check all columns at once — include all tables and columns being migrated
     const [existing] = await conn.execute(
