@@ -42,7 +42,7 @@ router.get('/item-prices/:itemCode/logs', requireAuth, async (req,res) => {
 // ── POST create/update item price (upsert) ──
 router.post('/item-prices', requireEdit, async (req,res) => {
   try {
-    const {item_code, item_name, uom, currency, price, hedging, landed, effective_date, note,
+    const {item_code, item_name, uom, currency, price, hedging, landed, note,
            loose_tube_qty, fiber_per_tube_qty} = req.body;
     if(!item_code) return res.status(400).json({error:'Item Code wajib.'});
 
@@ -58,23 +58,22 @@ router.post('/item-prices', requireEdit, async (req,res) => {
       // Log the change
       await query(`INSERT INTO item_price_logs
         (item_code,old_price,new_price,old_currency,new_currency,old_hedging,new_hedging,
-         old_landed,new_landed,old_effective_date,new_effective_date,changed_by,changed_dt,note)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         old_landed,new_landed,changed_by,changed_dt,note)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
         [item_code,
          existing.price, parseFloat(price)||0,
          existing.currency, currency||'USD',
          existing.hedging, parseFloat(hedging)||0,
          existing.landed, parseFloat(landed)||0,
-         existing.effective_date, effective_date||'',
          who(req), now(), note||'']);
 
       // Update price — termasuk item_name, uom, dan fiber spec
       await query(`UPDATE item_prices SET
-        item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?, effective_date=?,
+        item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?,
         loose_tube_qty=?, fiber_per_tube_qty=?, total_fiber_qty=?,
         modified_by=?, modified_dt=? WHERE item_code=?`,
         [item_name||'', uom||'', currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
-         parseFloat(landed)||0, effective_date||'',
+         parseFloat(landed)||0,
          looseTube, fiberPerTube, totalFiber,
          who(req), now(), item_code]);
 
@@ -82,22 +81,22 @@ router.post('/item-prices', requireEdit, async (req,res) => {
     } else {
       // Insert new price — termasuk item_name, uom, dan fiber spec
       await query(`INSERT INTO item_prices
-        (item_code,item_name,uom,currency,price,hedging,landed,effective_date,
+        (item_code,item_name,uom,currency,price,hedging,landed,
          loose_tube_qty,fiber_per_tube_qty,total_fiber_qty,
          created_by,created_dt,modified_by,modified_dt)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [item_code, item_name||'', uom||'', currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
-         parseFloat(landed)||0, effective_date||now(),
+         parseFloat(landed)||0,
          looseTube, fiberPerTube, totalFiber,
          who(req), now(), who(req), now()]);
 
       // Log first entry
       await query(`INSERT INTO item_price_logs
         (item_code,old_price,new_price,old_currency,new_currency,old_hedging,new_hedging,
-         old_landed,new_landed,old_effective_date,new_effective_date,changed_by,changed_dt,note)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         old_landed,new_landed,changed_by,changed_dt,note)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
         [item_code, 0, parseFloat(price)||0, '', currency||'USD', 0, parseFloat(hedging)||0,
-         0, parseFloat(landed)||0, '', effective_date||'', who(req), now(), note||'Harga awal']);
+         0, parseFloat(landed)||0, who(req), now(), note||'Harga awal']);
 
       res.json({ok:true, action:'created'});
     }
@@ -107,7 +106,7 @@ router.post('/item-prices', requireEdit, async (req,res) => {
 // ── PUT update item price ──
 router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
   try {
-    const {item_name, uom, currency, price, hedging, landed, effective_date, note,
+    const {item_name, uom, currency, price, hedging, landed, note,
            loose_tube_qty, fiber_per_tube_qty, new_item_code} = req.body;
     let item_code = req.params.itemCode;
 
@@ -130,7 +129,6 @@ router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
     const newCurrency = currency||existing.currency||'USD';
     const newHedging  = hedging!=null  ? parseFloat(hedging)||0  : existing.hedging;
     const newLanded   = landed!=null   ? parseFloat(landed)||0   : existing.landed;
-    const newEffDate  = effective_date!=null ? effective_date     : existing.effective_date||'';
 
     // Fiber spec — gunakan nilai lama jika tidak dikirim
     const newLooseTube    = loose_tube_qty!=null    ? parseInt(loose_tube_qty)||0    : (existing.loose_tube_qty||0);
@@ -142,25 +140,24 @@ router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
     if(priceChanged) {
       await query(`INSERT INTO item_price_logs
         (item_code,old_price,new_price,old_currency,new_currency,old_hedging,new_hedging,
-         old_landed,new_landed,old_effective_date,new_effective_date,changed_by,changed_dt,note)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         old_landed,new_landed,changed_by,changed_dt,note)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
         [item_code,
          existing.price, newPrice,
          existing.currency, newCurrency,
          existing.hedging, newHedging,
          existing.landed, newLanded,
-         existing.effective_date, newEffDate,
          who(req), now(), note||'']);
     }
 
     // Update — termasuk fiber spec
     await query(`UPDATE item_prices SET
-      item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?, effective_date=?,
+      item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?,
       loose_tube_qty=?, fiber_per_tube_qty=?, total_fiber_qty=?,
       modified_by=?, modified_dt=? WHERE item_code=?`,
       [item_name!=null ? item_name : existing.item_name||'',
        uom!=null       ? uom       : existing.uom||'',
-       newCurrency, newPrice, newHedging, newLanded, newEffDate,
+       newCurrency, newPrice, newHedging, newLanded,
        newLooseTube, newFiberPerTube, newTotalFiber,
        who(req), now(), item_code]);
 
