@@ -8053,6 +8053,25 @@ function parseIdNum(s) {
   return parseFloat(s) || 0;
 }
 
+// Hitung selisih hari antara tanggal modified_dt dengan hari ini
+// dan kembalikan badge HTML berwarna sesuai durasi
+function modifiedAgeBadge(modified_dt){
+  if(!modified_dt||modified_dt==='—') return '<span style="color:var(--muted)">—</span>';
+  // Format modified_dt: "DD/MM/YYYY HH.mm.ss" atau "YYYY-MM-DD ..."
+  var d;
+  var s=modified_dt.trim();
+  // Coba parse format DD/MM/YYYY HH.mm.ss
+  var m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m) d=new Date(m[3]+'-'+m[2]+'-'+m[1]);
+  else d=new Date(s.substring(0,10)); // fallback YYYY-MM-DD
+  if(isNaN(d)) return '<span style="color:var(--muted)">'+escHtml(s)+'</span>';
+  var today=new Date(); today.setHours(0,0,0,0); d.setHours(0,0,0,0);
+  var days=Math.floor((today-d)/86400000);
+  var label=days===0?'Hari ini':days===1?'1 hari lalu':days+' hari lalu';
+  var color=days>=30?'#ef4444':days>=7?'#f59e0b':'#22c55e'; // merah / kuning / hijau
+  return '<span style="font-size:.72rem;font-family:var(--fm);font-weight:600;color:'+color+'" title="'+escHtml(s)+'">'+label+'</span>';
+}
+
 function renderItemPrices(){
   var tbody=document.getElementById('item_price_tbody');
   var countEl=ge('price_count');
@@ -8121,7 +8140,7 @@ function renderItemPrices(){
       // Effective Date
       +'<td class="muted mono" style="font-size:.75rem">'+(p.effective_date||'—')+'</td>'
       +'<td class="muted" style="font-size:.72rem">'+(p.modified_by||'—')+'</td>'
-      +'<td class="muted mono" style="font-size:.72rem">'+(p.modified_dt||'—')+'</td>'
+      +'<td style="font-size:.72rem">'+modifiedAgeBadge(p.modified_dt)+'</td>'
       // Aksi
       +'<td><div style="display:flex;gap:.3rem;flex-wrap:wrap">'
       +(_ge
