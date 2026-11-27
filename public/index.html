@@ -561,6 +561,13 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
           <input class="finput" type="number" id="ip_landed" placeholder="Wajib diisi" step="0.01">
         </div>
       </div>
+      <!-- Baris keterangan — full width -->
+      <div style="display:grid;grid-template-columns:1fr;gap:.75rem;margin-bottom:.75rem">
+        <div class="form-group">
+          <div class="flabel">Keterangan</div>
+          <input class="finput" id="ip_keterangan" placeholder="Keterangan / catatan tambahan (opsional)" style="width:100%">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -582,6 +589,7 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
             <th style="text-align:right">Hedging (%)</th>
             <th style="text-align:right">Landed (%)</th>
             <th>Effective Date</th>
+            <th>Keterangan</th>
             <th>Modified By</th>
             <th>Modified</th>
             <th>Aksi</th>
@@ -7859,6 +7867,8 @@ function openItemPriceForm(itemCode){
   // Landed blank = mandatory (harus diisi)
   setVal('ip_landed','');
   setVal('ip_note','');
+  setVal('ip_keterangan','');
+  setVal('ip_effective_date',new Date().toISOString().slice(0,10));
 
   if(itemCode){
     setText('item_price_form_title','Edit Harga: '+itemCode);
@@ -7873,6 +7883,8 @@ function openItemPriceForm(itemCode){
       setVal('ip_price',existing.price||'');
       setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
       setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
+      setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
+      setVal('ip_keterangan',existing.keterangan||'');
     }
   } else {
     setText('item_price_form_title','Set Harga Item');
@@ -7911,6 +7923,8 @@ function onIpItemCodeChange(code){
     setVal('ip_price',existing.price||'');
     setVal('ip_hedging',existing.hedging!==undefined?existing.hedging:'3');
     setVal('ip_landed',existing.landed!==undefined?existing.landed:'');
+    setVal('ip_effective_date',existing.effective_date||new Date().toISOString().slice(0,10));
+    setVal('ip_keterangan',existing.keterangan||'');
     toast('Harga lama dimuat — ubah nilai dan simpan untuk update.','info');
   } else {
     var cur=(ge('ip_currency')||{value:'USD'}).value;
@@ -7930,6 +7944,7 @@ function saveItemPrice(){
   var landedRaw=(ge('ip_landed')||{value:''}).value;
   var landed=landedRaw===''?null:parseFloat(landedRaw);
   var note=(ge('ip_note')||{value:''}).value;
+  var keterangan=(ge('ip_keterangan')||{value:''}).value;
 
   if(!itemCode){toast('Item Code wajib diisi.','error');return;}
   if(!itemName){toast('Item Name wajib diisi.','error');return;}
@@ -7940,7 +7955,7 @@ function saveItemPrice(){
 
   // Payload untuk item price (fiber spec dikelola di Master Route)
   var payload={item_code:itemCode,item_name:itemName,uom:uom,currency:currency,price:price,
-    hedging:hedging,landed:landed,note:note};
+    hedging:hedging,landed:landed,effective_date:effective_date,note:note,keterangan:keterangan};
 
   if(typeof API!=='undefined'){
     var editCode=(ge('ip_edit_code')||{value:''}).value;
@@ -8089,7 +8104,7 @@ function renderItemPrices(){
   });
   if(countEl) countEl.textContent=DB_itemPrices.length;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:2rem">'
+    tbody.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:2rem">'
       +(DB_itemPrices.length?'Tidak ada item yang cocok pencarian.':'Belum ada raw material.')
       +'</td></tr>';
     return;
@@ -8143,6 +8158,10 @@ function renderItemPrices(){
       +'<td style="text-align:right">'
       +'<span style="font-family:var(--fm)">'+fmtIdNum(p.landed,2)+'%</span>'
       +'</td>'
+      // Effective Date
+      +'<td class="muted mono" style="font-size:.75rem">'+(p.effective_date||'—')+'</td>'
+      // Keterangan
+      +'<td class="muted" style="font-size:.72rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+geEsc(p.keterangan||'')+'">'+(p.keterangan||'—')+'</td>'
       +'<td class="muted" style="font-size:.72rem">'+(p.modified_by||'—')+'</td>'
       +'<td style="font-size:.72rem">'+modifiedAgeBadge(p.modified_dt)+'</td>'
       // Aksi
@@ -8164,7 +8183,7 @@ function renderItemPrices(){
       // Update form hanya untuk price, currency, hedging, landed
       // Loose Tube & Fiber diedit via Edit Grid
       updateRow = '<tr style="background:rgba(34,211,238,.04);border-top:1px dashed rgba(34,211,238,.2)">'
-        +'<td colspan="11" style="padding:.7rem 1rem">'
+        +'<td colspan="12" style="padding:.7rem 1rem">'
         +'<div style="display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap">'
         // Currency
         +'<div style="display:flex;flex-direction:column;gap:.25rem">'
@@ -8188,6 +8207,17 @@ function renderItemPrices(){
         +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Landed (%)</label>'
         +'<input class="ge-input" id="ipu_land_'+p.item_code+'" value="'+geEsc(fmtIdInput(p.landed,2))+'"'
         +' style="width:80px;text-align:right" placeholder="0,00">'
+        +'</div>'
+        // Effective Date
+        +'<div style="display:flex;flex-direction:column;gap:.25rem">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Effective Date</label>'
+        +'<input class="ge-input" type="date" id="ipu_edate_'+p.item_code+'" value="'+(p.effective_date||'')+'" style="width:138px">'
+        +'</div>'
+        // Keterangan
+        +'<div style="display:flex;flex-direction:column;gap:.25rem;flex:1;min-width:160px">'
+        +'<label style="font-size:.68rem;color:var(--t3);font-family:var(--fm)">Keterangan</label>'
+        +'<input class="ge-input" id="ipu_ket_'+p.item_code+'" value="'+geEsc(p.keterangan||'')+'"'
+        +' style="width:100%" placeholder="Keterangan (opsional)">'
         +'</div>'
         // Tombol
         +'<div style="display:flex;gap:.35rem;padding-bottom:.05rem">'
@@ -8328,10 +8358,12 @@ function ipToggleUpdate(code) {
 // PUT /item-prices/:code  →  { currency, price, hedging, landed }
 // Loose Tube & Fiber tidak diupdate di sini — gunakan Edit Grid untuk field tersebut
 function ipSaveUpdate(code) {
-  var currency = (document.getElementById('ipu_curr_'+code)||{}).value||'USD';
-  var priceRaw = (document.getElementById('ipu_price_'+code)||{}).value||'0';
-  var hedgRaw  = (document.getElementById('ipu_hed_'+code)||{}).value||'0';
-  var landRaw  = (document.getElementById('ipu_land_'+code)||{}).value||'0';
+  var currency    = (document.getElementById('ipu_curr_'+code)||{}).value||'USD';
+  var priceRaw    = (document.getElementById('ipu_price_'+code)||{}).value||'0';
+  var hedgRaw     = (document.getElementById('ipu_hed_'+code)||{}).value||'0';
+  var landRaw     = (document.getElementById('ipu_land_'+code)||{}).value||'0';
+  var effDate     = (document.getElementById('ipu_edate_'+code)||{}).value||new Date().toISOString().slice(0,10);
+  var keterangan  = (document.getElementById('ipu_ket_'+code)||{}).value||'';
 
   // Parse format Indonesia → float
   var price   = parseIdNum(priceRaw);
@@ -8341,12 +8373,12 @@ function ipSaveUpdate(code) {
   if(price<0){ toast('Harga tidak boleh negatif','error'); return; }
 
   apiSave(API.itemPrice.update(code, {currency:currency, price:price,
-    hedging:hedging, landed:landed}), function(){
+    hedging:hedging, landed:landed, effective_date:effDate, keterangan:keterangan}), function(){
     IP_UPDATE[code] = false;
     // Sinkronkan cache lokal DB_itemPrices
     var rec = DB_itemPrices.find(function(r){ return r.item_code===code; });
     if(rec){ rec.currency=currency; rec.price=price; rec.hedging=hedging;
-             rec.landed=landed; }
+             rec.landed=landed; rec.effective_date=effDate; rec.keterangan=keterangan; }
     renderItemPrices();
     toast('Harga berhasil diupdate','success');
   });

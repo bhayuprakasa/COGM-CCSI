@@ -42,8 +42,8 @@ router.get('/item-prices/:itemCode/logs', requireAuth, async (req,res) => {
 // ── POST create/update item price (upsert) ──
 router.post('/item-prices', requireEdit, async (req,res) => {
   try {
-    const {item_code, item_name, uom, currency, price, hedging, landed, note,
-           loose_tube_qty, fiber_per_tube_qty} = req.body;
+    const {item_code, item_name, uom, currency, price, hedging, landed, effective_date, note,
+           loose_tube_qty, fiber_per_tube_qty, keterangan} = req.body;
     if(!item_code) return res.status(400).json({error:'Item Code wajib.'});
 
     // total_fiber_qty dihitung server-side dari perkalian loose_tube_qty × fiber_per_tube_qty
@@ -67,27 +67,27 @@ router.post('/item-prices', requireEdit, async (req,res) => {
          existing.landed, parseFloat(landed)||0,
          who(req), now(), note||'']);
 
-      // Update price — termasuk item_name, uom, dan fiber spec
+      // Update price — termasuk item_name, uom, fiber spec, dan keterangan
       await query(`UPDATE item_prices SET
-        item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?,
-        loose_tube_qty=?, fiber_per_tube_qty=?, total_fiber_qty=?,
+        item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?, effective_date=?,
+        loose_tube_qty=?, fiber_per_tube_qty=?, total_fiber_qty=?, keterangan=?,
         modified_by=?, modified_dt=? WHERE item_code=?`,
         [item_name||'', uom||'', currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
-         parseFloat(landed)||0,
-         looseTube, fiberPerTube, totalFiber,
+         parseFloat(landed)||0, effective_date||'',
+         looseTube, fiberPerTube, totalFiber, keterangan||'',
          who(req), now(), item_code]);
 
       res.json({ok:true, action:'updated'});
     } else {
-      // Insert new price — termasuk item_name, uom, dan fiber spec
+      // Insert new price — termasuk item_name, uom, fiber spec, dan keterangan
       await query(`INSERT INTO item_prices
-        (item_code,item_name,uom,currency,price,hedging,landed,
-         loose_tube_qty,fiber_per_tube_qty,total_fiber_qty,
+        (item_code,item_name,uom,currency,price,hedging,landed,effective_date,
+         loose_tube_qty,fiber_per_tube_qty,total_fiber_qty,keterangan,
          created_by,created_dt,modified_by,modified_dt)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [item_code, item_name||'', uom||'', currency||'USD', parseFloat(price)||0, parseFloat(hedging)||0,
-         parseFloat(landed)||0,
-         looseTube, fiberPerTube, totalFiber,
+         parseFloat(landed)||0, effective_date||now(),
+         looseTube, fiberPerTube, totalFiber, keterangan||'',
          who(req), now(), who(req), now()]);
 
       // Log first entry
@@ -106,8 +106,8 @@ router.post('/item-prices', requireEdit, async (req,res) => {
 // ── PUT update item price ──
 router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
   try {
-    const {item_name, uom, currency, price, hedging, landed, note,
-           loose_tube_qty, fiber_per_tube_qty, new_item_code} = req.body;
+    const {item_name, uom, currency, price, hedging, landed, effective_date, note,
+           loose_tube_qty, fiber_per_tube_qty, new_item_code, keterangan} = req.body;
     let item_code = req.params.itemCode;
 
     // Rename item_code jika new_item_code berbeda dari yang sekarang
@@ -150,15 +150,18 @@ router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
          who(req), now(), note||'']);
     }
 
-    // Update — termasuk fiber spec
+    // Keterangan — gunakan nilai lama jika tidak dikirim
+    const newKeterangan = keterangan!=null ? keterangan : (existing.keterangan||'');
+
+    // Update — termasuk fiber spec dan keterangan
     await query(`UPDATE item_prices SET
-      item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?,
-      loose_tube_qty=?, fiber_per_tube_qty=?, total_fiber_qty=?,
+      item_name=?, uom=?, currency=?, price=?, hedging=?, landed=?, effective_date=?,
+      loose_tube_qty=?, fiber_per_tube_qty=?, total_fiber_qty=?, keterangan=?,
       modified_by=?, modified_dt=? WHERE item_code=?`,
       [item_name!=null ? item_name : existing.item_name||'',
        uom!=null       ? uom       : existing.uom||'',
-       newCurrency, newPrice, newHedging, newLanded,
-       newLooseTube, newFiberPerTube, newTotalFiber,
+       newCurrency, newPrice, newHedging, newLanded, newEffDate,
+       newLooseTube, newFiberPerTube, newTotalFiber, newKeterangan,
        who(req), now(), item_code]);
 
     res.json({ok:true});
