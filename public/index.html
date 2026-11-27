@@ -768,6 +768,9 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
     <div class="ab-right">
       <button class="btn btn-primary" onclick="openItemFgForm()">+ Tambah Item FG</button>
     </div>
+    <button class="btn btn-primary" onclick="openItemFgForm()">+ Tambah Item FG</button>
+    <button class="btn btn-ghost" id="ge_toggle_itemfg" onclick="geToggleAll('itemfg')" title="Edit item code langsung di tabel">✎ Edit Grid</button>
+    <button class="btn btn-primary" id="ge_saveall_itemfg" onclick="geSaveAll('itemfg')" style="display:none">💾 Simpan Semua</button>
   </div>
 
   <!-- FORM TAMBAH/EDIT -->
@@ -2990,19 +2993,29 @@ function renderItemFg(){
     return;
   }
   tbody.innerHTML = data.map(r=>{
+    const _ge = GE.itemfg==='__all__' || GE.itemfg===r.id;
     const machines = (r.machines||[]).map(m=>mlBadge(m.machine_line,'font-size:.65rem')).join(' ') || '<span class="muted">—</span>';
-    return `<tr>
-      <td class="mono">${r.code}</td>
-      <td>${r.name}</td>
+    // Kolom item_code dan item_name editable saat GE mode aktif
+    const codeCell = _ge
+      ? `<input class="ge-input" id="ge_ifg_code_${r.id}" value="${geEsc(r.code||'')}" style="width:100px">`
+      : `<span class="mono">${r.code}</span>`;
+    const nameCell = _ge
+      ? `<input class="ge-input" id="ge_ifg_name_${r.id}" value="${geEsc(r.name||'')}" style="min-width:120px">`
+      : r.name;
+    const actCell = _ge
+      ? `<button class="btn btn-primary btn-xs" onclick="geSaveItemFgGE('${r.id}')">💾 Simpan</button>`
+        + (GE.itemfg!=='__all__'?`<button class="btn btn-secondary btn-xs" onclick="geCancel('itemfg')">✕ Batal</button>`:'')
+      : `<button class="btn btn-amber btn-xs" onclick="openItemFgForm('${r.id}')">✏</button>`
+        + `<button class="btn btn-danger btn-xs" onclick="deleteItemFg('${r.id}')">🗑</button>`;
+    return `<tr${_ge?' class="ge-row"':''}>
+      <td>${codeCell}</td>
+      <td>${nameCell}</td>
       <td><span class="badge badge-teal" style="font-size:.65rem">${r.uom||'—'}</span></td>
       <td style="text-align:right;font-family:var(--fm)">${r.loose_tube_qty||0}</td>
       <td style="text-align:right;font-family:var(--fm)">${r.fiber_qty||0}</td>
       <td style="text-align:right;font-family:var(--fm);color:var(--cyan)">${r.total_fiber_qty||0}</td>
       <td style="font-size:.72rem">${machines}</td>
-      <td><div style="display:flex;gap:.3rem">
-        <button class="btn btn-amber btn-xs" onclick="openItemFgForm('${r.id}')">✏</button>
-        <button class="btn btn-danger btn-xs" onclick="deleteItemFg('${r.id}')">🗑</button>
-      </div></td>
+      <td><div style="display:flex;gap:.3rem">${actCell}</div></td>
     </tr>`;
   }).join('');
 }
@@ -8069,8 +8082,12 @@ function renderItemPrices(){
 
     // ── Baris utama ──
     var mainRow = (_ge?'<tr class="ge-row">':'<tr>')
-      // Item Code — hanya tampil (tidak diedit via GE)
-      +'<td><span class="run-num" style="font-size:.75rem">'+p.item_code+'</span></td>'
+      // Item Code — editable di GE (rename didukung backend sejak update)
+      +'<td>'
+      +(_ge
+        ? '<input class="ge-input" id="ge_ip_code_'+p.item_code+'" value="'+geEsc(p.item_code||'')+'" style="width:90px">'
+        : '<span class="run-num" style="font-size:.75rem">'+p.item_code+'</span>')
+      +'</td>'
       // Item Name — editable di GE jika item belum dipakai
       +'<td>'
       +(_ge && !_inUse
@@ -8189,7 +8206,7 @@ function handleIpItemSelect(code){
 // State per-page: id record yang sedang di-edit, null = tidak ada
 var GE = {
   itemprice: null, exrate: null, dlfoh: null,
-  kap: null, mesin: null, mbom: null, bom: null
+  kap: null, mesin: null, mbom: null, bom: null, itemfg: null
 };
 
 // State inline update form per item_code (untuk update currency/price/hedging/landed)
@@ -8208,6 +8225,7 @@ function geRender(page){
   else if(page==='kap')       renderKap();
   else if(page==='mbom')      renderMBom();
   else if(page==='bom')       renderBom();
+  else if(page==='itemfg')    renderItemFg();
 }
 
 // Toggle mode Edit Grid semua baris — dipanggil dari tombol toolbar
@@ -8250,27 +8268,33 @@ function geCancel(page) {
 // geSaveItem dihapus — Master Item sudah tidak ada
 
 // ── Save Edit Grid: Item Prices ──
-// PUT /item-prices/:code → { item_name, uom }
-// Edit Grid hanya update nama dan UOM.
+// PUT /item-prices/:code → { new_item_code, item_name, uom }
+// Edit Grid update item_code (rename), nama, dan UOM.
 // Currency, price, hedging, landed hanya bisa diubah via tombol Update.
 function geSaveItemPriceGE(code) {
+  var codeEl = document.getElementById('ge_ip_code_'+code);
   var nameEl = document.getElementById('ge_ip_name_'+code);
   var uomEl  = document.getElementById('ge_ip_uom_'+code);
 
-  if(!nameEl){ toast('Input tidak ditemukan','error'); return; }
-  var name = nameEl.value.trim();
-  if(!name){ toast('Nama item tidak boleh kosong','error'); return; }
+  var newCode  = codeEl ? codeEl.value.trim() : code;
+  if(!newCode){ toast('Item Code tidak boleh kosong','error'); return; }
 
   var priceRec = DB_itemPrices.find(function(r){ return r.item_code===code; });
+  var name     = nameEl ? nameEl.value.trim() : (priceRec ? priceRec.item_name : '');
+  if(!name){ toast('Nama item tidak boleh kosong','error'); return; }
   var finalUom = uomEl ? uomEl.value.trim() : (priceRec ? priceRec.item_uom : '');
 
-  // Hanya kirim item_name dan uom — price/currency/hedging/landed tidak diubah
-  apiSave(API.itemPrice.update(code, {
-    item_name: name, uom: finalUom
-  }), function(){
+  var payload = {item_name: name, uom: finalUom};
+  // Tambahkan new_item_code hanya jika code berubah (agar backend tahu perlu rename)
+  if(newCode !== code) payload.new_item_code = newCode;
+
+  apiSave(API.itemPrice.update(code, payload), function(){
     if(GE.itemprice!=='__all__') GE.itemprice=null;
-    // Sinkronkan cache lokal DB_itemPrices
-    if(priceRec){ priceRec.item_name=name; priceRec.item_uom=finalUom; }
+    // Sinkronkan cache lokal DB_itemPrices — termasuk rename jika code berubah
+    if(priceRec){
+      priceRec.item_name=name; priceRec.item_uom=finalUom;
+      if(newCode !== code) priceRec.item_code=newCode;
+    }
     renderItemPrices();
     toast('Item berhasil disimpan','success');
   });
@@ -8391,6 +8415,41 @@ function geSaveMesin(id) {
   });
 }
 
+// ── Save Edit Grid: Master Item FG ──
+// PUT /item-fg/:id → { code, name, uom, loose_tube_qty, fiber_qty, machines }
+// Edit Grid hanya update code dan name; uom/qty/machines tetap dari data existing.
+function geSaveItemFgGE(id) {
+  var codeEl = document.getElementById('ge_ifg_code_'+id);
+  var nameEl = document.getElementById('ge_ifg_name_'+id);
+  if(!codeEl || !nameEl){ toast('Input tidak ditemukan','error'); return; }
+  var newCode = codeEl.value.trim();
+  var name    = nameEl.value.trim();
+  if(!newCode){ toast('Item Code tidak boleh kosong','error'); return; }
+  if(!name)   { toast('Item Name tidak boleh kosong','error'); return; }
+  var rec = (DB.itemfg||[]).find(function(r){ return String(r.id)===String(id); });
+  if(!rec){ toast('Data tidak ditemukan','error'); return; }
+  // Kirim code, name, dan pertahankan field lain dari cache lokal
+  var payload = {
+    code: newCode, name: name, uom: rec.uom||'',
+    loose_tube_qty: rec.loose_tube_qty||0, fiber_qty: rec.fiber_qty||0,
+    machines: rec.machines||[]
+  };
+  apiSave(fetch('/api/item-fg/'+id,{method:'PUT',
+    headers:{'Content-Type':'application/json','x-token':getToken()},
+    body:JSON.stringify(payload)
+  }).then(function(r){ return r.ok?r.json():r.json().then(function(d){throw new Error(d.error||'Gagal update');}); }),
+  function(){
+    if(GE.itemfg!=='__all__') GE.itemfg=null;
+    // Sinkronkan cache lokal
+    rec.code=newCode; rec.name=name;
+    // Jika code berubah, update juga di DB_fgItems
+    var fg = (DB_fgItems||[]).find(function(f){ return String(f.id)===String(id); });
+    if(fg){ fg.code=newCode; fg.name=name; }
+    renderItemFg();
+    toast('Item FG berhasil disimpan','success');
+  });
+}
+
 // ── Save: Master BOM ──────────────────────────────────────────────
 // PUT /masterbom/:id  →  { product, customer, project, fiber_cnt, buffer_qty, fiber_qty, groups }
 // groups harus disertakan agar server tidak menghapus baris grup yang ada
@@ -8420,9 +8479,9 @@ function geSaveMBom(id) {
 function geSaveAll(page) {
   var dbMap = {
     item:'items', exrate:'exrates',
-    dlfoh:'dlfoh', kap:'kap', mesin:'mesin', mbom:'masterbom', bom:'bom'
+    dlfoh:'dlfoh', kap:'kap', mesin:'mesin', mbom:'masterbom', bom:'bom', itemfg:'itemfg'
   };
-  // itemprice menggunakan DB_itemPrices (bukan DB.prices yang merupakan price document)
+  // itemprice menggunakan DB_itemPrices; itemfg menggunakan DB.itemfg
   var list = page==='itemprice' ? (DB_itemPrices||[]) : (DB[dbMap[page]]||[]);
   if(!list.length){ toast('Tidak ada data','error'); return; }
 
@@ -8445,17 +8504,24 @@ function geSaveAll(page) {
         .catch(function(){errors++;});
 
     } else if(page==='itemprice'){
-      // Edit Grid item price: hanya update nama & UOM item (bukan currency/price/hedging)
+      // Edit Grid item price: update item_code (rename), nama, UOM
       var code=rec.item_code;
+      var codeEl=document.getElementById('ge_ip_code_'+code);
       var nameEl=document.getElementById('ge_ip_name_'+code);
-      if(nameEl==null) return; // baris tidak dalam edit mode, skip
-      var name=nameEl.value.trim()||rec.item_name||'';
+      if(codeEl==null && nameEl==null) return; // baris tidak dalam edit mode, skip
+      var newCode=(codeEl?codeEl.value.trim():null)||code;
+      var name=(nameEl?nameEl.value.trim():null)||rec.item_name||'';
       var uom=((document.getElementById('ge_ip_uom_'+code)||{}).value||'').trim()||rec.item_uom||'';
-      // DB.items sudah tidak dipakai — langsung update ke item-prices
-      if(!name){errors++;return;}
+      if(!newCode||!name){errors++;return;}
       var finalUom=uom||rec.item_uom||'';
-      p=Promise.resolve(API.itemPrice.update(code,{item_name:name,uom:finalUom}))
-        .then(function(){rec.item_name=name;rec.item_uom=finalUom;saved++;})
+      var payload={item_name:name,uom:finalUom};
+      if(newCode!==code) payload.new_item_code=newCode;
+      p=Promise.resolve(API.itemPrice.update(code,payload))
+        .then(function(){
+          rec.item_name=name;rec.item_uom=finalUom;
+          if(newCode!==code) rec.item_code=newCode;
+          saved++;
+        })
         .catch(function(){errors++;});
 
     } else if(page==='exrate'){
@@ -8521,6 +8587,29 @@ function geSaveAll(page) {
         usd_rate_snapshot:getLatestRate('USD')||rec.usd_rate_snapshot,groups:rec.groups||[]};
       p=Promise.resolve(API.bom.update(id,payload))
         .then(function(){rec.product=product;rec.customer=customer.trim();rec.price_id=price_id.trim()||null;saved++;})
+        .catch(function(){errors++;});
+
+    } else if(page==='itemfg'){
+      // Edit Grid item FG: update item_code dan nama; pertahankan field lain dari cache
+      var codeEl2=document.getElementById('ge_ifg_code_'+id);
+      var nameEl2=document.getElementById('ge_ifg_name_'+id);
+      if(codeEl2==null && nameEl2==null) return; // baris tidak dalam edit mode, skip
+      var nc=(codeEl2?codeEl2.value.trim():null)||rec.code||'';
+      var nm=(nameEl2?nameEl2.value.trim():null)||rec.name||'';
+      if(!nc||!nm){errors++;return;}
+      var pl={code:nc,name:nm,uom:rec.uom||'',
+        loose_tube_qty:rec.loose_tube_qty||0,fiber_qty:rec.fiber_qty||0,machines:rec.machines||[]};
+      p=Promise.resolve(fetch('/api/item-fg/'+id,{method:'PUT',
+          headers:{'Content-Type':'application/json','x-token':getToken()},
+          body:JSON.stringify(pl)
+        }).then(function(r){return r.ok?r.json():r.json().then(function(d){throw new Error(d.error||'Gagal');});})
+      )
+        .then(function(){
+          rec.code=nc;rec.name=nm;
+          var fg=(DB_fgItems||[]).find(function(f){return String(f.id)===String(id);});
+          if(fg){fg.code=nc;fg.name=nm;}
+          saved++;
+        })
         .catch(function(){errors++;});
     }
 

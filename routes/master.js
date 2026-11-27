@@ -427,9 +427,22 @@ router.put('/item-fg/:id', requireEdit, async (req,res) => {
   try {
     const [item] = await query(`SELECT code FROM items WHERE id=? AND is_fg=1`, [req.params.id]);
     if (!item) return res.status(404).json({error:'Item FG tidak ditemukan.'});
-    const {name, uom, loose_tube_qty, fiber_qty, machines} = req.body;
+    const {code: newCode, name, uom, loose_tube_qty, fiber_qty, machines} = req.body;
     if (!name) return res.status(400).json({error:'Item Name wajib.'});
     if (!uom)  return res.status(400).json({error:'UOM wajib.'});
+
+    // Rename code jika newCode berbeda dari yang sekarang
+    let activeCode = item.code;
+    if (newCode && newCode.trim() !== item.code) {
+      const nc = newCode.trim();
+      const [conflict] = await query(`SELECT 1 FROM items WHERE code=? AND id!=?`, [nc, req.params.id]);
+      if (conflict) return res.status(400).json({error:'Item Code "'+nc+'" sudah digunakan.'});
+      // Update referensi machine lines dulu
+      await query(`UPDATE item_fg_machines SET item_code=? WHERE item_code=?`, [nc, item.code]);
+      await query(`UPDATE items SET code=? WHERE id=?`, [nc, req.params.id]);
+      activeCode = nc;
+    }
+
     const lt = parseInt(loose_tube_qty) || 0;
     const fq = parseInt(fiber_qty)      || 0;
     const tf = lt * fq;
@@ -437,8 +450,8 @@ router.put('/item-fg/:id', requireEdit, async (req,res) => {
       `UPDATE items SET name=?,uom=?,loose_tube_qty=?,fiber_qty=?,total_fiber_qty=?,modified_by=?,modified_dt=? WHERE id=?`,
       [name, uom, lt, fq, tf, who(req), now(), req.params.id]
     );
-    await replaceFgMachines(item.code, machines || []);
-    res.json({ok:true});
+    await replaceFgMachines(activeCode, machines || []);
+    res.json({ok:true, code:activeCode});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
