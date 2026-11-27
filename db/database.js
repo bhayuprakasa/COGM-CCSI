@@ -374,6 +374,8 @@ async function initSchema() {
       { table:'masterbom',       col:'no_spec',           def:"VARCHAR(255) DEFAULT ''" },
       // Scrap Fix (nilai tetap) di masterbom_lines
       { table:'masterbom_lines', col:'scrap_fix',         def:'DECIMAL(15,4) DEFAULT 0' },
+      // Keterangan/deskripsi tambahan untuk item price
+      { table:'item_prices',     col:'keterangan',        def:"TEXT DEFAULT ''" },
     ];
 
     // Batch check all columns at once — include all tables and columns being migrated
