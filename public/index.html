@@ -306,6 +306,8 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 
 /* ACTIONS BAR */
 .actions-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.9rem;flex-wrap:wrap;}
+.ab-left{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+.ab-right{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;}
 
 /* INLINE TABLE (line items) */
 .line-tbl-wrap{overflow-x:auto;}
@@ -491,13 +493,17 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <!-- ══════════ PAGE: PURCHASE PRICE ══════════ -->
 <div class="page active" id="page_price">
   <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total Item Price</span><span class="sp-val" id="price_count">0</span></div>
+    <div class="ab-left">
+      <div class="stat-row" style="margin-bottom:0">
+        <div class="stat-pill"><span class="sp-label">Total Item Price</span><span class="sp-val" id="price_count">0</span></div>
+      </div>
     </div>
-    <button class="btn btn-primary" onclick="openItemPriceForm()">+ Tambah Item Price</button>
-    <button class="btn btn-ghost" id="ge_toggle_itemprice" onclick="geToggleAll('itemprice')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
-    <button class="btn btn-primary" id="ge_saveall_itemprice" onclick="geSaveAll('itemprice')" style="display:none">💾 Simpan Semua</button>
-    <button class="btn btn-ghost" onclick="openUploadModal('itemprice')">⬆ Upload CSV</button>
+    <div class="ab-right">
+      <button class="btn btn-ghost" onclick="openUploadModal('itemprice')">⬆ Upload CSV</button>
+      <button class="btn btn-ghost" id="ge_toggle_itemprice" onclick="geToggleAll('itemprice')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+      <button class="btn btn-primary" id="ge_saveall_itemprice" onclick="geSaveAll('itemprice')" style="display:none">💾 Simpan Semua</button>
+      <button class="btn btn-primary" onclick="openItemPriceForm()">+ Tambah Item Price</button>
+    </div>
   </div>
 
   <!-- Form Set/Edit Harga Item -->
@@ -593,17 +599,21 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 
 <div class="page" id="page_exrate">
   <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total Currency</span><span class="sp-val" id="exrate_count">0</span></div>
-    </div>
-      <div class="sa-wrap" id="sa_wrap_exrate" style="margin-left:.5rem">
+    <div class="ab-left">
+      <div class="stat-row" style="margin-bottom:0">
+        <div class="stat-pill"><span class="sp-label">Total Currency</span><span class="sp-val" id="exrate_count">0</span></div>
+      </div>
+      <div class="sa-wrap" id="sa_wrap_exrate">
         <input type="checkbox" class="sa-cb" id="sa_cb_exrate" onchange="toggleSelectAll('exrate',this.checked)" title="Pilih Semua">
         <label class="sa-lbl" for="sa_cb_exrate">Pilih Semua</label>
         <button class="btn btn-danger btn-xs sa-del" id="sa_del_exrate" onclick="deleteSelected('exrate',deleteSelectedExrates)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_exrate">0</span>)</button>
       </div>
-    <button class="btn btn-primary" onclick="openExrateForm()">+ Tambah Currency</button>
-    <button class="btn btn-ghost" id="ge_toggle_exrate" onclick="geToggleAll('exrate')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
-    <button class="btn btn-primary" id="ge_saveall_exrate" onclick="geSaveAll('exrate')" style="display:none">💾 Simpan Semua</button>
+    </div>
+    <div class="ab-right">
+      <button class="btn btn-ghost" id="ge_toggle_exrate" onclick="geToggleAll('exrate')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+      <button class="btn btn-primary" id="ge_saveall_exrate" onclick="geSaveAll('exrate')" style="display:none">💾 Simpan Semua</button>
+      <button class="btn btn-primary" onclick="openExrateForm()">+ Tambah Currency</button>
+    </div>
   </div>
 
   <div class="card" id="exrate_form_card" style="display:none">
@@ -653,18 +663,22 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <!-- ══════════ PAGE: DL-FOH ══════════ -->
 <div class="page" id="page_dlfoh">
   <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total Category</span><span class="sp-val" id="dlfoh_count">0</span></div>
-    </div>
-      <div class="sa-wrap" id="sa_wrap_dlfoh" style="margin-left:.5rem">
+    <div class="ab-left">
+      <div class="stat-row" style="margin-bottom:0">
+        <div class="stat-pill"><span class="sp-label">Total Category</span><span class="sp-val" id="dlfoh_count">0</span></div>
+      </div>
+      <div class="sa-wrap" id="sa_wrap_dlfoh">
         <input type="checkbox" class="sa-cb" id="sa_cb_dlfoh" onchange="toggleSelectAll('dlfoh',this.checked)" title="Pilih Semua">
         <label class="sa-lbl" for="sa_cb_dlfoh">Pilih Semua</label>
         <button class="btn btn-danger btn-xs sa-del" id="sa_del_dlfoh" onclick="deleteSelected('dlfoh',deleteSelectedDlfoh)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_dlfoh">0</span>)</button>
       </div>
-    <button class="btn btn-primary" onclick="openDlfohForm()">+ Tambah Category</button>
-    <button class="btn btn-ghost" id="ge_toggle_dlfoh" onclick="geToggleAll('dlfoh')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
-    <button class="btn btn-primary" id="ge_saveall_dlfoh" onclick="geSaveAll('dlfoh')" style="display:none">💾 Simpan Semua</button>
-    <button class="btn btn-ghost" onclick="openUploadModal('dlfoh')">⬆ Upload CSV</button>
+    </div>
+    <div class="ab-right">
+      <button class="btn btn-ghost" onclick="openUploadModal('dlfoh')">⬆ Upload CSV</button>
+      <button class="btn btn-ghost" id="ge_toggle_dlfoh" onclick="geToggleAll('dlfoh')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+      <button class="btn btn-primary" id="ge_saveall_dlfoh" onclick="geSaveAll('dlfoh')" style="display:none">💾 Simpan Semua</button>
+      <button class="btn btn-primary" onclick="openDlfohForm()">+ Tambah Category</button>
+    </div>
   </div>
 
   <div class="card" id="dlfoh_form_card" style="display:none">
@@ -746,10 +760,14 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <!-- ══════════ PAGE: MASTER ITEM FG ══════════ -->
 <div class="page" id="page_itemfg">
   <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total Item FG</span><span class="sp-val" id="ifg_count">0</span></div>
+    <div class="ab-left">
+      <div class="stat-row" style="margin-bottom:0">
+        <div class="stat-pill"><span class="sp-label">Total Item FG</span><span class="sp-val" id="ifg_count">0</span></div>
+      </div>
     </div>
-    <button class="btn btn-primary" onclick="openItemFgForm()">+ Tambah Item FG</button>
+    <div class="ab-right">
+      <button class="btn btn-primary" onclick="openItemFgForm()">+ Tambah Item FG</button>
+    </div>
   </div>
 
   <!-- FORM TAMBAH/EDIT -->
@@ -841,18 +859,22 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <!-- ══════════ PAGE: KAPASITAS MESIN ══════════ -->
 <div class="page" id="page_kapasitas">
   <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total Kapasitas</span><span class="sp-val" id="kap_count">0</span></div>
-    </div>
-      <div class="sa-wrap" id="sa_wrap_kap" style="margin-left:.5rem">
+    <div class="ab-left">
+      <div class="stat-row" style="margin-bottom:0">
+        <div class="stat-pill"><span class="sp-label">Total Kapasitas</span><span class="sp-val" id="kap_count">0</span></div>
+      </div>
+      <div class="sa-wrap" id="sa_wrap_kap">
         <input type="checkbox" class="sa-cb" id="sa_cb_kap" onchange="toggleSelectAll('kap',this.checked)" title="Pilih Semua">
         <label class="sa-lbl" for="sa_cb_kap">Pilih Semua</label>
         <button class="btn btn-danger btn-xs sa-del" id="sa_del_kap" onclick="deleteSelected('kap',deleteSelectedKap)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_kap">0</span>)</button>
       </div>
-    <button class="btn btn-primary" onclick="openKapForm()">+ Tambah Master Route</button>
-    <button class="btn btn-ghost" id="ge_toggle_kap" onclick="geToggleAll('kap')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
-    <button class="btn btn-primary" id="ge_saveall_kap" onclick="geSaveAll('kap')" style="display:none">💾 Simpan Semua</button>
-    <button class="btn btn-ghost" onclick="openUploadModal('kap')">⬆ Upload CSV</button>
+    </div>
+    <div class="ab-right">
+      <button class="btn btn-ghost" onclick="openUploadModal('kap')">⬆ Upload CSV</button>
+      <button class="btn btn-ghost" id="ge_toggle_kap" onclick="geToggleAll('kap')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+      <button class="btn btn-primary" id="ge_saveall_kap" onclick="geSaveAll('kap')" style="display:none">💾 Simpan Semua</button>
+      <button class="btn btn-primary" onclick="openKapForm()">+ Tambah Master Route</button>
+    </div>
   </div>
 
   <div class="card" id="kap_form_card" style="display:none">
@@ -934,18 +956,22 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <!-- ══════════ PAGE: MASTER BOM ══════════ -->
 <div class="page" id="page_masterbom">
   <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total Master BOM</span><span class="sp-val" id="mbom_count">0</span></div>
-    </div>
-      <div class="sa-wrap" id="sa_wrap_masterbom" style="margin-left:.5rem">
+    <div class="ab-left">
+      <div class="stat-row" style="margin-bottom:0">
+        <div class="stat-pill"><span class="sp-label">Total Master BOM</span><span class="sp-val" id="mbom_count">0</span></div>
+      </div>
+      <div class="sa-wrap" id="sa_wrap_masterbom">
         <input type="checkbox" class="sa-cb" id="sa_cb_masterbom" onchange="toggleSelectAll('masterbom',this.checked)" title="Pilih Semua">
         <label class="sa-lbl" for="sa_cb_masterbom">Pilih Semua</label>
         <button class="btn btn-danger btn-xs sa-del" id="sa_del_masterbom" onclick="deleteSelected('masterbom',deleteSelectedMBom)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_masterbom">0</span>)</button>
       </div>
-    <button class="btn btn-primary" onclick="openMBomForm()">+ Tambah Master BOM</button>
-    <button class="btn btn-ghost" id="ge_toggle_mbom" onclick="geToggleAll('mbom')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
-    <button class="btn btn-primary" id="ge_saveall_mbom" onclick="geSaveAll('mbom')" style="display:none">💾 Simpan Semua</button>
-    <button class="btn btn-ghost" onclick="openUploadModal('masterbom')">⬆ Upload CSV</button>
+    </div>
+    <div class="ab-right">
+      <button class="btn btn-ghost" onclick="openUploadModal('masterbom')">⬆ Upload CSV</button>
+      <button class="btn btn-ghost" id="ge_toggle_mbom" onclick="geToggleAll('mbom')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+      <button class="btn btn-primary" id="ge_saveall_mbom" onclick="geSaveAll('mbom')" style="display:none">💾 Simpan Semua</button>
+      <button class="btn btn-primary" onclick="openMBomForm()">+ Tambah Master BOM</button>
+    </div>
   </div>
 
   <!-- MASTER BOM FORM -->
@@ -1041,17 +1067,21 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <!-- ══════════ PAGE: BOM ══════════ -->
 <div class="page" id="page_bom">
   <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total BOM</span><span class="sp-val" id="bom_count">0</span></div>
-    </div>
-      <div class="sa-wrap" id="sa_wrap_bom" style="margin-left:.5rem">
+    <div class="ab-left">
+      <div class="stat-row" style="margin-bottom:0">
+        <div class="stat-pill"><span class="sp-label">Total BOM</span><span class="sp-val" id="bom_count">0</span></div>
+      </div>
+      <div class="sa-wrap" id="sa_wrap_bom">
         <input type="checkbox" class="sa-cb" id="sa_cb_bom" onchange="toggleSelectAll('bom',this.checked)" title="Pilih Semua">
         <label class="sa-lbl" for="sa_cb_bom">Pilih Semua</label>
         <button class="btn btn-danger btn-xs sa-del" id="sa_del_bom" onclick="deleteSelected('bom',deleteSelectedBom)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_bom">0</span>)</button>
       </div>
-    <button class="btn btn-primary" onclick="openBomForm()">+ Buat BOM Baru</button>
-    <button class="btn btn-ghost" id="ge_toggle_bom" onclick="geToggleAll('bom')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
-    <button class="btn btn-primary" id="ge_saveall_bom" onclick="geSaveAll('bom')" style="display:none">💾 Simpan Semua</button>
+    </div>
+    <div class="ab-right">
+      <button class="btn btn-ghost" id="ge_toggle_bom" onclick="geToggleAll('bom')" title="Edit semua baris langsung di tabel">✎ Edit Grid</button>
+      <button class="btn btn-primary" id="ge_saveall_bom" onclick="geSaveAll('bom')" style="display:none">💾 Simpan Semua</button>
+      <button class="btn btn-primary" onclick="openBomForm()">+ Buat BOM Baru</button>
+    </div>
   </div>
 
   <!-- BOM FORM -->
@@ -1166,15 +1196,19 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <!-- ══════════ PAGE: HISTORY BOM ══════════ -->
 <div class="page" id="page_history">
   <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total Approved</span><span class="sp-val" id="hist_count">0</span></div>
-    </div>
-      <div class="sa-wrap" id="sa_wrap_history" style="margin-left:.5rem">
+    <div class="ab-left">
+      <div class="stat-row" style="margin-bottom:0">
+        <div class="stat-pill"><span class="sp-label">Total Approved</span><span class="sp-val" id="hist_count">0</span></div>
+      </div>
+      <div class="sa-wrap" id="sa_wrap_history">
         <input type="checkbox" class="sa-cb" id="sa_cb_history" onchange="toggleSelectAll('history',this.checked)" title="Pilih Semua">
         <label class="sa-lbl" for="sa_cb_history">Pilih Semua</label>
         <button class="btn btn-danger btn-xs sa-del" id="sa_del_history" onclick="deleteSelected('history',null)" style="margin-left:.25rem">🗑 Hapus Terpilih (<span id="sa_cnt_history">0</span>)</button>
       </div>
-    <input class="finput" style="width:220px" placeholder="🔍 Cari BOM ID / Product..." oninput="filterHistory(this.value)">
+    </div>
+    <div class="ab-right">
+      <input class="finput" style="width:220px" placeholder="🔍 Cari BOM ID / Product..." oninput="filterHistory(this.value)">
+    </div>
   </div>
   <div class="card">
     <div class="card-head"><div class="card-title">📜 History Transaksi BOM</div><div id="coltoggle_history" style="margin-left:.5rem"></div></div>
@@ -1498,10 +1532,14 @@ tr.ge-row>td{background:rgba(34,211,238,.04)!important;border-top:1px solid rgba
 <!-- ══════════════ COGS SUMMARY PAGE ══════════════ -->
 <div class="page" id="page_cogs">
   <div class="actions-bar">
-    <div class="stat-row" style="margin-bottom:0">
-      <div class="stat-pill"><span class="sp-label">Total COGS Doc</span><span class="sp-val" id="cogs_count">0</span></div>
+    <div class="ab-left">
+      <div class="stat-row" style="margin-bottom:0">
+        <div class="stat-pill"><span class="sp-label">Total COGS Doc</span><span class="sp-val" id="cogs_count">0</span></div>
+      </div>
     </div>
-    <button class="btn btn-primary" onclick="openCogsForm()">+ Buat COGS Summary</button>
+    <div class="ab-right">
+      <button class="btn btn-primary" onclick="openCogsForm()">+ Buat COGS Summary</button>
+    </div>
   </div>
 
   <!-- Form -->
