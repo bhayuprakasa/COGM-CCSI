@@ -134,6 +134,8 @@ router.put('/item-prices/:itemCode', requireEdit, async (req,res) => {
     const newLooseTube    = loose_tube_qty!=null    ? parseInt(loose_tube_qty)||0    : (existing.loose_tube_qty||0);
     const newFiberPerTube = fiber_per_tube_qty!=null? parseInt(fiber_per_tube_qty)||0: (existing.fiber_per_tube_qty||0);
     const newTotalFiber   = newLooseTube * newFiberPerTube;
+    // effective_date — gunakan nilai lama jika tidak dikirim
+    const newEffDate      = effective_date!=null ? effective_date : (existing.effective_date||'');
 
     const priceChanged = newPrice!==existing.price || newCurrency!==existing.currency ||
                          newHedging!==existing.hedging || newLanded!==existing.landed;

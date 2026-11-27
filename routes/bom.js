@@ -36,45 +36,60 @@ async function snapshotRates(bomId) {
   }
 }
 
-// ── Helper: build groups with lines ──
-async function buildGroups(groupTable, lineTable, dlfohTable, parentField, parentId) {
-  const groups = await query(`SELECT * FROM ${groupTable} WHERE ${parentField}=? ORDER BY sort_order`, [parentId]);
-  for (const g of groups) {
-    g.lines      = await query(`SELECT * FROM ${lineTable} WHERE group_id=? ORDER BY sort_order`, [g.id]);
-    // Load bom_dlfoh untuk BOM biasa (masterbom_dlfoh tidak lagi digunakan — DL-FOH berasal dari Master Route)
-    if (dlfohTable === 'bom_dlfoh') {
-      const dlfoh = await query(`SELECT * FROM ${dlfohTable} WHERE group_id=? ORDER BY sort_order`, [g.id]);
-      g.dlfohLines = dlfoh.map(d => ({
-        ...d,
-        index:        parseFloat(d.idx || 0),
-        index_manual: !!(d.index_manual),
-        setup:        parseFloat(d.setup)  || 0,
-        factor:       parseFloat(d.factor) || 1,
-        total_hour:   parseFloat(d.total_hour) || 0,
-        total_cost:   parseFloat(d.total_cost) || 0,
-      }));
-    } else {
-      // masterbom_dlfoh diabaikan — DL-FOH hanya dari Master Route saat BOM dibuat
-      g.dlfohLines = [];
-    }
-    // Normalize: add camelCase aliases for JS frontend compatibility
-    g.kapPct     = parseFloat(g.kap_pct) || 100;
-    g.dlLot      = parseFloat(g.dl_lot)  || 1;
-    g.fohLot     = parseFloat(g.foh_lot) || 1;
-    g.speed      = parseFloat(g.speed)   || 1;
-  }
-  return groups;
+// ── Helper: normalisasi field camelCase pada satu group ──
+function normalizeGroup(g) {
+  g.kapPct = parseFloat(g.kap_pct) || 100;
+  g.dlLot  = parseFloat(g.dl_lot)  || 1;
+  g.fohLot = parseFloat(g.foh_lot) || 1;
+  g.speed  = parseFloat(g.speed)   || 1;
+  return g;
+}
+
+// ── Helper: normalisasi satu baris dlfoh ──
+function normalizeDlfoh(d) {
+  return {
+    ...d,
+    index:        parseFloat(d.idx || 0),
+    index_manual: !!(d.index_manual),
+    setup:        parseFloat(d.setup)      || 0,
+    factor:       parseFloat(d.factor)     || 1,
+    total_hour:   parseFloat(d.total_hour) || 0,
+    total_cost:   parseFloat(d.total_cost) || 0,
+  };
 }
 
 // ── MASTER BOM ──
 router.get('/masterbom', requireAuth, async (req,res) => {
   try {
     const records = await query(`SELECT * FROM masterbom ORDER BY bomid`);
-    const result  = [];
-    for (const r of records) {
-      const groups = await buildGroups('masterbom_groups','masterbom_lines','masterbom_dlfoh','masterbom_id',r.id);
-      result.push({...r, groups, machine_lines:groups.map(g=>g.machine_line), lines:groups.flatMap(g=>g.lines)});
+    if (!records.length) return res.json([]);
+
+    // Batch fetch: 1 query groups + 1 query lines (tidak N+1 per record)
+    const ids   = records.map(r => r.id);
+    const inSql = ids.map(() => '?').join(',');
+    const groups = await query(`SELECT * FROM masterbom_groups WHERE masterbom_id IN (${inSql}) ORDER BY masterbom_id,sort_order`, ids);
+
+    let lineMap = {};
+    if (groups.length) {
+      const gids  = groups.map(g => g.id);
+      const gpSql = gids.map(() => '?').join(',');
+      const lines = await query(`SELECT * FROM masterbom_lines WHERE group_id IN (${gpSql}) ORDER BY sort_order`, gids);
+      for (const l of lines) (lineMap[l.group_id] ??= []).push(l);
     }
+
+    // Susun group per masterbom_id
+    const groupsByMbomId = {};
+    for (const g of groups) {
+      normalizeGroup(g);
+      g.lines      = lineMap[g.id] || [];
+      g.dlfohLines = []; // masterbom_dlfoh diabaikan — DL-FOH dari Master Route
+      (groupsByMbomId[g.masterbom_id] ??= []).push(g);
+    }
+
+    const result = records.map(r => {
+      const bomGroups = groupsByMbomId[r.id] || [];
+      return {...r, groups: bomGroups, machine_lines: bomGroups.map(g=>g.machine_line), lines: bomGroups.flatMap(g=>g.lines)};
+    });
     res.json(result);
   } catch(e) { res.status(500).json({error:e.message}); }
 });
@@ -125,15 +140,24 @@ async function deleteMBomGroups(mbomId) {
 }
 
 async function insertMBomGroups(mbomId, groups) {
-  for (let gi=0; gi<groups.length; gi++) {
+  if (!groups.length) return;
+  for (let gi = 0; gi < groups.length; gi++) {
     const g   = groups[gi];
-    const gid = 'MG'+uid();
-    await query(`INSERT INTO masterbom_groups (id,masterbom_id,machine_line,machine_id,kap_id,speed,kap_pct,dl_lot,foh_lot,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-      [gid,mbomId,g.machine_line||'',g.machine_id||'',g.kap_id||'',g.speed||1,g.kapPct||100,g.dlLot||1,g.fohLot||1,gi]);
-    for (let li=0; li<(g.lines||[]).length; li++) {
-      const l=g.lines[li];
-      await query(`INSERT INTO masterbom_lines (group_id,item_code,item_name,uom,qty,scrap,scrap_fix,factor,total_qty,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-        [gid,l.item_code||'',l.item_name||'',l.uom||'',l.qty||0,l.scrap||0,l.scrap_fix||0,l.factor||1,l.total_qty||0,li]);
+    const gid = 'MG' + uid();
+    await query(
+      `INSERT INTO masterbom_groups (id,masterbom_id,machine_line,machine_id,kap_id,speed,kap_pct,dl_lot,foh_lot,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+      [gid, mbomId, g.machine_line||'', g.machine_id||'', g.kap_id||'', g.speed||1, g.kapPct||100, g.dlLot||1, g.fohLot||1, gi]
+    );
+
+    // Bulk INSERT masterbom_lines — 1 query untuk semua baris dalam group ini
+    const lineArr = g.lines || [];
+    if (lineArr.length) {
+      const vals   = lineArr.map(() => '(?,?,?,?,?,?,?,?,?,?)').join(',');
+      const params = lineArr.flatMap((l, li) => [
+        gid, l.item_code||'', l.item_name||'', l.uom||'',
+        l.qty||0, l.scrap||0, l.scrap_fix||0, l.factor||1, l.total_qty||0, li,
+      ]);
+      await query(`INSERT INTO masterbom_lines (group_id,item_code,item_name,uom,qty,scrap,scrap_fix,factor,total_qty,sort_order) VALUES ${vals}`, params);
     }
     // masterbom_dlfoh tidak lagi disimpan — DL-FOH berasal dari Master Route saat BOM dibuat
   }
@@ -186,16 +210,53 @@ async function insertBomRoutingFromKap(bomId, itemCode, masterRouteId) {
 }
 
 // ── BOM ──
+// Batch fetch semua BOM beserta groups, lines, dlfoh, dan routing dalam 5 query flat
+// (bukan N+1 per BOM)
 async function buildBomList(whereClause='', params=[]) {
   const boms = await query(`SELECT * FROM bom ${whereClause} ORDER BY bomid`, params);
-  const result = [];
-  for (const b of boms) {
-    const groups  = await buildGroups('bom_groups','bom_lines','bom_dlfoh','bom_id',b.id);
-    // Sertakan routing snapshot per BOM
-    const routing = await query(`SELECT * FROM bom_routing WHERE bom_id = ? ORDER BY sort_order`, [b.id]);
-    result.push({...b, groups, routing, machine_lines:groups.map(g=>g.machine_line), lines:groups.flatMap(g=>g.lines)});
+  if (!boms.length) return [];
+
+  const bomIds = boms.map(b => b.id);
+  const inSql  = bomIds.map(() => '?').join(',');
+
+  // 1 query groups, kemudian lines+dlfoh+routing secara paralel
+  const groups = await query(`SELECT * FROM bom_groups WHERE bom_id IN (${inSql}) ORDER BY bom_id,sort_order`, bomIds);
+
+  let linesByGid = {}, dlfohByGid = {};
+  if (groups.length) {
+    const gids  = groups.map(g => g.id);
+    const gpSql = gids.map(() => '?').join(',');
+    const [lines, dlfohRows] = await Promise.all([
+      query(`SELECT * FROM bom_lines WHERE group_id IN (${gpSql}) ORDER BY sort_order`, gids),
+      query(`SELECT * FROM bom_dlfoh  WHERE group_id IN (${gpSql}) ORDER BY sort_order`, gids),
+    ]);
+    for (const l of lines) (linesByGid[l.group_id] ??= []).push(l);
+    for (const d of dlfohRows) (dlfohByGid[d.group_id] ??= []).push(normalizeDlfoh(d));
   }
-  return result;
+
+  const routing = await query(`SELECT * FROM bom_routing WHERE bom_id IN (${inSql}) ORDER BY bom_id,sort_order`, bomIds);
+
+  // Susun map group per bom_id, dan routing per bom_id
+  const groupsByBomId   = {};
+  const routingByBomId  = {};
+  for (const g of groups) {
+    normalizeGroup(g);
+    g.lines      = linesByGid[g.id]  || [];
+    g.dlfohLines = dlfohByGid[g.id]  || [];
+    (groupsByBomId[g.bom_id] ??= []).push(g);
+  }
+  for (const r of routing) (routingByBomId[r.bom_id] ??= []).push(r);
+
+  return boms.map(b => {
+    const bomGroups = groupsByBomId[b.id] || [];
+    return {
+      ...b,
+      groups:        bomGroups,
+      routing:       routingByBomId[b.id] || [],
+      machine_lines: bomGroups.map(g => g.machine_line),
+      lines:         bomGroups.flatMap(g => g.lines),
+    };
+  });
 }
 
 router.get('/bom', requireAuth, async (req,res) => {
@@ -209,13 +270,6 @@ router.get('/bom/history', requireAuth, async (req,res) => {
   try {
     // History = semua status final: approved, rejected (semua level), cancelled
     res.json(await buildBomList(`WHERE status IN ('approved','rejected_l1','rejected_l2','rejected_l3','cancelled')`));
-  } catch(e) { res.status(500).json({error:e.message}); }
-});
-
-router.get('/bom/active', requireAuth, async (req,res) => {
-  try {
-    // Active = draft dan semua pending (sedang dalam proses approval)
-    res.json(await buildBomList(`WHERE status NOT IN ('approved','rejected_l1','rejected_l2','rejected_l3','cancelled')`));
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
@@ -431,26 +485,44 @@ async function deleteBomGroups(bomId) {
 }
 
 async function insertBomGroups(bomId, groups) {
-  for (let gi=0; gi<groups.length; gi++) {
+  if (!groups.length) return;
+
+  // Pre-fetch semua dlfoh type sekaligus (tabel kecil) untuk hindari query per baris
+  const dlfohMasterMap = {};
+  const allDlfoh = await query(`SELECT catid, type FROM dlfoh`);
+  for (const d of allDlfoh) dlfohMasterMap[d.catid] = d.type || '';
+
+  for (let gi = 0; gi < groups.length; gi++) {
     const g   = groups[gi];
-    const gid = 'BG'+uid();
-    await query(`INSERT INTO bom_groups (id,bom_id,machine_line,machine_id,kap_id,speed,kap_pct,dl_lot,foh_lot,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-      [gid,bomId,g.machine_line||'',g.machine_id||'',g.kap_id||'',g.speed||1,g.kapPct||100,g.dlLot||1,g.fohLot||1,gi]);
-    for (let li=0; li<(g.lines||[]).length; li++) {
-      const l=g.lines[li];
+    const gid = 'BG' + uid();
+    await query(
+      `INSERT INTO bom_groups (id,bom_id,machine_line,machine_id,kap_id,speed,kap_pct,dl_lot,foh_lot,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+      [gid, bomId, g.machine_line||'', g.machine_id||'', g.kap_id||'', g.speed||1, g.kapPct||100, g.dlLot||1, g.fohLot||1, gi]
+    );
+
+    // Bulk INSERT bom_lines — 1 query untuk semua baris dalam group ini
+    const lineArr = g.lines || [];
+    if (lineArr.length) {
+      const vals   = lineArr.map(() => '(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').join(',');
       // exchange_rate = rate currency baris ini ke IDR (1 untuk IDR, rate master untuk USD/EUR/dll)
-      await query(`INSERT INTO bom_lines (group_id,item_code,item_name,uom,qty,scrap,factor,total_qty,currency,price,landed,hedging,total_amt,total_idr,exchange_rate,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [gid,l.item_code||'',l.item_name||'',l.uom||'',l.qty||0,l.scrap||0,l.factor||1,l.total_qty||0,l.currency||'USD',l.price||0,l.landed||0,l.hedging||0,l.total_amt||0,l.total_idr||0,parseFloat(l.exchange_rate||l.usd_rate)||0,li]);
+      const params = lineArr.flatMap((l, li) => [
+        gid, l.item_code||'', l.item_name||'', l.uom||'',
+        l.qty||0, l.scrap||0, l.factor||1, l.total_qty||0,
+        l.currency||'USD', l.price||0, l.landed||0, l.hedging||0,
+        l.total_amt||0, l.total_idr||0, parseFloat(l.exchange_rate||l.usd_rate)||0, li,
+      ]);
+      await query(`INSERT INTO bom_lines (group_id,item_code,item_name,uom,qty,scrap,factor,total_qty,currency,price,landed,hedging,total_amt,total_idr,exchange_rate,sort_order) VALUES ${vals}`, params);
     }
-    for (let di=0; di<(g.dlfohLines||[]).length; di++) {
-      const d=g.dlfohLines[di];
-      let dtype = d.type||'';
-      if(!dtype && d.cat) {
-        const dlfohRows = await query(`SELECT type FROM dlfoh WHERE catid=?`, [d.cat]);
-        if(dlfohRows.length) dtype = dlfohRows[0].type||'';
-      }
-      await query(`INSERT INTO bom_dlfoh (group_id,cat,type,idx,index_manual,setup,factor,total_hour,total_cost,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-        [gid,d.cat||'',dtype,d.index||0,d.index_manual?1:0,d.setup||0,d.factor||1,d.total_hour||0,d.total_cost||0,di]);
+
+    // Bulk INSERT bom_dlfoh — 1 query untuk semua baris dlfoh dalam group ini
+    const dlfohArr = g.dlfohLines || [];
+    if (dlfohArr.length) {
+      const vals   = dlfohArr.map(() => '(?,?,?,?,?,?,?,?,?,?)').join(',');
+      const params = dlfohArr.flatMap((d, di) => {
+        const dtype = d.type || dlfohMasterMap[d.cat] || '';
+        return [gid, d.cat||'', dtype, d.index||0, d.index_manual?1:0, d.setup||0, d.factor||1, d.total_hour||0, d.total_cost||0, di];
+      });
+      await query(`INSERT INTO bom_dlfoh (group_id,cat,type,idx,index_manual,setup,factor,total_hour,total_cost,sort_order) VALUES ${vals}`, params);
     }
   }
 }
@@ -523,35 +595,36 @@ router.delete('/cogs/:id', requireEdit, async (req, res) => {
 });
 
 async function insertCogsLines(cogsId, rows) {
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i];
-    await query(
-      `INSERT INTO cogs_summary_lines
-       (cogs_id,bom_id,bom_number,product,project,est_qty,jenis_fiber,
-        fiber_usd,rm_others,usd_rate,total_idr,dl_idr,fohf_idr,fohv_idr,cogs_idr,cogs_usd,note,sort_order)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [
-        cogsId,
-        r.bomId      || r.bom_id      || '',
-        r.bomid      || r.bom_number  || '',
-        r.product    || '',
-        r.project    || '',
-        parseFloat(r.estQty    || r.est_qty)   || 0,
-        r.jenisFiber || r.jenis_fiber           || '',
-        parseFloat(r.fiberUSD  || r.fiber_usd)  || 0,
-        parseFloat(r.rmOthers  || r.rm_others)  || 0,
-        parseFloat(r.usdRate   || r.usd_rate)   || 0,
-        parseFloat(r.totalIDR  || r.total_idr)  || 0,
-        parseFloat(r.dlIDR     || r.dl_idr)     || 0,
-        parseFloat(r.fohfIDR   || r.fohf_idr)   || 0,
-        parseFloat(r.fohvIDR   || r.fohv_idr)   || 0,
-        parseFloat(r.cogsIDR   || r.cogs_idr)   || 0,
-        parseFloat(r.cogsUSD   || r.cogs_usd)   || 0,
-        r.note || '',
-        i,
-      ]
-    );
-  }
+  if (!rows.length) return;
+  // Bulk INSERT semua baris sekaligus — 1 query, bukan N query
+  const vals   = rows.map(() => '(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').join(',');
+  const params = rows.flatMap((r, i) => [
+    cogsId,
+    r.bomId      || r.bom_id      || '',
+    r.bomid      || r.bom_number  || '',
+    r.product    || '',
+    r.project    || '',
+    parseFloat(r.estQty    || r.est_qty)   || 0,
+    r.jenisFiber || r.jenis_fiber           || '',
+    parseFloat(r.fiberUSD  || r.fiber_usd)  || 0,
+    parseFloat(r.rmOthers  || r.rm_others)  || 0,
+    parseFloat(r.usdRate   || r.usd_rate)   || 0,
+    parseFloat(r.totalIDR  || r.total_idr)  || 0,
+    parseFloat(r.dlIDR     || r.dl_idr)     || 0,
+    parseFloat(r.fohfIDR   || r.fohf_idr)   || 0,
+    parseFloat(r.fohvIDR   || r.fohv_idr)   || 0,
+    parseFloat(r.cogsIDR   || r.cogs_idr)   || 0,
+    parseFloat(r.cogsUSD   || r.cogs_usd)   || 0,
+    r.note || '',
+    i,
+  ]);
+  await query(
+    `INSERT INTO cogs_summary_lines
+     (cogs_id,bom_id,bom_number,product,project,est_qty,jenis_fiber,
+      fiber_usd,rm_others,usd_rate,total_idr,dl_idr,fohf_idr,fohv_idr,cogs_idr,cogs_usd,note,sort_order)
+     VALUES ${vals}`,
+    params
+  );
 }
 
 module.exports = router;

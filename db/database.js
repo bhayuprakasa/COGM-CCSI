@@ -90,7 +90,8 @@ async function initSchema() {
         new_landed DECIMAL(10,4) DEFAULT 0,
         changed_by VARCHAR(100),
         changed_dt VARCHAR(50),
-        note VARCHAR(255)
+        note VARCHAR(255),
+        INDEX idx_item_price_logs_code (item_code)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
       `CREATE TABLE IF NOT EXISTS exrates (
@@ -155,7 +156,8 @@ async function initSchema() {
         qty DECIMAL(15,4) DEFAULT 0, scrap DECIMAL(10,4) DEFAULT 0,
         factor DECIMAL(10,4) DEFAULT 1, total_qty DECIMAL(15,4) DEFAULT 0,
         sort_order INT DEFAULT 0,
-        modified_by VARCHAR(100), modified_dt VARCHAR(50)
+        modified_by VARCHAR(100), modified_dt VARCHAR(50),
+        INDEX idx_masterbom_lines_group (group_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
       `CREATE TABLE IF NOT EXISTS masterbom_dlfoh (
@@ -163,7 +165,8 @@ async function initSchema() {
         cat VARCHAR(100), type VARCHAR(50),
         idx DECIMAL(15,6) DEFAULT 0, index_manual TINYINT DEFAULT 0,
         setup DECIMAL(10,4) DEFAULT 0, factor DECIMAL(10,4) DEFAULT 1,
-        total_hour DECIMAL(15,6) DEFAULT 0, sort_order INT DEFAULT 0
+        total_hour DECIMAL(15,6) DEFAULT 0, sort_order INT DEFAULT 0,
+        INDEX idx_masterbom_dlfoh_group (group_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
       `CREATE TABLE IF NOT EXISTS bom (
@@ -202,7 +205,8 @@ async function initSchema() {
         landed DECIMAL(10,4) DEFAULT 0, hedging DECIMAL(10,4) DEFAULT 0,
         total_amt DECIMAL(20,6) DEFAULT 0, total_idr DECIMAL(20,4) DEFAULT 0,
         sort_order INT DEFAULT 0,
-        modified_by VARCHAR(100), modified_dt VARCHAR(50)
+        modified_by VARCHAR(100), modified_dt VARCHAR(50),
+        INDEX idx_bom_lines_group (group_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
       `CREATE TABLE IF NOT EXISTS bom_dlfoh (
@@ -211,7 +215,8 @@ async function initSchema() {
         idx DECIMAL(15,6) DEFAULT 0, index_manual TINYINT DEFAULT 0,
         setup DECIMAL(10,4) DEFAULT 0, factor DECIMAL(10,4) DEFAULT 1,
         total_hour DECIMAL(15,6) DEFAULT 0, total_cost DECIMAL(20,4) DEFAULT 0,
-        sort_order INT DEFAULT 0
+        sort_order INT DEFAULT 0,
+        INDEX idx_bom_dlfoh_group (group_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
       // Tabel harga pembelian (purchase price list) — header
@@ -422,6 +427,28 @@ async function initSchema() {
     );
     console.log('   ✅ DL-FOH rate_process & rate_setup migrated from rate');
 
+    // ── Migration: tambahkan index yang hilang jika belum ada ──
+    // InnoDB tidak buat index otomatis untuk kolom non-FK — cek INFORMATION_SCHEMA dulu
+    const indexesToAdd = [
+      { table: 'masterbom_lines',  index: 'idx_masterbom_lines_group',  col: 'group_id' },
+      { table: 'masterbom_dlfoh',  index: 'idx_masterbom_dlfoh_group',  col: 'group_id' },
+      { table: 'bom_lines',        index: 'idx_bom_lines_group',        col: 'group_id' },
+      { table: 'bom_dlfoh',        index: 'idx_bom_dlfoh_group',        col: 'group_id' },
+      { table: 'item_price_logs',  index: 'idx_item_price_logs_code',   col: 'item_code' },
+    ];
+    const [existingIndexes] = await conn.execute(
+      `SELECT TABLE_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS
+       WHERE TABLE_SCHEMA = ? AND INDEX_NAME IN (?,?,?,?,?)`,
+      [cfg.database, ...indexesToAdd.map(i => i.index)]
+    );
+    const existingIdxSet = new Set(existingIndexes.map(r => `${r.TABLE_NAME}.${r.INDEX_NAME}`));
+    for (const { table, index, col } of indexesToAdd) {
+      if (!existingIdxSet.has(`${table}.${index}`)) {
+        await conn.execute(`ALTER TABLE ${table} ADD INDEX ${index} (${col})`);
+        console.log(`   + Added index ${table}.${index}`);
+      }
+    }
+
     // ── Seed sequences ──
     for (const name of ['item','price','kap','masterbom','bom','cogs']) {
       await conn.execute(`INSERT IGNORE INTO sequences (name,value) VALUES (?,0)`, [name]);
@@ -454,10 +481,22 @@ async function initSchema() {
   }
 }
 
+// Atomic sequence increment — transaksi mencegah race condition saat dua request bersamaan
 async function nextSeq(name) {
-  await query(`UPDATE sequences SET value=value+1 WHERE name=?`, [name]);
-  const rows = await query(`SELECT value FROM sequences WHERE name=?`, [name]);
-  return rows[0]?.value || 1;
+  const p    = await getPool();
+  const conn = await p.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.execute(`UPDATE sequences SET value = value + 1 WHERE name = ?`, [name]);
+    const [[row]] = await conn.execute(`SELECT value FROM sequences WHERE name = ?`, [name]);
+    await conn.commit();
+    return row?.value || 1;
+  } catch (e) {
+    await conn.rollback();
+    throw e;
+  } finally {
+    conn.release();
+  }
 }
 
 module.exports = { query, getPool, initSchema, nextSeq };

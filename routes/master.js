@@ -168,7 +168,10 @@ router.get('/prices', requireAuth, async (req,res) => {
   try {
     const prices = await query(`SELECT * FROM prices ORDER BY id`);
     const lines  = await query(`SELECT * FROM price_lines ORDER BY price_id,id`);
-    res.json(prices.map(p=>({...p, lines:lines.filter(l=>l.price_id===p.id)})));
+    // Gunakan Map untuk O(n) grouping — lebih efisien dari filter O(n×m)
+    const lineMap = {};
+    for (const l of lines) (lineMap[l.price_id] ??= []).push(l);
+    res.json(prices.map(p => ({...p, lines: lineMap[p.id] || []})));
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
@@ -203,10 +206,11 @@ router.delete('/prices/:id', requireEdit, async (req,res) => {
 });
 
 async function insertPriceLines(priceId, lines) {
-  for (const l of lines) {
-    await query(`INSERT INTO price_lines (price_id,item_code,item_name,qty,currency,price,hedging,landed) VALUES (?,?,?,?,?,?,?,?)`,
-      [priceId,l.item_code||'',l.item_name||'',l.qty||0,l.currency||'USD',l.price||0,l.hedging||0,l.landed||0]);
-  }
+  if (!lines.length) return;
+  // Bulk INSERT semua baris sekaligus — 1 query, bukan N query
+  const vals   = lines.map(() => '(?,?,?,?,?,?,?,?)').join(',');
+  const params = lines.flatMap(l => [priceId, l.item_code||'', l.item_name||'', l.qty||0, l.currency||'USD', l.price||0, l.hedging||0, l.landed||0]);
+  await query(`INSERT INTO price_lines (price_id,item_code,item_name,qty,currency,price,hedging,landed) VALUES ${vals}`, params);
 }
 
 // ── EXCHANGE RATES ──
@@ -266,10 +270,11 @@ router.delete('/exrates/:id', requireEdit, async (req,res) => {
 });
 
 async function insertExrateLines(exrateId, lines) {
-  for (const l of lines) {
-    await query(`INSERT INTO exrate_lines (exrate_id,tanggal,rate,rate_conversion) VALUES (?,?,?,?)`,
-      [exrateId,l.tanggal||'',l.rate||0,l.rate_conversion||1]);
-  }
+  if (!lines.length) return;
+  // Bulk INSERT semua baris sekaligus — 1 query, bukan N query
+  const vals   = lines.map(() => '(?,?,?,?)').join(',');
+  const params = lines.flatMap(l => [exrateId, l.tanggal||'', l.rate||0, l.rate_conversion||1]);
+  await query(`INSERT INTO exrate_lines (exrate_id,tanggal,rate,rate_conversion) VALUES ${vals}`, params);
 }
 
 // ── DL-FOH ──
@@ -404,10 +409,10 @@ router.get('/item-fg', requireAuth, async (req,res) => {
   try {
     const items = await query(`SELECT id,code,name,uom,loose_tube_qty,fiber_qty,total_fiber_qty,created_by,created_dt,modified_by,modified_dt FROM items WHERE is_fg=1 ORDER BY code`);
     const machines = await query(`SELECT item_code,machine_line,sort_order FROM item_fg_machines ORDER BY sort_order,id`);
-    const result = items.map(it => ({
-      ...it,
-      machines: machines.filter(m => m.item_code === it.code)
-    }));
+    // Gunakan Map untuk O(n) grouping — lebih efisien dari filter O(n×m)
+    const machineMap = {};
+    for (const m of machines) (machineMap[m.item_code] ??= []).push(m);
+    const result = items.map(it => ({...it, machines: machineMap[it.code] || []}));
     res.json(result);
   } catch(e) { res.status(500).json({error:e.message}); }
 });
